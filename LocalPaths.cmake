@@ -1,7 +1,0 @@
-set(GLFW3_INSTALL_DIR "D:/GLFW/install" CACHE PATH "Path to glfw source directory")
-set(GLAD_SOURCE_DIR "D:/glad" CACHE PATH "Path to glad source directory")
-set(STB_IMAGE_SOURCE_DIR "D:/stb_image" CACHE PATH "Path to stb_image source directory")
-set(GLM_SOURCE_DIR "D:/glm/glm-1.0.1" CACHE PATH "Path to glm source directory")
-set(ASSIMP_INSTALL_DIR "D:/Assimp/install" CACHE PATH "Path to directory with installed Assimp")
-set(ASSIMP_VERSION CACHE PATH "Assimp Version" "5.4")
-set(GTEST_INSTALL_DIR "D:/GoogleTest/install" CACHE PATH "Path to directory with installed GTest")
