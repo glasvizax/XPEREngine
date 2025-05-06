@@ -120,6 +120,10 @@ target_include_directories(Test
 	PRIVATE ${SRC_PATH}
 )
 
+foreach(subdir IN LISTS SUBDIRS)
+  target_include_directories(Test PRIVATE ${subdir})
+endforeach()
+
 gtest_discover_tests(Test)
 
 add_custom_command(
