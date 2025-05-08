@@ -1,5 +1,7 @@
 #include "Shader.h"
 
+#include "Defines.h"
+
 bool setupShader(const char* const src, GLenum shader_type, GLuint& result) 
 {
 	result = glCreateShader(shader_type);

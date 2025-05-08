@@ -1,5 +1,8 @@
+#pragma once
+
 class Engine
 {
 public:
-	int i = 12;
+
+	int run();
 };

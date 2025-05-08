@@ -1,8 +1,8 @@
 #include <iostream>
-#include "Core/Engine.h"
+#include "Engine.h"
 
 int main() 
 {
-	Engine e;
-	std::cout << e.i;
+	Engine engine;
+	return engine.run();
 }

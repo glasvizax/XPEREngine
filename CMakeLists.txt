@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.10)
 include(GoogleTest)
 enable_testing() 
 set(CMAKE_CXX_STANDARD 17)
@@ -13,6 +14,15 @@ set(BIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 set(GLSL_EXTS "vert;frag;geom")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${BIN_PATH}")
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+set(GLFW3_INSTALL_DIR "" CACHE PATH "Path to glfw source directory")
+set(GLAD_SOURCE_DIR "" CACHE PATH "Path to glad source directory")
+set(STB_IMAGE_SOURCE_DIR "" CACHE PATH "Path to stb_image source directory")
+set(GLM_SOURCE_DIR "" CACHE PATH "Path to glm source directory")
+set(ASSIMP_INSTALL_DIR "" CACHE PATH "Path to directory with installed Assimp")
+set(ASSIMP_VERSION "5.4" CACHE STRING "Assimp version")
+set(GTEST_INSTALL_DIR "" CACHE PATH "Path to directory with installed GTest")
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/LocalPaths.cmake")
   include("${CMAKE_SOURCE_DIR}/LocalPaths.cmake")
@@ -74,16 +84,7 @@ set(LIB_CPP ${ENGINE_CPP_FILES} ${GLAD_FILES} ${STB_IMAGE_FILES})
 
 list(REMOVE_ITEM LIB_CPP "${SRC_PATH}/main.cpp")
 
-message(${LIB_CPP})
 add_library(Engine STATIC ${LIB_CPP} ${GLSL_FILES})
-
-add_executable(Main "${SRC_PATH}/main.cpp")
-
-target_link_libraries(Engine 
-	PRIVATE glfw 
-	PRIVATE opengl32.lib
-	PRIVATE assimp::assimp
-)
 
 # Получить все поддиректории в src
 file(GLOB_RECURSE SUBDIRS LIST_DIRECTORIES true "${CMAKE_CURRENT_SOURCE_DIR}/src/*")
@@ -94,6 +95,12 @@ foreach(subdir IN LISTS SUBDIRS)
   target_include_directories(Engine PRIVATE ${subdir})
 endforeach()
 
+target_link_libraries(Engine 
+	PRIVATE glfw 
+	PRIVATE opengl32.lib
+	PRIVATE assimp::assimp
+)
+
 target_include_directories(Engine 
 	PUBLIC "${GLAD_SOURCE_DIR}/include"
 	PUBLIC ${STB_IMAGE_SOURCE_DIR}
@@ -101,10 +108,13 @@ target_include_directories(Engine
 	PUBLIC "${ASSIMP_INSTALL_DIR}/include"
 )
 
+add_executable(Main "${SRC_PATH}/main.cpp")
+
 target_link_libraries(Main PRIVATE Engine)
-target_include_directories(Main 
-	PRIVATE "${SRC_PATH}"
-)
+
+foreach(subdir IN LISTS SUBDIRS)
+  target_include_directories(Main PRIVATE ${subdir})
+endforeach()
 
 file(GLOB_RECURSE TEST_FILES "${TEST_PATH}/*.cpp" "${TEST_PATH}/*.h")
 source_group(TREE "${TEST_PATH}" FILES ${TEST_FILES})

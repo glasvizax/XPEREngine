@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include "Core/Rendering/Shader.h"
 
 TEST(ExampleTest, BasicAssertions)
 {

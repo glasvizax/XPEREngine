@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <unordered_map>
 #include <type_traits>
@@ -12,7 +13,6 @@
 
 class Shader
 {
-	GLuint m_program_id;
 
 public:
 	Shader() = default;
@@ -34,8 +34,10 @@ public:
 	template <size_t N, typename T>
 	void setMatArray(const std::string& name, const std::vector<glm::mat<N, N, T>>& array, GLsizei count);
 
-private:
+	GLuint getID() { return m_program_id; }
 
+private:
+	GLuint							  m_program_id = 0;
 	std::hash<std::string_view>		  m_hasher;
 	std::unordered_map<size_t, GLint> m_locations;
 };

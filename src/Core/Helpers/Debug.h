@@ -1,8 +1,9 @@
-#pragma once 
+#pragma once
 
-#include <iostream>
-#include "glad/glad.h"
-
+#ifdef _DEBUG
+	#include <iostream>
+	#include "glad/glad.h"
+/*
 void _checkErrorGL(const char* file, int line)
 {
 	GLenum error_code;
@@ -32,7 +33,7 @@ void _checkErrorGL(const char* file, int line)
 			case GL_INVALID_FRAMEBUFFER_OPERATION:
 				error = "INVALID_FRAMEBUFFER_OPERATION";
 				break;
-			default: 
+			default:
 				error = "default";
 				break;
 		}
@@ -123,26 +124,67 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum 
 	}
 	std::cout << std::endl
 			  << std::endl;
-}
+}*/
 
-#ifdef _DEBUG 
 
 	#define LOG_INFO(__msg__) \
 		printf("[INFO] [%s:%d] - %s\n", __FILE__, __LINE__, std::string(__msg__).c_str())
-	
+
 	#define LOG_WARNING(__msg__) \
 		printf("[WARNING] [%s:%d] - %s\n", __FILE__, __LINE__, std::string(__msg__).c_str())
-	
+
 	#define LOG_ERROR(__msg__) \
 		printf("[ERROR] [%s:%d] - %s\n", __FILE__, __LINE__, std::string(__msg__).c_str())
 
+	#define LOG_WARNING_IF(__cnd__, __msg__)                                                         \
+		do                                                                                           \
+		{                                                                                            \
+			if ((__cnd__))                                                                           \
+			{                                                                                        \
+				printf("[WARNING] [%s:%d] - %s\n", __FILE__, __LINE__, std::string(__msg__).c_str()) \
+			}                                                                                        \
+		}                                                                                            \
+		while (0, 0)
+
+	#define LOG_ERROR_IF(__cnd__, __msg__)                                                           \
+		do                                                                                           \
+		{                                                                                            \
+			if ((__cnd__))                                                                           \
+			{                                                                                        \
+				printf("[WARNING] [%s:%d] - %s\n", __FILE__, __LINE__, std::string(__msg__).c_str()) \
+			}                                                                                        \
+		}                                                                                            \
+		while (0, 0)
 
 #else
 
-	#define LOG_INFO(__msg__)  do {} while (0)
-	#define LOG_WARNING(__msg__)  do {} while (0)
-	#define LOG_ERROR(__msg__)  do {} while (0)
+	#define LOG_INFO(__msg__) \
+		do                    \
+		{                     \
+		}                     \
+		while (0)
+	#define LOG_WARNING(__msg__) \
+		do                       \
+		{                        \
+		}                        \
+		while (0)
+	#define LOG_ERROR(__msg__) \
+		do                     \
+		{                      \
+		}                      \
+		while (0)
+
+	#define LOG_WARNING_IF(__cnd__, __msg__) \
+		do                                 \
+		{                                  \
+		}                                  \
+		while (0)
+
+	#define LOG_ERROR_IF(__cnd__, __msg__)  \
+		do                                 \
+		{                                  \
+		}                                  \
+		while (0)
+
 
 #endif
-
-
