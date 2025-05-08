@@ -4,5 +4,5 @@
 int main() 
 {
 	Engine engine;
-	return engine.run();
+	return engine.runStandalone();
 }

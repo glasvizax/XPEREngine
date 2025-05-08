@@ -8,7 +8,7 @@
 WindowManager g_window_manager;
 InputManager  g_input_manager;
 
-int Engine::run()
+int Engine::runStandalone()
 {
 	if (!g_window_manager.init("test", 800, 600, false))
 	{
