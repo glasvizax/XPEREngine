@@ -1,4 +1,4 @@
-#include "Shader.h"
+#include "ShaderProgram.h"
 
 #include "Defines.h"
 
@@ -68,7 +68,7 @@ bool setupProgram(GLuint* shaders, uint count, GLuint& program)
 	return true;
 }
 
-Shader::Shader(const char* const vertex_src, const char* const fragment_src)
+ShaderProgram::ShaderProgram(const char* const vertex_src, const char* const fragment_src)
 {
 	if (!vertex_src)
 	{
@@ -104,7 +104,7 @@ Shader::Shader(const char* const vertex_src, const char* const fragment_src)
 	m_program_id = program;
 }
 
-Shader::Shader(const char* vertex_src, const char* fragment_src, const char* geometry_src)
+ShaderProgram::ShaderProgram(const char* vertex_src, const char* fragment_src, const char* geometry_src)
 {
 	if (!vertex_src)
 	{

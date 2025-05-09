@@ -6,7 +6,7 @@ namespace
 }
 
 template <size_t N, typename T>
-inline void Shader::setVec(const std::string& name, glm::vec<N, T> vec)
+inline void ShaderProgram::setVec(const std::string& name, glm::vec<N, T> vec)
 {
 	static_assert(N <= 4 && N >= 2, "N must be between 2 and 4");
 	static_assert(
@@ -38,7 +38,7 @@ inline void Shader::setVec(const std::string& name, glm::vec<N, T> vec)
 }
 
 template <size_t N, typename T>
-inline void Shader::setVecArray(const std::string& name, const std::vector<glm::vec<N, T>>& array, GLsizei count)
+inline void ShaderProgram::setVecArray(const std::string& name, const std::vector<glm::vec<N, T>>& array, GLsizei count)
 {
 	static_assert(N <= 4 && N >= 2, "N must be between 2 and 4");
 	static_assert(
@@ -80,7 +80,7 @@ inline void Shader::setVecArray(const std::string& name, const std::vector<glm::
 }
 
 template <typename T>
-inline void Shader::set(const std::string& name, T val)
+inline void ShaderProgram::set(const std::string& name, T val)
 {
 	static_assert(
 		std::is_same_v<T, float> || std::is_same_v<T, double> || std::is_same_v<T, int> || std::is_same_v<T, bool> || std::is_same_v<T, uint>,
@@ -109,7 +109,7 @@ inline void Shader::set(const std::string& name, T val)
 }
 
 template <size_t N, typename T>
-inline void Shader::setMat(const std::string& name, const glm::mat<N, N, T>& mat)
+inline void ShaderProgram::setMat(const std::string& name, const glm::mat<N, N, T>& mat)
 {
 	static_assert(N <= 4 && N >= 2, "N must be between 2 and 4");
 	static_assert(
@@ -139,7 +139,7 @@ inline void Shader::setMat(const std::string& name, const glm::mat<N, N, T>& mat
 }
 
 template <size_t N, typename T>
-inline void Shader::setMatArray(const std::string& name, const std::vector<glm::mat<N, N, T>>& array, GLsizei count)
+inline void ShaderProgram::setMatArray(const std::string& name, const std::vector<glm::mat<N, N, T>>& array, GLsizei count)
 {
 	static_assert(N <= 4 && N >= 2, "N must be between 2 and 4");
 

@@ -11,13 +11,13 @@
 #include "Debug.h"
 #include "Defines.h"
 
-class Shader
+class ShaderProgram
 {
 
 public:
-	Shader() = default;
-	Shader(const char* const vertex_src, const char* const fragment_src);
-	Shader(const char* const vertex_src, const char* const fragment_src, const char* const geometry_src);
+	ShaderProgram() = default;
+	ShaderProgram(const char* const vertex_src, const char* const fragment_src);
+	ShaderProgram(const char* const vertex_src, const char* const fragment_src, const char* const geometry_src);
 
 	template <size_t N, typename T>
 	void setVec(const std::string& name, glm::vec<N, T> vec);
