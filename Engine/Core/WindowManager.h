@@ -14,6 +14,8 @@ class WindowManager
 {
 	friend class Engine;
 	bool init(const std::string& title, uint width, uint height, bool fullscreen);
+	bool initAsChild(const std::string& title, void* parent_handle = nullptr);
+	
 	void destroy();
 
 public:

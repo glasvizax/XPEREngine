@@ -1,6 +1,11 @@
 #include "WindowManager.h"
 
+#define GLFW_EXPOSE_NATIVE_WIN32
+
 #include <iostream>
+
+#include <Windows.h>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "GLFW/glfw3native.h"
@@ -9,6 +14,7 @@
 #include "Constants.h"
 
 using namespace std::string_literals;
+
 
 bool WindowManager::init(const std::string& title, uint width, uint height, bool fullscreen)
 {
@@ -24,16 +30,18 @@ bool WindowManager::init(const std::string& title, uint width, uint height, bool
 		{ 
 			LOG_ERROR("GLFW Error: Error Code: "s + std::to_string(error_code) + ", Description: " + description);
 		});
+
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_CONTEXT_VERSION_MAJOR);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_CONTEXT_VERSION_MINOR);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	
-	//glfwWindowHint(GLFW_SAMPLES, 4); - due to large amount of g buffer i disabled it
+	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 #ifdef _DEBUG
+	//TODO:
 	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	if (fullscreen)
 	{
@@ -62,7 +70,76 @@ bool WindowManager::init(const std::string& title, uint width, uint height, bool
 	glfwFocusWindow(m_window);
 	glfwSwapInterval(1);
 
+	glfwShowWindow(m_window);
 	disableCursor();
+
+	return true;
+}
+
+bool WindowManager::initAsChild(const std::string& title, void* parent_handle)
+{
+	if (!glfwInit())
+	{
+		LOG_ERROR("couldn't init glfw: glfwInit() = 0");
+		return false;
+	}
+
+	LOG_INFO("GLFW Version: "s + glfwGetVersionString());
+
+	glfwSetErrorCallback([](int error_code, const char* description) {
+		LOG_ERROR("GLFW Error: Error Code: "s + std::to_string(error_code) + ", Description: " + description);
+	});
+	
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_CONTEXT_VERSION_MAJOR);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_CONTEXT_VERSION_MINOR);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+#ifdef _DEBUG
+	// TODO:
+	// glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+#endif
+
+	m_window = glfwCreateWindow(1, 1, title.c_str(), nullptr, nullptr);
+
+	if (!m_window)
+	{
+		glfwTerminate();
+		return false;
+	}
+
+	m_primary_monitor = glfwGetPrimaryMonitor();
+	if (!m_primary_monitor)
+	{
+		LOG_ERROR("couldn't get primary monitor: glfwGetPrimaryMonitor() = nullptr");
+		destroy();
+		return false;
+	}
+
+	glfwMakeContextCurrent(m_window);
+	glfwFocusWindow(m_window);
+	glfwSwapInterval(1);
+
+	if (parent_handle != nullptr)
+	{
+		HWND parent_hwnd = static_cast<HWND>(parent_handle);
+		HWND current_hwnd = glfwGetWin32Window(m_window);
+		::SetParent(current_hwnd, parent_hwnd);
+
+		LONG style = GetWindowLongPtr(current_hwnd, GWL_STYLE);
+		style = (style & ~WS_POPUP) | WS_CHILD;
+		SetWindowLongPtr(current_hwnd, GWL_STYLE, style);
+
+		RECT rect;
+		GetClientRect(parent_hwnd, &rect);
+		int w = rect.right - rect.left;
+		int h = rect.bottom - rect.top;
+
+		MoveWindow(current_hwnd, 0, 0, w, h, TRUE);
+	}
+	glfwShowWindow(m_window);
 
 	return true;
 }
@@ -74,6 +151,7 @@ void WindowManager::setWindowPos(size_t x, size_t y)
 
 void WindowManager::swapBuffers()
 {
+	glfwMakeContextCurrent(m_window);
 	glfwSwapBuffers(m_window);
 }
 

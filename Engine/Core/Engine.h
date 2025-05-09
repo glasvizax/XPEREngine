@@ -4,6 +4,12 @@ class Engine
 {
 public:
 
-	int runWinForm();
+	int runWinForms(void* panel_handle);
+	int runStandalone();
+};
+
+extern "C"
+{
+	int runWinForms(void* panel_handle);
 	int runStandalone();
 };

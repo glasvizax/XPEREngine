@@ -16,6 +16,8 @@ SET_PROPERTY(TARGET Editor PROPERTY VS_PACKAGE_REFERENCES "Serilog_2.9.0;Serilog
 
 target_compile_options(Editor PRIVATE "/langversion:latest")
 
+target_link_libraries(Editor Engine)
+
 set_target_properties(Editor PROPERTIES
 DOTNET_SDK "Microsoft.NET.Sdk"
     DOTNET_TARGET_FRAMEWORK "net8.0-windows"

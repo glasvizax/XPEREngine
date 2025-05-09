@@ -59,33 +59,6 @@ void InputManager::destroy()
 
 }
 
-void InputManager::_glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int modifier)
-{
-	InputManager* self = scast<InputManager*>(glfwGetWindowUserPointer(window));
-	auto&		  callbacks_map = self->m_key_callbacks[action];
-	auto		  it = callbacks_map.find(std::make_pair(key, modifier));
-	if (it != callbacks_map.end())
-	{
-		it->second();
-	}
-}
-
-void InputManager::_glfwCursorPosCallback(GLFWwindow* window, double xpos, double ypos)
-{
-	InputManager* self = scast<InputManager*>(glfwGetWindowUserPointer(window));
-	self->m_cursor_pos = glm::dvec2(xpos, ypos);
-}
-
-void InputManager::_glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int modifier)
-{
-	InputManager* self = scast<InputManager*>(glfwGetWindowUserPointer(window));
-	auto&		  callbacks_map = self->m_mouse_callbacks[action];
-	auto		  it = callbacks_map.find(std::make_pair(button, modifier));
-	if (it != callbacks_map.end())
-	{
-		it->second();
-	}
-}
 
 bool InputManager::regKeyCallback(Callback callback, int key, int modifier, int action)
 {
@@ -132,4 +105,32 @@ bool InputManager::unregMouseCallback(int button, int modifier, int action)
 glm::dvec2 InputManager::getCursorPos() const
 {
 	return m_cursor_pos;
+}
+
+void InputManager::_glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int modifier)
+{
+	InputManager* self = scast<InputManager*>(glfwGetWindowUserPointer(window));
+	auto&		  callbacks_map = self->m_key_callbacks[action];
+	auto		  it = callbacks_map.find(std::make_pair(key, modifier));
+	if (it != callbacks_map.end())
+	{
+		it->second();
+	}
+}
+
+void InputManager::_glfwCursorPosCallback(GLFWwindow* window, double xpos, double ypos)
+{
+	InputManager* self = scast<InputManager*>(glfwGetWindowUserPointer(window));
+	self->m_cursor_pos = glm::dvec2(xpos, ypos);
+}
+
+void InputManager::_glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int modifier)
+{
+	InputManager* self = scast<InputManager*>(glfwGetWindowUserPointer(window));
+	auto&		  callbacks_map = self->m_mouse_callbacks[action];
+	auto		  it = callbacks_map.find(std::make_pair(button, modifier));
+	if (it != callbacks_map.end())
+	{
+		it->second();
+	}
 }
