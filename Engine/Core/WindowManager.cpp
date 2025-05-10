@@ -65,10 +65,13 @@ bool WindowManager::init(const std::string& title, uint width, uint height, bool
 		destroy();
 		return false;
 	}
+	auto video_mode = glfwGetVideoMode(m_primary_monitor);
 
 	glfwMakeContextCurrent(m_window);
 	glfwFocusWindow(m_window);
 	glfwSwapInterval(1);
+
+	glfwSetWindowPos(m_window, video_mode->width / 2 - (width / 2), video_mode->height / 2 - (height / 2));
 
 	glfwShowWindow(m_window);
 	disableCursor();
@@ -137,8 +140,10 @@ bool WindowManager::initAsChild(const std::string& title, void* parent_handle)
 		int w = rect.right - rect.left;
 		int h = rect.bottom - rect.top;
 
-		MoveWindow(current_hwnd, 0, 0, w, h, TRUE);
+		//MoveWindow(current_hwnd, 0, 0, w, h, TRUE);
+		glfwSetWindowSize(m_window, w, h);
 	}
+
 	glfwShowWindow(m_window);
 
 	return true;

@@ -8,8 +8,10 @@ out VS_OUT
 	vec3 color;
 } vs_out;
 
+uniform vec3 additive;
+
 void main()
 {
 	gl_Position = vec4(aPos, 0.0f, 1.0f);
-	vs_out.color = aColor;
+	vs_out.color = additive;
 }

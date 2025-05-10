@@ -3,31 +3,27 @@
 #include "DebugOpenGL.h"
 #include "Defines.h"
 
+#ifdef _DEBUG
 static uint count = 0;
+#endif
 
-// clang-format off
 VertexArray::VertexArray()
 #ifdef _DEBUG
-	: m_debug_name("VAO" + std::to_string(count++)) 
+	: m_debug_name("VAO" + std::to_string(count++))
 #endif
-{}
+{
+}
 
-VertexArray::VertexArray(
 #ifdef _DEBUG
-	const std::string& debug_name
+VertexArray::VertexArray(const std::string& debug_name)
+	: m_debug_name(debug_name) {}
 #endif
-) :
-#ifdef _DEBUG
-	m_debug_name(debug_name)
-#endif
-{}
 
 void VertexArray::init()
 {
 	glGenVertexArrays(1, &m_id);
 	checkGeneralErrorGL(m_debug_name);
 }
-// clang-format on
 
 VertexArray::~VertexArray()
 {

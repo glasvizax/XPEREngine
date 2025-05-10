@@ -10,16 +10,24 @@
 
 #include "Debug.h"
 #include "Defines.h"
+#include "DebugOpenGL.h"
 
 class ShaderProgram
 {
 
 public:
-	ShaderProgram() = default;
-	ShaderProgram(const char* const vertex_src, const char* const fragment_src);
-	ShaderProgram(const char* const vertex_src, const char* const fragment_src, const char* const geometry_src);
+	ShaderProgram();
 
-	void use();
+#ifdef _DEBUG
+	ShaderProgram(
+		const std::string& debug_name
+	);
+#endif
+
+	bool init(const char* const vertex_src, const char* const fragment_src);
+	bool init(const char* const vertex_src, const char* const fragment_src, const char* const geometry_src);
+
+	void use() const;
 
 	template <size_t N, typename T>
 	void setVec(const std::string& name, glm::vec<N, T> vec);
@@ -36,12 +44,18 @@ public:
 	template <size_t N, typename T>
 	void setMatArray(const std::string& name, const std::vector<glm::mat<N, N, T>>& array, GLsizei count);
 
-	GLuint getID() { return m_program_id; }
+	GLuint getID() const { return m_program_id; }
 
 private:
 	GLuint							  m_program_id = 0;
 	std::hash<std::string>			  m_hasher;
 	std::unordered_map<size_t, GLint> m_locations;
+
+	inline static GLuint m_active_program = 0;
+	
+#ifdef _DEBUG
+	std::string m_debug_name;
+#endif // _DEBUG
 };
 
 #include "ShaderSetFuncImpl.h"

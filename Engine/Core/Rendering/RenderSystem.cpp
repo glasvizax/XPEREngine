@@ -9,7 +9,6 @@
 #include "DebugOpenGL.h"
 #include "WindowManager.h"
 
-
 float vertices[] = 
 {
 	-0.5f, -0.5f,		1.0f, 0.0f, 0.0f,
@@ -29,8 +28,17 @@ bool RenderSystem::init()
 	ResourceManager& rm = engine.getResourceManager();
 	WindowManager& wm = engine.getWindowManager();
 
-	test = rm.loadShaderProgram("test.vert", "test.frag");
-	
+#ifdef _DEBUG
+	vao = VertexArray("vao");
+	test = ShaderProgram("test");
+#endif // DEBUG
+
+	if (!rm.loadShaderProgram("test.vert", "test.frag", test))
+	{
+		return false;
+	}
+
+	test.setVec("additive", glm::vec3(0.3f, 0.1f, 0.0f));
 	vao.init();
 	vao.bind();
 	vao.attachBuffer(sizeof(vertices), vertices, BufferType::ARRAY);

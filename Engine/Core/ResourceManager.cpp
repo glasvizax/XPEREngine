@@ -18,40 +18,47 @@ void ResourceManager::destroy()
 
 }
 
-ShaderProgram ResourceManager::loadShaderProgram(const std::string& vertex_name, const std::string& fragment_name)
+bool ResourceManager::loadShaderProgram(const std::string& vertex_name, const std::string& fragment_name, ShaderProgram& shader_program)
 {
-
+	std::string			  vertex_src, fragment_src;
 	std::filesystem::path current = m_current_path;
-	std::string vertex_src;
-	readFile(current.concat("\\").concat(vertex_name), vertex_src);
+	if (!readFile(current.concat("\\").concat(vertex_name), vertex_src))
+	{
+		return false;
+	}
 
 	current = m_current_path;
-	std::string fragment_src;
-	readFile(current.concat("\\").concat(fragment_name), fragment_src);
+	if (!readFile(current.concat("\\").concat(fragment_name), fragment_src))
+	{
+		return false;
+	}
 
-	ShaderProgram program(vertex_src.c_str(), fragment_src.c_str());
-
-	return program;
+	return shader_program.init(vertex_src.c_str(), fragment_src.c_str());
 }
 
-ShaderProgram ResourceManager::loadShaderProgram(const std::string& vertex_name, const std::string& fragment_name, const std::string& geometry_name)
+bool ResourceManager::loadShaderProgram(const std::string& vertex_name, const std::string& fragment_name, const std::string& geometry_name, ShaderProgram& shader_program)
 {
-	std::string vertex_src;
+	std::string vertex_src, fragment_src, geometry_src;
 
 	std::filesystem::path current = m_current_path;
-	readFile(current.concat("\\").concat(vertex_name), vertex_src);
-
+	if (!readFile(current.concat("\\").concat(vertex_name), vertex_src))
+	{
+		return false;
+	}
 	current = m_current_path;
-	std::string fragment_src;
-	readFile(current.concat("\\").concat(fragment_name), fragment_src);
+	
+	if (!readFile(current.concat("\\").concat(fragment_name), fragment_src))
+	{
+		return false;
+	}
 	
 	current = m_current_path;
-	std::string geometry_src;
-	readFile(current.concat("\\").concat(fragment_name), fragment_src);
+	if (!readFile(current.concat("\\").concat(fragment_name), fragment_src))
+	{
+		return false;
+	}
 
-	ShaderProgram program(vertex_src.c_str(), fragment_src.c_str(), geometry_src.c_str());
-
-	return program;
+	return shader_program.init(vertex_src.c_str(), fragment_src.c_str(), geometry_src.c_str());
 }
 
 bool ResourceManager::readFile(const std::filesystem::path& path, std::string& content)

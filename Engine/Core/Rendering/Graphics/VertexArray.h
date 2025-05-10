@@ -22,12 +22,9 @@ public:
 
 	VertexArray();
 
-	VertexArray
-	(
 #ifdef _DEBUG
-		const std::string& debug_name
+	VertexArray(const std::string& debug_name);
 #endif
-	);
 
 	~VertexArray();
 

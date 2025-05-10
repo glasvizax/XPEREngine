@@ -2,7 +2,7 @@
 
 #include "Defines.h"
 
-bool setupShader(const char* const src, GLenum shader_type, GLuint& result) 
+bool setupShader(const char* const src, GLenum shader_type, GLuint& result)
 {
 	result = glCreateShader(shader_type);
 	glShaderSource(result, 1, &src, nullptr);
@@ -31,10 +31,10 @@ bool setupShader(const char* const src, GLenum shader_type, GLuint& result)
 bool setupProgram(GLuint* shaders, uint count, GLuint& program)
 {
 	program = glCreateProgram();
-	
+
 	for (uint i = 0; i < count; ++i)
 	{
-		glAttachShader(program, shaders[i]);	
+		glAttachShader(program, shaders[i]);
 	}
 	glLinkProgram(program);
 
@@ -68,90 +68,113 @@ bool setupProgram(GLuint* shaders, uint count, GLuint& program)
 	return true;
 }
 
-ShaderProgram::ShaderProgram(const char* const vertex_src, const char* const fragment_src)
+#ifdef _DEBUG
+static uint count = 0;
+#endif
+
+ShaderProgram::ShaderProgram()
+#ifdef _DEBUG
+	: m_debug_name("ShaderProgram" + std::to_string(count++))
+#endif
+{
+}
+
+#ifdef _DEBUG
+ShaderProgram::ShaderProgram(const std::string& debug_name)
+	: m_debug_name(debug_name) {}
+#endif
+
+bool ShaderProgram::init(const char* const vertex_src, const char* const fragment_src)
 {
 	if (!vertex_src)
 	{
 		LOG_ERROR_S("Invalid vertex source");
-		return;
+		return false;
 	}
 	if (!fragment_src)
 	{
 		LOG_ERROR_S("Invalid fragment source");
-		return;
+		return false;
 	}
 
 	GLuint shaders[2];
 
 	if (!setupShader(vertex_src, GL_VERTEX_SHADER, shaders[0]))
 	{
-		return;
+		return false;
 	}
-
 	if (!setupShader(fragment_src, GL_FRAGMENT_SHADER, shaders[1]))
 	{
 		glDeleteShader(shaders[0]);
-		return;
+		return false;
 	}
-	
+
 	GLuint program;
 
 	if (!setupProgram(shaders, 2, program))
 	{
-		return;
+		return false;
 	}
 
 	m_program_id = program;
+	return true;
 }
 
-ShaderProgram::ShaderProgram(const char* vertex_src, const char* fragment_src, const char* geometry_src)
+bool ShaderProgram::init(const char* const vertex_src, const char* const fragment_src, const char* const geometry_src) 
 {
 	if (!vertex_src)
 	{
 		LOG_ERROR_S("Invalid vertex source");
-		return;
+		return false;
 	}
 	if (!fragment_src)
 	{
 		LOG_ERROR_S("Invalid fragment source");
-		return;
+		return false;
 	}
 	if (!geometry_src)
 	{
 		LOG_ERROR_S("Invalid geometry source");
-		return;
+		return false;
 	}
 
 	GLuint shaders[3];
 	if (!setupShader(vertex_src, GL_VERTEX_SHADER, shaders[0]))
 	{
-		return;
+		return false;
 	}
 
 	if (!setupShader(fragment_src, GL_FRAGMENT_SHADER, shaders[1]))
 	{
 		glDeleteShader(shaders[0]);
-		return;
+		return false;
 	}
 
 	if (!setupShader(geometry_src, GL_GEOMETRY_SHADER, shaders[2]))
 	{
 		glDeleteShader(shaders[0]);
 		glDeleteShader(shaders[1]);
-		return;
+		return false;
 	}
 
 	GLuint program;
 
 	if (!setupProgram(shaders, 3, program))
 	{
-		return;
+		return false;
 	}
 
 	m_program_id = program;
+	return true;
+
 }
 
-void ShaderProgram::use()
+void ShaderProgram::use() const
 {
+	if (m_active_program == m_program_id)
+	{
+		return;
+	}
 	glUseProgram(m_program_id);
+	m_active_program = m_program_id;
 }
