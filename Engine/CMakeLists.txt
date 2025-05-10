@@ -65,6 +65,8 @@ foreach(subdir IN LISTS ENGINE_SUBDIRS)
   target_include_directories(Main PRIVATE ${subdir})
 endforeach()
 
+message(${GLSL_FILES})
+
 add_custom_command(
     TARGET Engine
     PRE_BUILD

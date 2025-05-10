@@ -20,15 +20,15 @@ bool WindowManager::init(const std::string& title, uint width, uint height, bool
 {
 	if (!glfwInit())
 	{
-		LOG_ERROR("couldn't init glfw: glfwInit() = 0");
+		LOG_ERROR_S("couldn't init glfw: glfwInit() = 0");
 		return false;
 	}
 
-	LOG_INFO("GLFW Version: "s + glfwGetVersionString());
+	LOG_INFO_F("GLFW Version: %s", glfwGetVersionString());
 
 	glfwSetErrorCallback([](int error_code, const char* description)
 		{ 
-			LOG_ERROR("GLFW Error: Error Code: "s + std::to_string(error_code) + ", Description: " + description);
+			LOG_ERROR_F("GLFW Error: Error Code: %d, Description: %s", error_code, description);
 		});
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_CONTEXT_VERSION_MAJOR);
@@ -61,7 +61,7 @@ bool WindowManager::init(const std::string& title, uint width, uint height, bool
 	m_primary_monitor = glfwGetPrimaryMonitor();
 	if (!m_primary_monitor)
 	{
-		LOG_ERROR("couldn't get primary monitor: glfwGetPrimaryMonitor() = nullptr");
+		LOG_ERROR_S("couldn't get primary monitor: glfwGetPrimaryMonitor() = nullptr");
 		destroy();
 		return false;
 	}
@@ -80,14 +80,14 @@ bool WindowManager::initAsChild(const std::string& title, void* parent_handle)
 {
 	if (!glfwInit())
 	{
-		LOG_ERROR("couldn't init glfw: glfwInit() = 0");
+		LOG_ERROR_S("couldn't init glfw: glfwInit() = 0");
 		return false;
 	}
 
-	LOG_INFO("GLFW Version: "s + glfwGetVersionString());
+	LOG_INFO_F("GLFW Version: %s", glfwGetVersionString());
 
 	glfwSetErrorCallback([](int error_code, const char* description) {
-		LOG_ERROR("GLFW Error: Error Code: "s + std::to_string(error_code) + ", Description: " + description);
+		LOG_ERROR_F("GLFW Error: Error Code: %d, Description: %s", error_code, description);
 	});
 	
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_CONTEXT_VERSION_MAJOR);
@@ -113,7 +113,7 @@ bool WindowManager::initAsChild(const std::string& title, void* parent_handle)
 	m_primary_monitor = glfwGetPrimaryMonitor();
 	if (!m_primary_monitor)
 	{
-		LOG_ERROR("couldn't get primary monitor: glfwGetPrimaryMonitor() = nullptr");
+		LOG_ERROR_S("couldn't get primary monitor: glfwGetPrimaryMonitor() = nullptr");
 		destroy();
 		return false;
 	}
@@ -181,10 +181,11 @@ bool WindowManager::isShouldClose() const
 	return glfwWindowShouldClose(m_window);
 }
 
-glm::uvec2 WindowManager::getWindowSize() const
+glm::ivec2 WindowManager::getWindowSize() const
 {
-	const GLFWvidmode* video_mode = glfwGetVideoMode(m_primary_monitor);
-	return { video_mode->width, video_mode->height };
+	glm::ivec2 size;
+	glfwGetWindowSize(m_window, &size.x, &size.y);
+	return size;
 }
 
 glm::uvec2 WindowManager::getFramebufferSize() const

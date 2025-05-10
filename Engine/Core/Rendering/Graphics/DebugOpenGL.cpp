@@ -43,7 +43,7 @@ void __checkFramebufferErrorsGL(const char* file, int line, const std::string& c
 
 	if (!exit)
 	{
-		std::cout << error << " | " << file << " (" << line << ") BY " << culprit << std::endl;
+		printf("[ERROR] [OPENGL] [%s:%d] - [%s] BY : [%s]\n", file, line, error, culprit.c_str());
 	}
 }
 
@@ -80,7 +80,7 @@ void __checkGeneralErrorGL(const char* file, int line, const std::string& culpri
 				error = "default";
 				break;
 		}
-		std::cout << error << " | " << file << " (" << line << ") BY " << culprit << std::endl;
+		printf("[ERROR] [OPENGL] [%s:%d] - [%s] BY : [%s]\n", file, line, error, culprit.c_str());
 	}
 }
 

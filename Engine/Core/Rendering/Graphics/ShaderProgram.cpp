@@ -20,7 +20,7 @@ bool setupShader(const char* const src, GLenum shader_type, GLuint& result)
 		log.resize(log_length);
 		glGetShaderInfoLog(result, log_length, nullptr, log.data());
 
-		LOG_ERROR(log);
+		LOG_ERROR_S(log.c_str());
 
 		glDeleteShader(result);
 		return false;
@@ -48,7 +48,7 @@ bool setupProgram(GLuint* shaders, uint count, GLuint& program)
 		gl_string log;
 		log.resize(length);
 		glGetProgramInfoLog(program, length, nullptr, log.data());
-		LOG_ERROR(log);
+		LOG_ERROR_S(log.c_str());
 
 		glDeleteProgram(program);
 
@@ -72,12 +72,12 @@ ShaderProgram::ShaderProgram(const char* const vertex_src, const char* const fra
 {
 	if (!vertex_src)
 	{
-		LOG_ERROR("Invalid vertex source");
+		LOG_ERROR_S("Invalid vertex source");
 		return;
 	}
 	if (!fragment_src)
 	{
-		LOG_ERROR("Invalid fragment source");
+		LOG_ERROR_S("Invalid fragment source");
 		return;
 	}
 
@@ -108,17 +108,17 @@ ShaderProgram::ShaderProgram(const char* vertex_src, const char* fragment_src, c
 {
 	if (!vertex_src)
 	{
-		LOG_ERROR("Invalid vertex source");
+		LOG_ERROR_S("Invalid vertex source");
 		return;
 	}
 	if (!fragment_src)
 	{
-		LOG_ERROR("Invalid fragment source");
+		LOG_ERROR_S("Invalid fragment source");
 		return;
 	}
 	if (!geometry_src)
 	{
-		LOG_ERROR("Invalid geometry source");
+		LOG_ERROR_S("Invalid geometry source");
 		return;
 	}
 
@@ -149,4 +149,9 @@ ShaderProgram::ShaderProgram(const char* vertex_src, const char* fragment_src, c
 	}
 
 	m_program_id = program;
+}
+
+void ShaderProgram::use()
+{
+	glUseProgram(m_program_id);
 }

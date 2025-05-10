@@ -34,7 +34,7 @@ public:
 
 	bool isShouldClose() const;
 
-	glm::uvec2 getWindowSize() const;
+	glm::ivec2 getWindowSize() const;
 	glm::uvec2 getFramebufferSize() const;
 
 	glm::dvec2 getCursorPos();

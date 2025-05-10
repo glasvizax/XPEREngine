@@ -3,6 +3,7 @@
 
 int main() 
 {
-	Engine engine;
+	Engine& engine = Engine::getInstance();
 	return engine.runStandalone();
+
 }
