@@ -5,13 +5,11 @@ layout (location = 1) in vec3 aColor;
 
 out VS_OUT
 {
-	vec3 color;
+	vec2 tex_coords;
 } vs_out;
-
-uniform vec3 additive;
 
 void main()
 {
 	gl_Position = vec4(aPos, 0.0f, 1.0f);
-	vs_out.color = additive;
+	vs_out.tex_coords = aPos;
 }

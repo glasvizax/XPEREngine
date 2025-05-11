@@ -39,8 +39,7 @@ bool WindowManager::init(const std::string& title, uint width, uint height, bool
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 #ifdef _DEBUG
-	//TODO:
-	//glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
 
 	if (fullscreen)

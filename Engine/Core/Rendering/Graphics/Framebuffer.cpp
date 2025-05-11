@@ -45,7 +45,7 @@ void Framebuffer::attachTexture2D(GLuint tex_id, AttachmentType type)
 	bind();
 	glFramebufferTexture2D(GL_FRAMEBUFFER, static_cast<GLenum>(type), GL_TEXTURE_2D, tex_id, 0);
 
-	checkGeneralErrorGL(m_debug_name);
+	checkGeneralErrorGL(m_debug_name); 
 	checkFramebufferErrorsGL(m_debug_name);
 }
 

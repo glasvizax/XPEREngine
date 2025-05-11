@@ -2,6 +2,8 @@
 
 #include "ShaderProgram.h"
 #include "VertexArray.h"
+#include "Texture.h"
+
 class RenderSystem
 {
 	friend class Engine;
@@ -14,4 +16,5 @@ class RenderSystem
 
 	ShaderProgram test;
 	VertexArray	  vao;
+	Texture		  test_tex;
 };

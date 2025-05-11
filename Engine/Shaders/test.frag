@@ -2,12 +2,15 @@
 
 in VS_OUT
 {
-	vec3 color;
+	vec2 tex_coords;
 } fs_in;
+
+uniform sampler2D tex;
 
 out vec4 aFragColor;
 
 void main()
 {
-	aFragColor = vec4(fs_in.color, 1.0f);
+	vec3 color = texture(tex, fs_in.tex_coords).rgb;
+	aFragColor = vec4(color, 1.0f);
 }

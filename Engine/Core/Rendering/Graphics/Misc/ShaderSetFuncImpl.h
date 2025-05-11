@@ -114,7 +114,7 @@ inline void ShaderProgram::set(const std::string& name, T val)
 	{
 		location = it->second;
 	}
-	uniformValueFunc<N, T>(location, array.data());
+	uniformValueFunc<T>(location, val);
 	checkGeneralErrorGL(m_debug_name);
 }
 
