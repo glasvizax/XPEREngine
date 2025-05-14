@@ -4,6 +4,7 @@ class ResourceManager;
 class InputManager;
 class RenderSystem;
 class WindowManager;
+struct GameTimer;
 
 class Engine
 {
@@ -19,6 +20,7 @@ public:
 	WindowManager&	 getWindowManager();
 	InputManager&	 getInputManager();
 	ResourceManager& getResourceManager();
+	GameTimer&		 getGameTimer();
 };
 
 extern "C"

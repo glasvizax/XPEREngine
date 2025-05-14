@@ -5,7 +5,6 @@
 
 #include "Defines.h"
 
-
 class Engine;
 struct GLFWwindow;
 struct GLFWmonitor;
@@ -45,7 +44,7 @@ private:
 	GLFWwindow*	 m_window = nullptr;
 	GLFWmonitor* m_primary_monitor = nullptr;
 
-	bool m_vsync = true;
+	bool m_vsync = false;
 
 
 };

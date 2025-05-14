@@ -122,7 +122,7 @@ bool WindowManager::initAsChild(const std::string& title, void* parent_handle)
 
 	glfwMakeContextCurrent(m_window);
 	glfwFocusWindow(m_window);
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	if (parent_handle != nullptr)
 	{

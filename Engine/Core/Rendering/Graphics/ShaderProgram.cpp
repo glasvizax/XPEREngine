@@ -16,7 +16,7 @@ bool setupShader(const char* const src, GLenum shader_type, GLuint& result)
 		GLint log_length;
 		glGetShaderiv(result, GL_INFO_LOG_LENGTH, &log_length);
 
-		gl_string log;
+		std::string log;
 		log.resize(log_length);
 		glGetShaderInfoLog(result, log_length, nullptr, log.data());
 
@@ -45,7 +45,7 @@ bool setupProgram(GLuint* shaders, uint count, GLuint& program)
 		GLint length;
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
 
-		gl_string log;
+		std::string log;
 		log.resize(length);
 		glGetProgramInfoLog(program, length, nullptr, log.data());
 		LOG_ERROR_S(log.c_str());

@@ -17,7 +17,7 @@ public:
 	Texture(const std::string& debug_name);
 #endif
 
-	bool init(int width, int height, GLint internal_format, bool generate_mipmap);
+	bool init(int width, int height, GLint internal_format, uint channels_num, bool generate_mipmap);
 
 	void loadData(GLenum type, GLenum format, const void* data, glm::vec2 start_factors = glm::vec2(0.0f), glm::vec2 end_factors = glm::vec2(1.0f));
 
@@ -33,14 +33,16 @@ public:
 
 	GLuint getID() const;
 
-private:
+	uint getChannelsNum() const;
 
+private:
 	bool has_mipmap = false;
 
 	GLsizei m_height;
 	GLsizei m_width;
 
 	GLuint m_id;
+	uint   m_channels_num;
 
 private:
 	void generateMipMap();

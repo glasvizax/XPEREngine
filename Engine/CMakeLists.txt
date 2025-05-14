@@ -72,3 +72,5 @@ add_custom_command(
     PRE_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GLSL_FILES} ${BIN_PATH}
 )
+
+set_property(TARGET Main PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BIN_PATH}")

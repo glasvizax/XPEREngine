@@ -3,29 +3,31 @@
 
 class Camera
 {
+public:
 	void rotatePitch(float degrees);
 	void rotateYaw(float degrees);
 
 	void move(glm::vec3 where);
 	void setPosition(glm::vec3 new_position);
 
-	void setZoom(float new_zoom);
 	void setFovVertical(float fov);
 	void setAspectRatio(float aspect_ratio);
-	void setNearPlane(float near);
-	void setFarPlane(float far);
+	void setNearPlane(float _near);
+	void setFarPlane(float _far);
 
-	float getZoom();
 	float getFovVertical();
 	float getAspectRatio();
 	float getNearPlane();
 	float getFarPlane();
 
+	glm::vec3 getLookVector();
+	glm::vec3 getRightVector();
+	glm::vec3 getUpVector();
+		
 	glm::mat4 getViewMatrix();
 	glm::mat4 getProjectionMatrix();
 
 private:
-
 	float m_yaw = -90.0f;
 	float m_pitch = 0.0f;
 
@@ -43,8 +45,11 @@ private:
 
 	glm::vec3 m_world_up{ 0.0f, 1.0f, 0.0f };
 
-	float m_sensitivity = 0.1f;
-	float m_zoom = 50.0f;
+	glm::mat4 view;
+	glm::mat4 projection;
+
+	bool m_view_dirty = true;
+	bool m_proj_dirty = true;
 
 	void updateVectors();
 };

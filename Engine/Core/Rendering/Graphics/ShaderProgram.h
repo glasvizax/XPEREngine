@@ -6,6 +6,7 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/matrix.hpp>
 
 #include "Debug.h"
@@ -37,6 +38,9 @@ public:
 
 	template <typename T>
 	void set(const std::string& name, T val);
+
+	template <typename T>
+	void setArray(const std::string& name, T* vals, GLsizei count);
 
 	template <size_t N, typename T>
 	void setMat(const std::string& name, const glm::mat<N, N, T>& mat);

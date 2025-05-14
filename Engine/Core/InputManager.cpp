@@ -47,6 +47,7 @@ bool InputManager::init(GLFWwindow* window)
 
 	glfwSetCursorPosCallback(window, InputManager::_glfwCursorPosCallback);
 	glfwSetMouseButtonCallback(window, InputManager::_glfwMouseButtonCallback);
+	glfwSetCursorPosCallback(window, InputManager::_glfwMouseCursorPosCallback);
 
 	// TODO
 	// glfwSetWindowSizeCallback(window, InputManager::glfwWindowSizeCallback);
@@ -82,6 +83,13 @@ bool InputManager::regMouseCallback(Callback callback, int button, int modifier,
 	return true;
 }
 
+bool InputManager::regCursorPosCallback(CursorPosCallback callback)
+{
+	m_cursor_pos_callback = callback;
+	m_has_cursor_pos_cb = true;
+	return true;
+}
+
 bool InputManager::unregKeyCallback(int key, int modifier, int action)
 {
 	if (!checkRegKeyCbHelper(key, modifier, action))		
@@ -102,9 +110,21 @@ bool InputManager::unregMouseCallback(int button, int modifier, int action)
 	return m_mouse_callbacks[action].erase(std::make_pair(button, modifier));
 }
 
+bool InputManager::unregCursorPosCallback()
+{
+	m_cursor_pos_callback = nullptr;
+	m_has_cursor_pos_cb = false;
+	return true;
+}
+
 glm::dvec2 InputManager::getCursorPos() const
 {
 	return m_cursor_pos;
+}
+
+void InputManager::setCustomPtr(void* ptr)
+{
+	m_custom_ptr = ptr;
 }
 
 void InputManager::_glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int modifier)
@@ -114,7 +134,7 @@ void InputManager::_glfwKeyCallback(GLFWwindow* window, int key, int scancode, i
 	auto		  it = callbacks_map.find(std::make_pair(key, modifier));
 	if (it != callbacks_map.end())
 	{
-		it->second();
+		it->second(self->m_custom_ptr);
 	}
 }
 
@@ -131,6 +151,15 @@ void InputManager::_glfwMouseButtonCallback(GLFWwindow* window, int button, int 
 	auto		  it = callbacks_map.find(std::make_pair(button, modifier));
 	if (it != callbacks_map.end())
 	{
-		it->second();
+		it->second(self->m_custom_ptr);
+	}
+}
+
+void InputManager::_glfwMouseCursorPosCallback(GLFWwindow* window, double xpos, double ypos)
+{
+	InputManager* self = scast<InputManager*>(glfwGetWindowUserPointer(window));
+	if (self->m_has_cursor_pos_cb)
+	{
+		self->m_cursor_pos_callback(self->m_custom_ptr, xpos, ypos);
 	}
 }

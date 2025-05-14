@@ -1,15 +1,26 @@
 #version 460
 
-layout (location = 0) in vec2 aPos;
-layout (location = 1) in vec3 aColor;
+layout (location = 0) in vec3 a_position;
+layout (location = 1) in vec3 a_normal;
+layout (location = 2) in vec2 a_uv;
+
+layout (std140, binding = 0) uniform Matrices
+{
+	mat4 projection;
+	mat4 view;
+};
 
 out VS_OUT
 {
-	vec2 tex_coords;
+	vec3 normal;
+	vec2 uv;
 } vs_out;
+
+uniform mat4 model;
 
 void main()
 {
-	gl_Position = vec4(aPos, 0.0f, 1.0f);
-	vs_out.tex_coords = aPos;
+	gl_Position = projection * view * model * vec4(a_position, 1.0f);
+	vs_out.uv = a_uv;
+	vs_out.normal = a_normal;
 }

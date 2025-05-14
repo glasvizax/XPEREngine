@@ -4,6 +4,10 @@
 
 #include <stb_image.h>
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include "ShaderProgram.h"
 #include "Debug.h"
 #include "Texture.h"
@@ -73,7 +77,6 @@ bool ResourceManager::initLoadTexture(const std::string& name, Texture& texture,
 		LOG_ERROR_F("couldn't load file [%s]", name.c_str());
 		return false;
 	}
-
 	GLint format = GL_RGB;
 	GLint internal_format = GL_RGB8;
 	switch (channels_num)
@@ -81,26 +84,47 @@ bool ResourceManager::initLoadTexture(const std::string& name, Texture& texture,
 		case (1):
 			format = GL_RED;
 			internal_format = GL_R8;
+			channels_num = 1;
 			break;
 		case (2):
 			format = GL_RG;
 			internal_format = GL_RG8;
+			channels_num = 2;
 			break;
 		case (4):
 			format = GL_RGBA;
 			internal_format = GL_RGBA8;
+			channels_num = 4;
 			break;
 		default:
 			break;
 	}
-	texture.init(width, height, internal_format, generate_mipmap);
+	texture.init(width, height, internal_format, channels_num, generate_mipmap);
 	texture.loadData(GL_UNSIGNED_BYTE, format, data);
 
 	stbi_image_free(data);
 
 	return true;
 }
+/*
+bool ResourceManager::initLoadModel(const std::string& path)
+{
+	Assimp::Importer importer;
 
+	std::filesystem::path current_path = m_current_path;
+	current_path.concat("\\").concat(path);
+
+	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
+	if (!scene || scene->mFlags && AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	{
+		LOG_ERROR_F("couldn't load model [%s]", path.c_str());
+		return false;
+	}
+
+	//processNode TODO
+
+}
+*/
 bool ResourceManager::readFile(const std::filesystem::path& path, std::string& content)
 {
 	std::ifstream file(path);

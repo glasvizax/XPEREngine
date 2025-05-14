@@ -14,7 +14,7 @@
 		printf("[ERROR] [%s:%d] - " __format__ " \n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 	#define LOG_INFO_S(__cstr__) \
-		printf("[INFO] [%s:%d] - %s \n", __FILE__, __LINE__, __cstr__)
+		printf("[INFO] [%s:%d] - %s \n", __FILE__, __LINE__, __cstr__); fflush(stdout) 
 
 	#define LOG_WARNING_S(__cstr__) \
 		printf("[WARNING] [%s:%d] - %s \n", __FILE__, __LINE__, __cstr__)

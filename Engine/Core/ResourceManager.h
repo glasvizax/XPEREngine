@@ -20,6 +20,7 @@ public:
 
 	bool initLoadTexture(const std::string& name, Texture& texture, bool generate_mipmap);
 
+	bool initLoadModel(const std::string& path);
 
 	bool readFile(const std::filesystem::path& path, std::string& content);
 

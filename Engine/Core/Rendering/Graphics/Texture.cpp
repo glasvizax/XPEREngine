@@ -19,7 +19,7 @@ Texture::Texture()
 {
 }
 
-bool Texture::init(int width, int height, GLint internal_format, bool generate_mipmap)
+bool Texture::init(int width, int height, GLint internal_format, uint channels_num, bool generate_mipmap)
 {
 	glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
 	if (generate_mipmap)
@@ -44,6 +44,7 @@ bool Texture::init(int width, int height, GLint internal_format, bool generate_m
 	m_height = height;
 
 	has_mipmap = generate_mipmap;
+	m_channels_num = channels_num;
 	return true;
 }
 
@@ -108,6 +109,11 @@ void Texture::bind(GLuint i)
 GLuint Texture::getID() const
 {
 	return m_id;
+}
+
+uint Texture::getChannelsNum() const
+{
+	return m_channels_num;
 }
 
 void Texture::generateMipMap()
