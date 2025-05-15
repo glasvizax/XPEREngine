@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -17,7 +18,15 @@ public:
 	Texture(const std::string& debug_name);
 #endif
 
-	bool init(int width, int height, GLint internal_format, uint channels_num, bool generate_mipmap);
+	~Texture();
+
+	Texture(const Texture&) = delete;
+	Texture& operator=(const Texture&) = delete;
+
+	Texture(Texture&& other) noexcept;
+	Texture& operator=(Texture&& other) noexcept;
+
+	void init(int width, int height, GLint internal_format, uint channels_num, bool generate_mipmap);
 
 	void loadData(GLenum type, GLenum format, const void* data, glm::vec2 start_factors = glm::vec2(0.0f), glm::vec2 end_factors = glm::vec2(1.0f));
 
@@ -36,7 +45,8 @@ public:
 	uint getChannelsNum() const;
 
 private:
-	bool has_mipmap = false;
+	bool m_initialized = false;
+	bool m_has_mipmap = false;
 
 	GLsizei m_height;
 	GLsizei m_width;
@@ -46,6 +56,8 @@ private:
 
 private:
 	void generateMipMap();
+
+	inline static std::unordered_map<uint8_t, GLuint> s_bound;
 
 #ifdef _DEBUG
 	std::string m_debug_name;

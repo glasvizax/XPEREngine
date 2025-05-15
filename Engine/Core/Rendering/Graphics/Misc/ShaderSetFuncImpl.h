@@ -149,7 +149,6 @@ inline void ShaderProgram::setArray(const std::string& name, T* vals, GLsizei co
 	}
 	uniformValueArrayFunc<T>(location, vals, count);
 	checkGeneralErrorGL(m_debug_name);
-
 }
 
 template <size_t N, typename T>

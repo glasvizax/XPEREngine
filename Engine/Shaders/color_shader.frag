@@ -7,15 +7,9 @@ struct DiffuseTexture
 	sampler2D diffuse;
 };
 
-struct MaterialD 
-{
-	sampler2D diffuses[MAX_TEXTURES_NUM];
-	int diffuses_num;
-	float blend_coeffs[MAX_TEXTURES_NUM];
-	float shininess;
-	float specular;
-};
 
+
+/*
 struct MaterialDS
 {
 	sampler2D diffuses[MAX_TEXTURES_NUM/2];
@@ -51,7 +45,7 @@ struct MaterialDSNH
 	float spec_blend_coeffs[MAX_TEXTURES_NUM/2 - 1];
 	float shininess;
 };
-
+*/
 struct MaterialC 
 {
 	vec4 color;

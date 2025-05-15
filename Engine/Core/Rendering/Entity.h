@@ -1,0 +1,49 @@
+#pragma once
+
+#include <vector>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "Mesh.h"
+#include "Transform.h"
+
+class Entity
+{
+	friend class RenderSystem;
+	Entity() = default;
+
+public:
+	Entity(const Model& model);
+
+	Entity(const Model& model, const Transform& transform);
+
+	void addChild(const Model& model);
+
+	void addChild(const Model& model, const Transform& transform);
+
+	void update();
+
+	Entity* getParent()
+	{
+		return m_parent;
+	}
+
+	Transform& getTransform()
+	{
+		return m_transform;
+	}
+
+	void draw();
+
+private:
+	void forceUpdateTransform();
+
+private:
+	Transform m_transform;
+
+	Model m_model;
+
+	std::vector<Entity> m_children;
+	Entity*				m_parent = nullptr;
+};

@@ -2,83 +2,89 @@
 
 #include "Defines.h"
 #include "ShaderProgram.h"
+#include "MatParams.h"
 
 class Texture;
 
 template <typename Derived>
 struct Material
 {
-	Material()
-		: m_id(s_count++)
-	{
-	}
-
 	void apply();
 
-	float m_shininess = 32.0f;
+	MP_Shininess m_shininess;
 
 	ShaderProgram* m_shader_program = nullptr;
-
-protected:
-	inline static uint s_applied_id = -1;
-	inline static uint s_count = 0;
-	inline static uint units[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-
-	uint m_id;
 };
 
-// color
+/// <summary>
+/// color
+/// </summary>
 struct MaterialC : public Material<MaterialC>
 {
-	using Material::Material;
+	void applyImpl();
 
-	void apply_impl();
-
-	glm::vec4 m_color = glm::vec4(glm::vec3(0.1f), 1.0f);
-	float	  m_specular = 0.1f;
+	MP_Color		  m_color;
+	MP_SpecularScalar m_specular;
 };
 
-// diffuses
+/// <summary>
+/// 16 diffuse
+/// </summary>
 struct MaterialD : public Material<MaterialD>
 {
-	using Material::Material;
+	void applyImpl();
 
-	void apply_impl();
-
-	std::vector<Texture*> m_diffuses;
-	std::vector<float>	  m_blend_coeffs = std::vector<float>(1, 1.0f);
-	float				  m_specular = 0.1f;
+	MP_Diffuse16	   m_diffuse;
+	MP_DiffuseBlends16 m_diff_blends;
+	MP_SpecularScalar  m_specular_scalar;
 };
 
-// diffuses + speculars
+/// <summary>
+/// 8 diffuse + 8 specular
+/// </summary>
 struct MaterialDS : public Material<MaterialDS>
 {
-	using Material::Material;
+	void applyImpl();
 
-	void apply_impl();
-
-	std::vector<Texture*> m_diffuses;
-	std::vector<Texture*> m_speculars;
-	std::vector<float>	  m_diff_blend_coeffs = std::vector<float>(1, 1.0f);
-	std::vector<float>	  m_spec_blend_coeffs = std::vector<float>(1, 1.0f);
+	MP_Diff8Spec8	   m_diff_spec;
+	MP_SpecularBlends8 m_spec_blends;
+	MP_DiffuseBlends8  m_diff_blends;
 };
 
-//TODO DSN + DSNH
+/// <summary>
+// 7 diffuse + 7 specular + normal
+/// </summary>
+struct MaterialDSN : public Material<MaterialDSN>
+{
+	void applyImpl();
+
+	MP_Diff7Spec7Norm  m_diff_spec_norm;
+	MP_SpecularBlends8 m_spec_blends;
+	MP_DiffuseBlends8  m_diff_blends;
+};
+
+/// <summary>
+/// 7 diffuse + 7 specular + normal + height
+/// </summary>
+struct MaterialDSNH : public Material<MaterialDSN>
+{
+	void applyImpl();
+
+	MP_Diff7Spec7NormHeight m_diff_spec_norm_height;
+	MP_SpecularBlends8		m_spec_blends;
+	MP_DiffuseBlends8		m_diff_blends;
+};
+
 
 template <typename Derived>
 inline void Material<Derived>::apply()
 {
-	if (s_applied_id == m_id)
-	{
-		return;
-	}
-	s_applied_id = m_id;
 	if (!m_shader_program)
 	{
 		LOG_ERROR_F("ShaderProgram invalid in %s", typeid(Derived).name());
 		return;
 	}
 	m_shader_program->use();
-	m_shader_program->set("material.shininess", m_shininess);
-	static_cast<Derived*>(this)->apply_impl();
+	m_shininess.apply(m_shader_program);
+	static_cast<Derived*>(this)->applyImpl();
 }

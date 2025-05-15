@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Camera.h"
-#include "GameTimer.h"
+class RenderSystem;
+class Camera;
 
 class PlayerInputManager
 {
@@ -19,6 +19,7 @@ private:
 	void destroy();
 
 	Camera* m_camera = nullptr;
+	RenderSystem* m_render_system = nullptr;
 
 	float m_speed = 3.0f;
 	float m_sensitivity_vertical = 3.0f;
@@ -38,6 +39,9 @@ private:
 	static void moveBackwardStop(void* ptr);
 	static void moveRightStop(void* ptr);
 	static void moveLeftStop(void* ptr);
+
+	static void testK(void* ptr);
+	static void testH(void* ptr);
 
 	static void cursorMoving(void* ptr, double xpos, double ypos);
 	bool		m_fisrt_cursor_moving;

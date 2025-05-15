@@ -1,10 +1,11 @@
 #include "PlayerInputManager.h"
-
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "Engine.h"
 #include "RenderSystem.h"
 #include "InputManager.h"
+#include "Camera.h"
 
 bool PlayerInputManager::init()
 {
@@ -13,6 +14,8 @@ bool PlayerInputManager::init()
 	m_camera = &engine.getRenderSystem().getCamera();
 
 	InputManager& input_manager = engine.getInputManager();
+
+	m_render_system = &engine.getRenderSystem();
 
 	input_manager.regKeyCallback(PlayerInputManager::moveForward, GLFW_KEY_W, NULL, GLFW_PRESS);
 	input_manager.regKeyCallback(PlayerInputManager::moveBackward, GLFW_KEY_S, NULL, GLFW_PRESS);
@@ -25,6 +28,9 @@ bool PlayerInputManager::init()
 	input_manager.regKeyCallback(PlayerInputManager::moveLeftStop, GLFW_KEY_A, NULL, GLFW_RELEASE);
 	
 	input_manager.regCursorPosCallback(PlayerInputManager::cursorMoving);
+
+	input_manager.regKeyCallback(PlayerInputManager::testK, GLFW_KEY_K, NULL, GLFW_PRESS);
+	input_manager.regKeyCallback(PlayerInputManager::testH, GLFW_KEY_H, NULL, GLFW_PRESS);
 
 	input_manager.setCustomPtr(this);
 
@@ -93,6 +99,10 @@ void PlayerInputManager::destroy()
 	input_manager.unregKeyCallback(GLFW_KEY_D, NULL, GLFW_RELEASE);
 	input_manager.unregKeyCallback(GLFW_KEY_A, NULL, GLFW_RELEASE);
 
+	
+	input_manager.unregKeyCallback(GLFW_KEY_K, NULL, GLFW_PRESS);
+	input_manager.unregKeyCallback(GLFW_KEY_H, NULL, GLFW_PRESS);
+
 	input_manager.unregCursorPosCallback();
 }
 
@@ -150,6 +160,18 @@ void PlayerInputManager::moveLeftStop(void* ptr)
 	PlayerInputManager* self = static_cast<PlayerInputManager*>(ptr);
 
 	self->m_left = false;
+}
+
+void PlayerInputManager::testK(void* ptr)
+{
+	PlayerInputManager* self = static_cast<PlayerInputManager*>(ptr);
+	self->m_render_system->testInputK();
+}
+
+void PlayerInputManager::testH(void* ptr)
+{
+	PlayerInputManager* self = static_cast<PlayerInputManager*>(ptr);
+	self->m_render_system->testInputK();
 }
 
 void PlayerInputManager::cursorMoving(void* ptr, double xpos, double ypos)

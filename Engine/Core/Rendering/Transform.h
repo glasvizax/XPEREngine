@@ -1,11 +1,5 @@
 #pragma once
-
-#include <vector>
-
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include "Mesh.h"
 
 struct Transform
 {
@@ -47,44 +41,4 @@ private:
 	glm::vec3 m_scale = glm::vec3(1.0f);
 
 	bool m_dirty = false;
-};
-
-class Entity
-{
-	friend class RenderSystem;
-	Entity() = default;
-
-public:
-	Entity(const Model& model);
-
-	Entity(const Model& model, const Transform& transform);
-
-	void addChild(const Model& model);
-
-	void addChild(const Model& model, const Transform& transform);
-
-	void update();
-
-	Entity* getParent()
-	{
-		return m_parent;
-	}
-
-	Transform& getTransform()
-	{
-		return m_transform;
-	}
-
-	void draw();
-
-private:
-	void forceUpdateTransform();
-
-private:
-	Transform m_transform;
-
-	Model m_model;
-
-	std::vector<Entity> m_children;
-	Entity*				m_parent = nullptr;
 };

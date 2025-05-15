@@ -4,7 +4,7 @@
 #include "VertexArray.h"
 #include "Texture.h"
 #include "Material.h"
-#include "Scene.h"
+#include "Entity.h"
 #include "Camera.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -22,6 +22,8 @@ class RenderSystem
 	Entity m_scene_root;
 
 	ShaderProgram m_color_program;
+	ShaderProgram m_diffuse_program;
+
 	MaterialC	  m_color_material;
 
 	Mesh m_cube_mesh;
@@ -30,7 +32,12 @@ class RenderSystem
 
 	Camera m_camera;
 
+	Texture wood_tex;
+
 public:
 
 	Camera& getCamera();
+
+	void testInputH();
+	void testInputK();
 };

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-
 #include <glm/glm.hpp>
 #include <glm/ext/scalar_constants.hpp>
 
@@ -11,7 +10,7 @@
 #include "Defines.h"
 #include "VertexArray.h"
 #include "Material.h"
-#include <memory>
+
 
 struct Vertex
 {
@@ -67,12 +66,14 @@ template<typename MaterialClass>
 struct ModelEntry
 {
 	Mesh* mesh;
-	MaterialClass* material;
+	MaterialClass material;
 };
 
 struct Model
 {
 	std::vector<ModelEntry<MaterialC>> color_entries;
+	std::vector<ModelEntry<MaterialD>> diffuse_entries;
+	std::vector<ModelEntry<MaterialDS>> diffspec_entries;
 };
 
 template <>

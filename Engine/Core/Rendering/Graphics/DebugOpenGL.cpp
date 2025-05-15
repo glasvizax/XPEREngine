@@ -44,6 +44,7 @@ void __checkFramebufferErrorsGL(const char* file, int line, const std::string& c
 	if (!exit)
 	{
 		printf("[ERROR] [OPENGL] [%s:%d] - [%s] BY : [%s]\n", file, line, error, culprit.c_str());
+		fflush(stdout);
 	}
 }
 
@@ -81,6 +82,7 @@ void __checkGeneralErrorGL(const char* file, int line, const std::string& culpri
 				break;
 		}
 		printf("[ERROR] [OPENGL] [%s:%d] - [%s] BY : [%s]\n", file, line, error, culprit.c_str());
+		fflush(stdout);
 	}
 }
 
@@ -164,6 +166,7 @@ void glDebugOutput(GLenum source, GLenum type, unsigned int id, GLenum severity,
 	}
 	std::cout << std::endl
 			  << std::endl;
+	
 }
 
 #else 

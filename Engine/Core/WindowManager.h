@@ -45,6 +45,4 @@ private:
 	GLFWmonitor* m_primary_monitor = nullptr;
 
 	bool m_vsync = false;
-
-
 };
