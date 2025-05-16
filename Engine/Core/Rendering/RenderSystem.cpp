@@ -44,20 +44,7 @@ bool RenderSystem::init()
 	ResourceManager& rm = engine.getResourceManager();
 	WindowManager&	 wm = engine.getWindowManager();
 
-	glGenBuffers(1, &m_matrices_ubo);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_matrices_ubo);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, nullptr, GL_STATIC_DRAW);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_matrices_ubo);
-
-	if (!rm.initLoadShaderProgram("color_shader.vert", "color_shader.frag", m_color_program))
-	{
-		return false;
-	}
-
-	if (!rm.initLoadShaderProgram("diffuse_shader.vert", "diffuse_shader.frag", m_diffuse_program))
-	{
-		return false;
-	}
+	m_shader_program_manager.init();
 
 	if (!rm.initLoadTexture("content/wood.jpg", wood_tex, true))
 	{
@@ -69,18 +56,13 @@ bool RenderSystem::init()
 
 	m_camera.setAspectRatio(scast<float>(window_size.x) / window_size.y);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, m_matrices_ubo);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(m_camera.getProjectionMatrix()));
-
 	checkGeneralErrorGL("render_system");
-
 	m_cube_mesh = generateIdenticalCube();
-	m_color_material.m_shader_program = &m_color_program;
-
+	
 	Model model;
 
 	ModelEntry<MaterialC> model_entry;
-	model_entry.material.m_shader_program = &m_color_program;
+	model_entry.material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::COLOR);
 	model_entry.material.m_color.m_value = glm::vec4(0.3f, 0.6f, 0.9f, 1.0f);
 	model_entry.mesh = &m_cube_mesh;
 	model.color_entries.emplace_back(model_entry);
@@ -89,7 +71,7 @@ bool RenderSystem::init()
 	ModelEntry<MaterialD> model2_entry;
 	model2_entry.mesh = &m_cube_mesh;
 	model2_entry.material.m_diffuse.pushDiffuse(&wood_tex);
-	model2_entry.material.m_shader_program = &m_diffuse_program;
+	model2_entry.material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::DIFFUSE);
 	model2.diffuse_entries.emplace_back(model2_entry);
 
 	Transform transform;
@@ -98,10 +80,18 @@ bool RenderSystem::init()
 	m_scene_root.addChild(model);
 	m_scene_root.m_children.front().addChild(model2, transform);
 
-	LOG_INFO_S("bool RenderSystem::init() end");
+	glGenBuffers(1, &m_matrices_ubo);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_matrices_ubo);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, nullptr, GL_STATIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_matrices_ubo);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, m_matrices_ubo);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(m_camera.getProjectionMatrix()));
 
 	glEnable(GL_DEPTH_TEST);
 	// glDepthFunc(GL_LEQUAL);
+	
+	LOG_INFO_S("bool RenderSystem::init() end");
 	return true;
 }
 

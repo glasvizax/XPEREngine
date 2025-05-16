@@ -11,7 +11,6 @@
 #include "VertexArray.h"
 #include "Material.h"
 
-
 struct Vertex
 {
 	glm::vec3 m_position;
@@ -27,11 +26,9 @@ struct Mesh
 
 public:
 	Mesh(std::vector<Vertex>&& vertices);
-
 	Mesh(std::vector<Vertex>&& vertices, std::vector<uint>&& indices);
 
 	Mesh(const std::vector<Vertex>& vertices);
-
 	Mesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices);
 
 	Mesh(const Mesh&) = delete;

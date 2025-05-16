@@ -8,6 +8,10 @@ public:
 	Transform() = default;
 
 	Transform(const Transform& tranform);
+	Transform& operator=(const Transform& tranform);
+
+	Transform(Transform&& tranform) noexcept = delete;
+	Transform& operator=(Transform&& tranform) noexcept = delete;
 
 public:
 	void updateModelMatrix();

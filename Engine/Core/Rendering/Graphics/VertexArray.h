@@ -9,18 +9,17 @@ class VertexArray
 	friend class RenderSystem;
 
 public:
-
 	VertexArray();
 
 #ifdef _DEBUG
 	VertexArray(const std::string& debug_name);
 #endif
+
 	VertexArray(const VertexArray& other) = delete;
 	VertexArray& operator=(const VertexArray& other) = delete;
-	
+
 	VertexArray(VertexArray&& other) noexcept;
 	VertexArray& operator=(VertexArray&& other) noexcept;
-
 
 	~VertexArray();
 
@@ -30,25 +29,23 @@ public:
 	void attachElementBuffer(GLsizeiptr bytes, const void* data, GLenum draw_mode = GL_STATIC_DRAW);
 
 	void bind();
-	
-	template<typename VertexType>
+
+	template <typename VertexType>
 	void autoEnableAttributes();
-	
+
 	void enableAttribute(GLuint index, GLint components_num, GLuint stride_count, GLsizei offset);
 
-	GLuint getID() 
-	{
-		return m_id;
-	}
+	GLuint getID();
 
 private:
-	GLuint m_id = 0;
-	std::vector<GLuint>	 m_buffers;
+	void clear();
 
-	inline static GLuint s_bounded_id = -1;
+	GLuint				m_id = 0;
+	std::vector<GLuint> m_buffers;
 
-	#ifdef _DEBUG
+	inline static GLuint s_bound_id = -1;
+
+#ifdef _DEBUG
 	std::string m_debug_name;
-	#endif
+#endif
 };
-

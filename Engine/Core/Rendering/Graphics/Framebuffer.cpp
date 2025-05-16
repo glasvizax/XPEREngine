@@ -4,20 +4,16 @@
 
 #include "DebugOpenGL.h"
 
-// clang-format off
-Framebuffer::Framebuffer
-(
 #ifdef _DEBUG
-	const std::string& debug_name
-#endif
-) :
-#ifdef _DEBUG
-	m_debug_name(debug_name)
-#endif
+Framebuffer::Framebuffer(const std::string& debug_name) 
+	: m_debug_name(debug_name)
 {
 	glGenFramebuffers(1, &m_id);
 }
-// clang-format on
+#endif
+
+//TODO : remake
+
 
 Framebuffer::~Framebuffer()
 {

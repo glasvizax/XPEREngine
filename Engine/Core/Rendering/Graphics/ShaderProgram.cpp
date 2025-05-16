@@ -2,87 +2,59 @@
 
 #include "Defines.h"
 
-bool setupShader(const char* const src, GLenum shader_type, GLuint& result)
-{
-	result = glCreateShader(shader_type);
-	glShaderSource(result, 1, &src, nullptr);
-
-	glCompileShader(result);
-
-	GLint is_compiled;
-	glGetShaderiv(result, GL_COMPILE_STATUS, &is_compiled);
-	if (is_compiled == GL_FALSE)
-	{
-		GLint log_length;
-		glGetShaderiv(result, GL_INFO_LOG_LENGTH, &log_length);
-
-		std::string log;
-		log.resize(log_length);
-		glGetShaderInfoLog(result, log_length, nullptr, log.data());
-
-		LOG_ERROR_S(log.c_str());
-
-		glDeleteShader(result);
-		return false;
-	}
-	return true;
-}
-
-bool setupProgram(GLuint* shaders, uint count, GLuint& program)
-{
-	program = glCreateProgram();
-
-	for (uint i = 0; i < count; ++i)
-	{
-		glAttachShader(program, shaders[i]);
-	}
-	glLinkProgram(program);
-
-	GLint is_linked;
-	glGetProgramiv(program, GL_LINK_STATUS, &is_linked);
-	if (is_linked == GL_FALSE)
-	{
-		GLint length;
-		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-
-		std::string log;
-		log.resize(length);
-		glGetProgramInfoLog(program, length, nullptr, log.data());
-		LOG_ERROR_S(log.c_str());
-
-		glDeleteProgram(program);
-
-		for (uint i = 0; i < count; ++i)
-		{
-			glDeleteShader(shaders[i]);
-		}
-
-		return false;
-	}
-
-	for (uint i = 0; i < count; ++i)
-	{
-		glDetachShader(program, shaders[i]);
-		glDeleteShader(shaders[i]);
-	}
-	return true;
-}
-
+/********************DEBUG**********************/
 #ifdef _DEBUG
+
 static uint count = 0;
-#endif
 
 ShaderProgram::ShaderProgram()
-#ifdef _DEBUG
-	: m_debug_name("ShaderProgram" + std::to_string(count++))
-#endif
-{
-}
+	: m_debug_name("ShaderProgram" + std::to_string(count++)) {}
 
-#ifdef _DEBUG
 ShaderProgram::ShaderProgram(const std::string& debug_name)
 	: m_debug_name(debug_name) {}
+#else
+
+ShaderProgram::ShaderProgram() {}
+
 #endif
+/***********************************************/
+
+ShaderProgram::ShaderProgram(ShaderProgram&& other) noexcept
+{
+#ifdef _DEBUG
+	this->m_debug_name = std::move(other.m_debug_name);
+#endif
+	this->m_program_id = other.m_program_id;
+	other.m_program_id = 0;
+}
+
+ShaderProgram& ShaderProgram::operator=(ShaderProgram&& other) noexcept
+{
+	clear();
+#ifdef _DEBUG
+	this->m_debug_name = std::move(other.m_debug_name);
+#endif
+	this->m_program_id = other.m_program_id;
+	other.m_program_id = 0;
+
+	return *this;
+}
+
+ShaderProgram::~ShaderProgram()
+{
+	clear();
+}
+
+void ShaderProgram::clear()
+{
+	if (m_program_id)
+	{
+		glDeleteProgram(m_program_id);
+	}
+}
+
+bool setupShader(const char* const src, GLenum shader_type, GLuint& result);
+bool setupProgram(GLuint* shaders, uint count, GLuint& program);
 
 bool ShaderProgram::init(const char* const vertex_src, const char* const fragment_src)
 {
@@ -171,10 +143,76 @@ bool ShaderProgram::init(const char* const vertex_src, const char* const fragmen
 
 void ShaderProgram::use() const
 {
-	if (m_active_program == m_program_id)
+	if (s_active_program == m_program_id)
 	{
 		return;
 	}
 	glUseProgram(m_program_id);
-	m_active_program = m_program_id;
+	s_active_program = m_program_id;
+}
+
+bool setupShader(const char* const src, GLenum shader_type, GLuint& result)
+{
+	result = glCreateShader(shader_type);
+	glShaderSource(result, 1, &src, nullptr);
+
+	glCompileShader(result);
+
+	GLint is_compiled;
+	glGetShaderiv(result, GL_COMPILE_STATUS, &is_compiled);
+	if (is_compiled == GL_FALSE)
+	{
+		GLint log_length;
+		glGetShaderiv(result, GL_INFO_LOG_LENGTH, &log_length);
+
+		std::string log;
+		log.resize(log_length);
+		glGetShaderInfoLog(result, log_length, nullptr, log.data());
+
+		LOG_ERROR_S(log.c_str());
+
+		glDeleteShader(result);
+		return false;
+	}
+	return true;
+}
+
+bool setupProgram(GLuint* shaders, uint count, GLuint& program)
+{
+	program = glCreateProgram();
+
+	for (uint i = 0; i < count; ++i)
+	{
+		glAttachShader(program, shaders[i]);
+	}
+	glLinkProgram(program);
+
+	GLint is_linked;
+	glGetProgramiv(program, GL_LINK_STATUS, &is_linked);
+	if (is_linked == GL_FALSE)
+	{
+		GLint length;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+
+		std::string log;
+		log.resize(length);
+		glGetProgramInfoLog(program, length, nullptr, log.data());
+		LOG_ERROR_S(log.c_str());
+
+		glDeleteProgram(program);
+
+		for (uint i = 0; i < count; ++i)
+		{
+			glDeleteShader(shaders[i]);
+		}
+
+		return false;
+	}
+
+	for (uint i = 0; i < count; ++i)
+	{
+		glDetachShader(program, shaders[i]);
+		glDeleteShader(shaders[i]);
+	}
+	return true;
 }

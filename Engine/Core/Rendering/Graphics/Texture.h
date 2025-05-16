@@ -14,6 +14,7 @@ class Texture
 {
 public:
 	Texture();
+
 #ifdef _DEBUG
 	Texture(const std::string& debug_name);
 #endif
@@ -45,17 +46,17 @@ public:
 	uint getChannelsNum() const;
 
 private:
-	bool m_initialized = false;
 	bool m_has_mipmap = false;
 
 	GLsizei m_height;
 	GLsizei m_width;
 
-	GLuint m_id;
+	GLuint m_id = 0;
 	uint   m_channels_num;
 
 private:
 	void generateMipMap();
+	void clear();
 
 	inline static std::unordered_map<uint8_t, GLuint> s_bound;
 

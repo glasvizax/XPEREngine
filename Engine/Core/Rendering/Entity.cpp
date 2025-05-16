@@ -1,5 +1,23 @@
 #include "Entity.h"
 
+Entity::Entity(Entity&& other) noexcept
+{
+	this->m_transform = other.m_transform;
+	this->m_children = std::move(other.m_children);
+	this->m_parent = other.m_parent;
+	this->m_model = other.m_model;
+}
+
+Entity& Entity::operator=(Entity&& other) noexcept
+{
+	this->m_transform = other.m_transform;
+	this->m_children = std::move(other.m_children);
+	this->m_parent = other.m_parent;
+	this->m_model = other.m_model;
+
+	return *this;
+}
+
 Entity::Entity(const Model& model)
 {
 	m_model = model;
@@ -70,7 +88,6 @@ void Entity::draw()
 			m_model.diffspec_entries[i].material.m_shader_program->setMat("model", m_transform.getModelMatrix());
 			m_model.diffspec_entries[i].mesh->draw();
 		}
-
 	}
 
 	for (auto& e : m_children)

@@ -1,66 +1,64 @@
 #include "Texture.h"
 
 #ifdef _DEBUG
-static std::string debug_name_default = "Texture";
 static uint		   count = 0;
 
 Texture::Texture(const std::string& debug_name)
-	: m_debug_name(debug_name)
-{
-}
-
-#endif // _DEBUG
+	: m_debug_name(debug_name) {}
 
 Texture::Texture()
-	:
-#ifdef _DEBUG
-	m_debug_name(debug_name_default + std::to_string(count))
+	: m_debug_name("Texture" + std::to_string(count)) {}
+
+#else 
+
+Texture::Texture(){}
+
 #endif // _DEBUG
-{
-}
 
 Texture::~Texture()
 {
-	glDeleteTextures(1, &m_id);
+	clear();
 }
 
 Texture::Texture(Texture&& other) noexcept
 {
-	this->~Texture();
-	this->m_channels_num = other.m_channels_num;
+	if (this != &other)
+	{
+		clear();
+		this->m_channels_num = other.m_channels_num;
+
 #ifdef _DEBUG
-	this->m_debug_name = std::move(other.m_debug_name);
+		this->m_debug_name = std::move(other.m_debug_name);
 #endif
-	this->m_has_mipmap = other.m_has_mipmap;
-	this->m_id = other.m_id;
-	other.m_id = 0;
-	this->m_height = other.m_height;
-	this->m_width = other.m_width;
-	this->m_initialized = other.m_initialized;
-	other.m_initialized = false;
+		this->m_has_mipmap = other.m_has_mipmap;
+		this->m_id = other.m_id;
+		other.m_id = 0;
+		this->m_height = other.m_height;
+		this->m_width = other.m_width;
+	}
 }
 
 Texture& Texture::operator=(Texture&& other) noexcept
 {
-	this->~Texture();
-	this->m_channels_num = other.m_channels_num;
+	if (this != &other)
+	{
+		clear();
+		this->m_channels_num = other.m_channels_num;
 #ifdef _DEBUG
-	this->m_debug_name = std::move(other.m_debug_name);
+		this->m_debug_name = std::move(other.m_debug_name);
 #endif
-	this->m_has_mipmap = other.m_has_mipmap;
-	this->m_id = other.m_id;
-	other.m_id = 0;
-	this->m_height = other.m_height;
-	this->m_width = other.m_width;
-	this->m_initialized = other.m_initialized;
-	other.m_initialized = false;
-
+		this->m_has_mipmap = other.m_has_mipmap;
+		this->m_id = other.m_id;
+		other.m_id = 0;
+		this->m_height = other.m_height;
+		this->m_width = other.m_width;
+	}
 	return *this;
 }
 
 void Texture::init(int width, int height, GLint internal_format, uint channels_num, bool generate_mipmap)
 {
-	if (m_initialized)
+	if (m_id)
 	{
 		LOG_ERROR_F("[%s] : Texture is already initialized", m_debug_name.c_str());
 		return;
@@ -89,13 +87,11 @@ void Texture::init(int width, int height, GLint internal_format, uint channels_n
 
 	m_has_mipmap = generate_mipmap;
 	m_channels_num = channels_num;
-
-	m_initialized = true;
 }
 
 void Texture::loadData(GLenum type, GLenum format, const void* data, glm::vec2 start_factors, glm::vec2 end_factors)
 {
-	if (!m_initialized)
+	if (!m_id)
 	{
 		LOG_ERROR_F("[%s] : Texture not initialized", m_debug_name.c_str());		
 		return;
@@ -128,7 +124,7 @@ void Texture::loadData(GLenum type, GLenum format, const void* data, glm::vec2 s
 
 void Texture::setMinFilter(GLint min_filter)
 {
-	if (!m_initialized)
+	if (!m_id)
 	{
 		LOG_ERROR_F("[%s] : Texture not initialized", m_debug_name.c_str());
 		return;
@@ -139,7 +135,7 @@ void Texture::setMinFilter(GLint min_filter)
 
 void Texture::setMagFilter(GLint mag_filter)
 {
-	if (!m_initialized)
+	if (!m_id)
 	{
 		LOG_ERROR_F("[%s] : Texture not initialized", m_debug_name.c_str());
 		return;
@@ -150,7 +146,7 @@ void Texture::setMagFilter(GLint mag_filter)
 
 void Texture::setWrapS(GLint wrap_s)
 {
-	if (!m_initialized)
+	if (!m_id)
 	{
 		LOG_ERROR_F("[%s] : Texture not initialized", m_debug_name.c_str());
 		return;
@@ -161,7 +157,7 @@ void Texture::setWrapS(GLint wrap_s)
 
 void Texture::setWrapT(GLint wrap_t)
 {
-	if (!m_initialized)
+	if (!m_id)
 	{
 		LOG_ERROR_F("[%s] : Texture not initialized", m_debug_name.c_str());
 		return;
@@ -172,7 +168,7 @@ void Texture::setWrapT(GLint wrap_t)
 
 void Texture::bind(GLuint i)
 {
-	if (!m_initialized)
+	if (!m_id)
 	{
 		LOG_ERROR_F("[%s] : Texture not initialized", m_debug_name.c_str());
 		return;
@@ -200,7 +196,7 @@ GLuint Texture::getID() const
 
 uint Texture::getChannelsNum() const
 {
-	if (!m_initialized)
+	if (!m_id)
 	{
 		LOG_ERROR_F("[%s] : Texture not initialized", m_debug_name.c_str());
 		return 0;
@@ -214,4 +210,12 @@ void Texture::generateMipMap()
 	checkGeneralErrorGL(m_debug_name);
 	glTextureParameteri(m_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	checkGeneralErrorGL(m_debug_name);
+}
+
+void Texture::clear()
+{
+	if (m_id)
+	{
+		glDeleteTextures(1, &m_id);
+	}
 }

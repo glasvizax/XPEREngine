@@ -4,26 +4,26 @@
 #include "Defines.h"
 
 #ifdef _DEBUG
+
 static uint count = 0;
-#endif
 
 VertexArray::VertexArray()
-#ifdef _DEBUG
-	: m_debug_name("VAO" + std::to_string(count++))
-#endif
-{
-}
+	: m_debug_name("VertexArray" + std::to_string(count++)) {}
 
-#ifdef _DEBUG
 VertexArray::VertexArray(const std::string& debug_name)
 	: m_debug_name(debug_name) {}
+
+#else
+
+VertexArray::VertexArray() {}
+
 #endif
 
 void VertexArray::init()
 {
 	if (m_id)
 	{
-		LOG_WARNING_S("void VertexArray::init() was called twice");
+		LOG_ERROR_F("[%s] : VertexArray is already initialized", m_debug_name.c_str());
 		glDeleteVertexArrays(1, &m_id);
 	}
 	glGenVertexArrays(1, &m_id);
@@ -53,7 +53,6 @@ void VertexArray::attachElementBuffer(GLsizeiptr bytes, const void* data, GLenum
 
 VertexArray::VertexArray(VertexArray&& other) noexcept
 {
-	this->~VertexArray();
 	m_id = other.m_id;
 	other.m_id = 0;
 
@@ -66,39 +65,39 @@ VertexArray::VertexArray(VertexArray&& other) noexcept
 
 VertexArray& VertexArray::operator=(VertexArray&& other) noexcept
 {
-	this->~VertexArray();
-	m_id = other.m_id;
-	other.m_id = 0;
+	if (this != &other)
+	{
+		clear();
+
+		m_id = other.m_id;
+		other.m_id = 0;
 
 #ifdef _DEBUG
-	m_debug_name = std::move(other.m_debug_name);
+		m_debug_name = std::move(other.m_debug_name);
 #endif
 
-	m_buffers = std::move(other.m_buffers);
-
+		m_buffers = std::move(other.m_buffers);
+	}
 	return *this;
 }
 
 VertexArray::~VertexArray()
 {
-	if (m_id)
-	{
-		glDeleteVertexArrays(1, &m_id);
-	}
-
-	for (GLuint buffer : m_buffers)
-	{
-		glDeleteBuffers(1, &buffer);
-	}
+	clear();
 }
 
 void VertexArray::bind()
 {
-	if (s_bounded_id == m_id)
+	if (!m_id)
+	{
+		LOG_ERROR_F("[%s] : VertexArray not initialized", m_debug_name.c_str());
+		return;
+	}
+	if (s_bound_id == m_id)
 	{
 		return;
 	}
-	s_bounded_id = m_id;
+	s_bound_id = m_id;
 	glBindVertexArray(m_id);
 	checkGeneralErrorGL(m_debug_name);
 }
@@ -110,4 +109,22 @@ void VertexArray::enableAttribute(GLuint index, GLint components_num, GLuint str
 
 	glVertexAttribPointer(index, components_num, GL_FLOAT, GL_FALSE, stride_count * sizeof(float), rcast<void*>(sizeof(float) * offset));
 	checkGeneralErrorGL(m_debug_name);
+}
+
+GLuint VertexArray::getID()
+{
+	return m_id;
+}
+
+void VertexArray::clear()
+{
+	if (m_id)
+	{
+		glDeleteVertexArrays(1, &m_id);
+	}
+
+	for (GLuint buffer : m_buffers)
+	{
+		glDeleteBuffers(1, &buffer);
+	}
 }

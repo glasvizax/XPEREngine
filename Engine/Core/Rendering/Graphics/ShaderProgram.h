@@ -20,10 +20,17 @@ public:
 	ShaderProgram();
 
 #ifdef _DEBUG
-	ShaderProgram(
-		const std::string& debug_name
-	);
+	std::string m_debug_name;
+	ShaderProgram(const std::string& debug_name);
 #endif
+
+	ShaderProgram(const ShaderProgram&) = delete;
+	ShaderProgram& operator=(const ShaderProgram&) = delete;
+
+	ShaderProgram(ShaderProgram&& other) noexcept;
+	ShaderProgram& operator=(ShaderProgram&& other) noexcept;
+
+	~ShaderProgram();
 
 	bool init(const char* const vertex_src, const char* const fragment_src);
 	bool init(const char* const vertex_src, const char* const fragment_src, const char* const geometry_src);
@@ -51,15 +58,13 @@ public:
 	GLuint getID() const { return m_program_id; }
 
 private:
+	void clear();
+
 	GLuint							  m_program_id = 0;
 	std::hash<std::string>			  m_hasher;
 	std::unordered_map<size_t, GLint> m_locations;
 
-	inline static GLuint m_active_program = 0;
-	
-#ifdef _DEBUG
-	std::string m_debug_name;
-#endif // _DEBUG
+	inline static GLuint s_active_program = 0;
 };
 
 #include "ShaderSetFuncImpl.h"

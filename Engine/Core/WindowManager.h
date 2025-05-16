@@ -12,12 +12,22 @@ struct GLFWmonitor;
 class WindowManager
 {
 	friend class Engine;
+
+
 	bool init(const std::string& title, uint width, uint height, bool fullscreen);
 	bool initAsChild(const std::string& title, void* parent_handle = nullptr);
 	
 	void destroy();
 
 public:
+
+	WindowManager() = default;
+	~WindowManager() = default;
+	WindowManager(const WindowManager&) = delete;
+	WindowManager& operator=(const WindowManager&) = delete;
+	WindowManager(WindowManager&&) noexcept = delete;
+	WindowManager& operator=(WindowManager&&) noexcept = delete;
+
 	void pollEvents();
 
 	void setWindowPos(size_t x, size_t y);

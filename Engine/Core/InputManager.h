@@ -17,21 +17,9 @@ struct std::hash<std::pair<int, int>>
 
 struct GLFWwindow;
 
-namespace
-{
-	void f(void*)
-	{
-	}
-
-} // namespace
-
-using Callback = decltype(&f);
-
 using KeyCallback = void		 (*)(void*);
 using MouseButtonCallback = void (*)(void*);
 using CursorPosCallback = void	 (*)(void*, double, double);
-
-using cb = std::function<void(void* object)>;
 
 class InputManager
 {
@@ -42,11 +30,18 @@ private:
 
 	void destroy();
 
-public:
+public:	
+	InputManager() = default;
+	~InputManager() = default;
+	InputManager(const InputManager&) = delete;
+	InputManager& operator=(const InputManager&) = delete;
+	InputManager(InputManager&&) noexcept = delete;
+	InputManager& operator=(InputManager&&) noexcept = delete;
+
 	// action - GLFW_PRESS + GLFW_RELEASE + GLFW_REPEAT
-	bool regKeyCallback(Callback callback, int key, int modifier, int action);
+	bool regKeyCallback(KeyCallback callback, int key, int modifier, int action);
 	// action - GLFW_PRESS + GLFW_RELEASE
-	bool regMouseCallback(Callback callback, int button, int modifier, int action);
+	bool regMouseCallback(KeyCallback callback, int button, int modifier, int action);
 
 	bool regCursorPosCallback(CursorPosCallback callback);
 

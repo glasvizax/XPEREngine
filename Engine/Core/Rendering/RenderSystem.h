@@ -1,13 +1,15 @@
 #pragma once 
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "ShaderProgram.h"
 #include "VertexArray.h"
 #include "Texture.h"
 #include "Material.h"
 #include "Entity.h"
 #include "Camera.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
+#include "ShaderProgramManager.h"
 
 class RenderSystem
 {
@@ -21,10 +23,7 @@ class RenderSystem
 
 	Entity m_scene_root;
 
-	ShaderProgram m_color_program;
-	ShaderProgram m_diffuse_program;
-
-	MaterialC	  m_color_material;
+	ShaderProgramManager m_shader_program_manager; 
 
 	Mesh m_cube_mesh;
 

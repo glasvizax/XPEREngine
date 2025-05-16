@@ -61,7 +61,7 @@ void InputManager::destroy()
 }
 
 
-bool InputManager::regKeyCallback(Callback callback, int key, int modifier, int action)
+bool InputManager::regKeyCallback(KeyCallback callback, int key, int modifier, int action)
 {
 	if (!checkRegKeyCbHelper(key, modifier, action))		
 	{
@@ -72,7 +72,7 @@ bool InputManager::regKeyCallback(Callback callback, int key, int modifier, int 
 	return true;
 }
 
-bool InputManager::regMouseCallback(Callback callback, int button, int modifier, int action)
+bool InputManager::regMouseCallback(KeyCallback callback, int button, int modifier, int action)
 {
 	if (!checkRegMouseCbHelper(button, modifier, action))	
 	{

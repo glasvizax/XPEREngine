@@ -14,6 +14,11 @@ class Entity
 	Entity() = default;
 
 public:
+	Entity(const Entity&) = delete;
+	Entity& operator=(const Entity&) = delete;
+	Entity(Entity&& other) noexcept;
+	Entity& operator=(Entity&& other) noexcept;
+
 	Entity(const Model& model);
 
 	Entity(const Model& model, const Transform& transform);

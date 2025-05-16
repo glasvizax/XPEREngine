@@ -5,13 +5,17 @@ class Camera;
 
 class PlayerInputManager
 {
-
 public:
-	friend class Engine;
-
 	PlayerInputManager() = default;
+	~PlayerInputManager() = default;
+	PlayerInputManager(const PlayerInputManager&) = delete;
+	PlayerInputManager& operator=(const PlayerInputManager&) = delete;
+	PlayerInputManager(PlayerInputManager&&) noexcept = delete;
+	PlayerInputManager& operator=(PlayerInputManager&&) noexcept = delete;
 
 private:
+	friend class Engine;
+
 	bool init();
 
 	void update(float dt);

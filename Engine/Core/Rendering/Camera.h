@@ -4,6 +4,13 @@
 class Camera
 {
 public:
+	Camera() = default;
+	Camera(const Camera&) = delete;
+	Camera& operator=(const Camera&) = delete;
+
+	Camera(Camera&&) noexcept = delete;
+	Camera& operator=(Camera&&) noexcept = delete;
+
 	void rotatePitch(float degrees);
 	void rotateYaw(float degrees);
 

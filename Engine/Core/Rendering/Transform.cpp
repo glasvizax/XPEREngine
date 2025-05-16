@@ -11,6 +11,16 @@ Transform::Transform(const Transform& tranform)
 	m_dirty = true;
 }
 
+Transform& Transform::operator=(const Transform& tranform)
+{
+	m_position = tranform.m_position;
+	m_rotation = tranform.m_rotation;
+	m_scale = tranform.m_scale;
+
+	m_dirty = true;
+	return *this;
+}
+
 void Transform::updateModelMatrix()
 {
 	m_model = recalcModelMatrix();
