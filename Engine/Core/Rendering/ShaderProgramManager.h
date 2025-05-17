@@ -15,16 +15,31 @@ enum class ShaderProgramType : uint8_t
 	DIFFUSE_SPECULAR_NORMAL_HEIGHT
 };
 
+struct VertexFragmentNames
+{
+	std::string vertex;
+	std::string fragment;
+};
+
 class ShaderProgramManager
 {
 	friend class RenderSystem;
 	bool		   init();
 
 public:
+	
+	ShaderProgramManager() = default;
+	~ShaderProgramManager() = default;
+	ShaderProgramManager(const ShaderProgramManager&) = delete;
+	ShaderProgramManager& operator=(const ShaderProgramManager&) = delete;
+	ShaderProgramManager(ShaderProgramManager&&) noexcept = delete;
+	ShaderProgramManager& operator=(ShaderProgramManager&&) noexcept = delete;
+	
 	ShaderProgram* getShaderProgramPtr(ShaderProgramType type);
 
 	std::string ShaderProgramManager::shaderProgramTypeName(ShaderProgramType type);
 
 private:
 	std::unordered_map<ShaderProgramType, ShaderProgram> m_default_shaders;
+	
 };

@@ -13,9 +13,6 @@
 #include "Debug.h"
 #include "Constants.h"
 
-using namespace std::string_literals;
-
-
 bool WindowManager::init(const std::string& title, uint width, uint height, bool fullscreen)
 {
 	if (!glfwInit())
@@ -100,8 +97,9 @@ bool WindowManager::initAsChild(const std::string& title, void* parent_handle)
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 #ifdef _DEBUG
-	// TODO:
-	// glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+
 #endif
 
 	m_window = glfwCreateWindow(1, 1, title.c_str(), nullptr, nullptr);

@@ -9,6 +9,7 @@ struct MaterialDS
 	int specular_count;
 	float diffuse_blends[MAX_TEXTURES_NUM/2];
 	float specular_blends[MAX_TEXTURES_NUM/2];
+	sampler2D normal;
 	float shininess;
 };
 

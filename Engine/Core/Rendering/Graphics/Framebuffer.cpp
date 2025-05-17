@@ -14,7 +14,6 @@ Framebuffer::Framebuffer(const std::string& debug_name)
 
 //TODO : remake
 
-
 Framebuffer::~Framebuffer()
 {
 	remove();

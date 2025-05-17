@@ -40,16 +40,11 @@ bool RenderSystem::init()
 
 #endif // DEBUG
 
+	m_shader_program_manager.init();
+
 	Engine&			 engine = Engine::getInstance();
 	ResourceManager& rm = engine.getResourceManager();
 	WindowManager&	 wm = engine.getWindowManager();
-
-	m_shader_program_manager.init();
-
-	if (!rm.initLoadTexture("content/wood.jpg", wood_tex, true))
-	{
-		return false;
-	}
 
 	glm::ivec2 window_size = wm.getWindowSize();
 	glViewport(0, 0, window_size.x, window_size.y);
@@ -57,28 +52,39 @@ bool RenderSystem::init()
 	m_camera.setAspectRatio(scast<float>(window_size.x) / window_size.y);
 
 	checkGeneralErrorGL("render_system");
+
+	//rm.loadModel("content/backpack.obj", m_root_entity);
+	rm.loadModel("content/scene.gltf", m_root_entity);
+
+	/*
+	if (!rm.initLoadTexture("content/wood.jpg", wood_tex, true))
+	{
+		return false;
+	}
+	
 	m_cube_mesh = generateIdenticalCube();
 	
 	Model model;
 
-	ModelEntry<MaterialC> model_entry;
-	model_entry.material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::COLOR);
-	model_entry.material.m_color.m_value = glm::vec4(0.3f, 0.6f, 0.9f, 1.0f);
-	model_entry.mesh = &m_cube_mesh;
-	model.color_entries.emplace_back(model_entry);
+	ModelEntry<MaterialColor> model_entry;
+	model_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::COLOR);
+	model_entry.m_material.m_color.m_value = glm::vec4(0.3f, 0.6f, 0.9f, 1.0f);
+	model_entry.m_mesh = &m_cube_mesh;
+	model.m_color_meshes.emplace_back(model_entry);
 
 	Model				  model2;
-	ModelEntry<MaterialD> model2_entry;
-	model2_entry.mesh = &m_cube_mesh;
-	model2_entry.material.m_diffuse.pushDiffuse(&wood_tex);
-	model2_entry.material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::DIFFUSE);
-	model2.diffuse_entries.emplace_back(model2_entry);
+	ModelEntry<MaterialDiff> model2_entry;
+	model2_entry.m_mesh = &m_cube_mesh;
+	model2_entry.m_material.m_diffuse.pushDiffuse(&wood_tex);
+	model2_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::DIFFUSE);
+	model2.m_diff_meshes.emplace_back(model2_entry);
 
 	Transform transform;
 	transform.setPosition(glm::vec3(2.0f));
 
-	m_scene_root.addChild(model);
-	m_scene_root.m_children.front().addChild(model2, transform);
+	m_root_entity.addChild(model);
+	m_root_entity.m_children.front().addChild(model2, transform);
+	*/
 
 	glGenBuffers(1, &m_matrices_ubo);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_matrices_ubo);
@@ -101,9 +107,8 @@ void RenderSystem::render()
 	glBindBuffer(GL_UNIFORM_BUFFER, m_matrices_ubo);
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(m_camera.getViewMatrix()));
 
-	m_scene_root.update();
-
-	m_scene_root.draw();
+	m_root_entity.update();
+	m_root_entity.draw();
 }
 
 void RenderSystem::destroy()
@@ -117,7 +122,7 @@ Camera& RenderSystem::getCamera()
 
 void RenderSystem::testInputH()
 {
-	Transform& tranform = m_scene_root.m_children.front().getTransform();
+	Transform& tranform = m_root_entity.m_children.front().getTransform();
 	tranform.setPosition(tranform.getPosition() + glm::vec3(0.5f, 0.0f, 0.0f));
 }
 

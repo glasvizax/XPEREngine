@@ -59,20 +59,6 @@ private:
 Mesh generateIdenticalCube();
 Mesh generateSphere(float radius, uint sector_count, uint stack_count);
 
-template<typename MaterialClass>
-struct ModelEntry
-{
-	Mesh* mesh;
-	MaterialClass material;
-};
-
-struct Model
-{
-	std::vector<ModelEntry<MaterialC>> color_entries;
-	std::vector<ModelEntry<MaterialD>> diffuse_entries;
-	std::vector<ModelEntry<MaterialDS>> diffspec_entries;
-};
-
 template <>
 inline void VertexArray::autoEnableAttributes<Vertex>()
 {

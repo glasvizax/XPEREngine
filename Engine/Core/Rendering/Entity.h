@@ -5,11 +5,12 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Mesh.h"
+#include "Model.h"
 #include "Transform.h"
 
 class Entity
 {
+	friend class ResourceManager;
 	friend class RenderSystem;
 	Entity() = default;
 
@@ -23,9 +24,9 @@ public:
 
 	Entity(const Model& model, const Transform& transform);
 
-	void addChild(const Model& model);
+	Entity& addChild(const Model& model);
 
-	void addChild(const Model& model, const Transform& transform);
+	Entity& addChild(const Model& model, const Transform& transform);
 
 	void update();
 

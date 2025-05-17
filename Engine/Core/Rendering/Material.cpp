@@ -1,36 +1,36 @@
 #include "Material.h"
 #include "Texture.h"
 
-void MaterialC::applyImpl()
+void MaterialColor::applyImpl()
 {
 	m_color.apply(m_shader_program);
 	m_specular.apply(m_shader_program);
 }
 
-void MaterialD::applyImpl()
+void MaterialDiff::applyImpl()
 {
 	m_diffuse.apply(m_shader_program);
 	m_diff_blends.apply(m_shader_program);
 	m_specular_scalar.apply(m_shader_program);
 }
 
-void MaterialDS::applyImpl()
+void MaterialDiffSpec::applyImpl()
 {
 	m_diff_spec.apply(m_shader_program);
 	m_spec_blends.apply(m_shader_program);
 	m_diff_blends.apply(m_shader_program);
 }
 
-void MaterialDSNH::applyImpl()
+void MaterialDiffSpecNorm::applyImpl()
 {
-	m_diff_spec_norm_height.apply(m_shader_program);
+	m_diff_spec_norm.apply(m_shader_program);
 	m_spec_blends.apply(m_shader_program);
 	m_diff_blends.apply(m_shader_program);
 }
 
-void MaterialDSN::applyImpl()
+void MaterialDiffSpecNormHeight::applyImpl()
 {
-	m_diff_spec_norm.apply(m_shader_program);
+	m_diff_spec_norm_height.apply(m_shader_program);
 	m_spec_blends.apply(m_shader_program);
 	m_diff_blends.apply(m_shader_program);
 }

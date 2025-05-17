@@ -19,7 +19,7 @@ struct Material
 /// <summary>
 /// color
 /// </summary>
-struct MaterialC : public Material<MaterialC>
+struct MaterialColor : public Material<MaterialColor>
 {
 	void applyImpl();
 
@@ -30,7 +30,7 @@ struct MaterialC : public Material<MaterialC>
 /// <summary>
 /// 16 diffuse
 /// </summary>
-struct MaterialD : public Material<MaterialD>
+struct MaterialDiff : public Material<MaterialDiff>
 {
 	void applyImpl();
 
@@ -42,7 +42,7 @@ struct MaterialD : public Material<MaterialD>
 /// <summary>
 /// 8 diffuse + 8 specular
 /// </summary>
-struct MaterialDS : public Material<MaterialDS>
+struct MaterialDiffSpec : public Material<MaterialDiffSpec>
 {
 	void applyImpl();
 
@@ -54,7 +54,7 @@ struct MaterialDS : public Material<MaterialDS>
 /// <summary>
 // 7 diffuse + 7 specular + normal
 /// </summary>
-struct MaterialDSN : public Material<MaterialDSN>
+struct MaterialDiffSpecNorm : public Material<MaterialDiffSpecNorm>
 {
 	void applyImpl();
 
@@ -66,7 +66,7 @@ struct MaterialDSN : public Material<MaterialDSN>
 /// <summary>
 /// 7 diffuse + 7 specular + normal + height
 /// </summary>
-struct MaterialDSNH : public Material<MaterialDSN>
+struct MaterialDiffSpecNormHeight : public Material<MaterialDiffSpecNormHeight>
 {
 	void applyImpl();
 

@@ -29,16 +29,18 @@ Entity::Entity(const Model& model, const Transform& transform)
 	m_transform = transform;
 }
 
-void Entity::addChild(const Model& model)
+Entity& Entity::addChild(const Model& model)
 {
 	m_children.emplace_back(model);
 	m_children.back().m_parent = this;
+	return m_children.back();
 }
 
-void Entity::addChild(const Model& model, const Transform& transform)
+Entity& Entity::addChild(const Model& model, const Transform& transform)
 {
 	m_children.emplace_back(model, transform);
 	m_children.back().m_parent = this;
+	return m_children.back();
 }
 
 void Entity::update()
@@ -70,25 +72,39 @@ void Entity::draw()
 {
 	if (m_parent)
 	{
-		for (int i = 0; i < m_model.color_entries.size(); ++i)
+		for (int i = 0; i < m_model.m_color_meshes.size(); ++i)
 		{
-			m_model.color_entries[i].material.apply();
-			m_model.color_entries[i].material.m_shader_program->setMat("model", m_transform.getModelMatrix());
-			m_model.color_entries[i].mesh->draw();
+			m_model.m_color_meshes[i].m_material.apply();
+			m_model.m_color_meshes[i].m_material.m_shader_program->setMat("model", m_transform.getModelMatrix());
+			m_model.m_color_meshes[i].m_mesh->draw();
 		}
-		for (int i = 0; i < m_model.diffuse_entries.size(); ++i)
+		for (int i = 0; i < m_model.m_diff_meshes.size(); ++i)
 		{
-			m_model.diffuse_entries[i].material.apply();
-			m_model.diffuse_entries[i].material.m_shader_program->setMat("model", m_transform.getModelMatrix());
-			m_model.diffuse_entries[i].mesh->draw();
+			m_model.m_diff_meshes[i].m_material.apply();
+			m_model.m_diff_meshes[i].m_material.m_shader_program->setMat("model", m_transform.getModelMatrix());
+			m_model.m_diff_meshes[i].m_mesh->draw();
 		}
-		for (int i = 0; i < m_model.diffspec_entries.size(); ++i)
+		for (int i = 0; i < m_model.m_diff_spec_meshes.size(); ++i)
 		{
-			m_model.diffspec_entries[i].material.apply();
-			m_model.diffspec_entries[i].material.m_shader_program->setMat("model", m_transform.getModelMatrix());
-			m_model.diffspec_entries[i].mesh->draw();
+			m_model.m_diff_spec_meshes[i].m_material.apply();
+			m_model.m_diff_spec_meshes[i].m_material.m_shader_program->setMat("model", m_transform.getModelMatrix());
+			m_model.m_diff_spec_meshes[i].m_mesh->draw();
+		}
+		for (int i = 0; i < m_model.m_diff_spec_norm_meshes.size(); ++i)
+		{
+			m_model.m_diff_spec_norm_meshes[i].m_material.apply();
+			m_model.m_diff_spec_norm_meshes[i].m_material.m_shader_program->setMat("model", m_transform.getModelMatrix());
+			m_model.m_diff_spec_norm_meshes[i].m_mesh->draw();
+		}
+		for (int i = 0; i < m_model.m_diff_spec_norm_height_meshes.size(); ++i)
+		{
+			m_model.m_diff_spec_norm_height_meshes[i].m_material.apply();
+			m_model.m_diff_spec_norm_height_meshes[i].m_material.m_shader_program->setMat("model", m_transform.getModelMatrix());
+			m_model.m_diff_spec_norm_height_meshes[i].m_mesh->draw();
 		}
 	}
+
+
 
 	for (auto& e : m_children)
 	{

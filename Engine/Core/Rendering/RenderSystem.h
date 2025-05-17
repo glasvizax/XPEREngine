@@ -10,6 +10,7 @@
 #include "Entity.h"
 #include "Camera.h"
 #include "ShaderProgramManager.h"
+#include "Model.h"
 
 class RenderSystem
 {
@@ -21,19 +22,30 @@ class RenderSystem
 
 	void destroy();
 
-	Entity m_scene_root;
+	Entity m_root_entity;
 
 	ShaderProgramManager m_shader_program_manager; 
 
-	Mesh m_cube_mesh;
+	//Mesh m_cube_mesh;
 
 	uint m_matrices_ubo;
 
 	Camera m_camera;
 
-	Texture wood_tex;
+	//Model backpack;
+	//Texture wood_tex;
 
 public:
+
+	ShaderProgramManager& getShaderProgramManager() 
+	{
+		return m_shader_program_manager;
+	}
+
+	Entity& getRootEntity() 
+	{
+		return m_root_entity;
+	}
 
 	Camera& getCamera();
 

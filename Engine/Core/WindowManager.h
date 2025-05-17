@@ -5,7 +5,6 @@
 
 #include "Defines.h"
 
-class Engine;
 struct GLFWwindow;
 struct GLFWmonitor;
 
@@ -13,14 +12,12 @@ class WindowManager
 {
 	friend class Engine;
 
-
 	bool init(const std::string& title, uint width, uint height, bool fullscreen);
 	bool initAsChild(const std::string& title, void* parent_handle = nullptr);
-	
+
 	void destroy();
 
 public:
-
 	WindowManager() = default;
 	~WindowManager() = default;
 	WindowManager(const WindowManager&) = delete;

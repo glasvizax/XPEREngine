@@ -13,6 +13,7 @@ public:
 
 #ifdef _DEBUG
 	VertexArray(const std::string& debug_name);
+	std::string m_debug_name;
 #endif
 
 	VertexArray(const VertexArray& other) = delete;
@@ -44,8 +45,4 @@ private:
 	std::vector<GLuint> m_buffers;
 
 	inline static GLuint s_bound_id = -1;
-
-#ifdef _DEBUG
-	std::string m_debug_name;
-#endif
 };

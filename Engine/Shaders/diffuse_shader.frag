@@ -22,7 +22,6 @@ out vec4 a_fragment_color;
 
 void main()
 {
-	
 	vec3 color = vec3(0.0f);
 	for(int i = 0; i < material.diffuse_count; ++i) 
 	{

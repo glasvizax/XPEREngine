@@ -169,7 +169,7 @@ bool setupShader(const char* const src, GLenum shader_type, GLuint& result)
 		log.resize(log_length);
 		glGetShaderInfoLog(result, log_length, nullptr, log.data());
 
-		LOG_ERROR_S(log.c_str());
+		LOG_ERROR_F("couldn't compile shader [%s]", log.c_str());
 
 		glDeleteShader(result);
 		return false;
@@ -197,7 +197,7 @@ bool setupProgram(GLuint* shaders, uint count, GLuint& program)
 		std::string log;
 		log.resize(length);
 		glGetProgramInfoLog(program, length, nullptr, log.data());
-		LOG_ERROR_S(log.c_str());
+		LOG_ERROR_F("couldn't link program [%s]", log.c_str());
 
 		glDeleteProgram(program);
 
