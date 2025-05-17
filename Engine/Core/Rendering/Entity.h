@@ -17,16 +17,20 @@ class Entity
 public:
 	Entity(const Entity&) = delete;
 	Entity& operator=(const Entity&) = delete;
+
 	Entity(Entity&& other) noexcept;
 	Entity& operator=(Entity&& other) noexcept;
 
 	Entity(const Model& model);
-
+	Entity(Model&& model);
 	Entity(const Model& model, const Transform& transform);
+	Entity(Model&& model, const Transform& transform);
 
 	Entity& addChild(const Model& model);
+	Entity& addChild(Model&& model);
 
 	Entity& addChild(const Model& model, const Transform& transform);
+	Entity& addChild(Model&& model, const Transform& transform);
 
 	void update();
 

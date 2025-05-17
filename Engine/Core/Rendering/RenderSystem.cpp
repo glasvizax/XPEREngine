@@ -53,8 +53,8 @@ bool RenderSystem::init()
 
 	checkGeneralErrorGL("render_system");
 
-	//rm.loadModel("content/backpack.obj", m_root_entity);
-	rm.loadModel("content/scene.gltf", m_root_entity);
+	rm.loadModel("content/backpack.obj", m_root_entity);
+	//rm.loadModel("content/NewSponza_Main_Yup_003.fbx", m_root_entity);
 
 	/*
 	if (!rm.initLoadTexture("content/wood.jpg", wood_tex, true))

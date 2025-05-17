@@ -3,6 +3,7 @@
 #include <deque>
 #include <filesystem>
 #include <string>
+#include <mutex>
 
 #include <assimp/material.h>
 
@@ -43,12 +44,12 @@ public:
 	bool loadModel(const std::string path, Entity& root_entity);
 
 	bool readFile(const std::filesystem::path& path, std::string& content);
-	
+
 	std::vector<fs::path> findFiles(const std::string& filename);
 
 private:
 	void processNode(aiNode* node, const aiScene* scene, Entity* parent);
-	
+
 	void processMesh(aiMesh* mesh, const aiScene* scene, Model& model);
 
 	std::vector<Texture*> loadMaterialTexture(aiMaterial* material, aiTextureType type, uint max_count);
@@ -56,8 +57,19 @@ private:
 	fs::path m_current_path;
 	fs::path m_textures_path;
 
-	std::deque<Mesh> m_meshes;
-	std::deque<Texture> m_textures;
+	Mesh* syncEmplaceMesh(std::vector<Vertex>& vertices, std::vector<uint>& indices);
 
+	Texture* syncGetCachedTexture(size_t hash);
+
+	Texture* syncPushTexture(Texture& texture);
+
+	void syncCacheTexture(size_t hash, Texture* texture);
+
+	std::deque<Mesh>					 m_meshes;
+	std::deque<Texture>					 m_textures;
 	std::unordered_map<size_t, Texture*> m_cache_mat_textures;
+
+	std::mutex m_meshes_mtx;
+	std::mutex m_texures_mtx;
+	std::mutex m_cache_mat_textures_mtx;
 };

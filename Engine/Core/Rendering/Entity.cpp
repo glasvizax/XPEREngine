@@ -2,18 +2,31 @@
 
 Entity::Entity(Entity&& other) noexcept
 {
-	this->m_transform = other.m_transform;
-	this->m_children = std::move(other.m_children);
-	this->m_parent = other.m_parent;
-	this->m_model = other.m_model;
+	m_transform = other.m_transform;
+	m_children = std::move(other.m_children);
+	m_parent = other.m_parent;
+	m_model = std::move(other.m_model);
+
+	for (auto& child : m_children)
+	{
+		child.m_parent = this;
+	}
 }
 
 Entity& Entity::operator=(Entity&& other) noexcept
 {
-	this->m_transform = other.m_transform;
-	this->m_children = std::move(other.m_children);
-	this->m_parent = other.m_parent;
-	this->m_model = other.m_model;
+	if (&other == this)
+	{
+		m_transform = other.m_transform;
+		m_children = std::move(other.m_children);
+		m_parent = other.m_parent;
+		m_model = std::move(other.m_model);
+
+		for (auto& child : m_children)
+		{
+			child.m_parent = this;
+		}
+	}
 
 	return *this;
 }
@@ -23,9 +36,20 @@ Entity::Entity(const Model& model)
 	m_model = model;
 }
 
+Entity::Entity(Model&& model)
+{
+	m_model = std::move(model);
+}
+
 Entity::Entity(const Model& model, const Transform& transform)
 {
 	m_model = model;
+	m_transform = transform;
+}
+
+Entity::Entity(Model&& model, const Transform& transform)
+{
+	m_model = std::move(model);
 	m_transform = transform;
 }
 
@@ -36,9 +60,23 @@ Entity& Entity::addChild(const Model& model)
 	return m_children.back();
 }
 
+Entity& Entity::addChild(Model&& model)
+{
+	m_children.emplace_back(std::move(model));
+	m_children.back().m_parent = this;
+	return m_children.back();
+}
+
 Entity& Entity::addChild(const Model& model, const Transform& transform)
 {
 	m_children.emplace_back(model, transform);
+	m_children.back().m_parent = this;
+	return m_children.back();
+}
+
+Entity& Entity::addChild(Model&& model, const Transform& transform)
+{
+	m_children.emplace_back(std::move(model), transform);
 	m_children.back().m_parent = this;
 	return m_children.back();
 }
@@ -72,39 +110,8 @@ void Entity::draw()
 {
 	if (m_parent)
 	{
-		for (int i = 0; i < m_model.m_color_meshes.size(); ++i)
-		{
-			m_model.m_color_meshes[i].m_material.apply();
-			m_model.m_color_meshes[i].m_material.m_shader_program->setMat("model", m_transform.getModelMatrix());
-			m_model.m_color_meshes[i].m_mesh->draw();
-		}
-		for (int i = 0; i < m_model.m_diff_meshes.size(); ++i)
-		{
-			m_model.m_diff_meshes[i].m_material.apply();
-			m_model.m_diff_meshes[i].m_material.m_shader_program->setMat("model", m_transform.getModelMatrix());
-			m_model.m_diff_meshes[i].m_mesh->draw();
-		}
-		for (int i = 0; i < m_model.m_diff_spec_meshes.size(); ++i)
-		{
-			m_model.m_diff_spec_meshes[i].m_material.apply();
-			m_model.m_diff_spec_meshes[i].m_material.m_shader_program->setMat("model", m_transform.getModelMatrix());
-			m_model.m_diff_spec_meshes[i].m_mesh->draw();
-		}
-		for (int i = 0; i < m_model.m_diff_spec_norm_meshes.size(); ++i)
-		{
-			m_model.m_diff_spec_norm_meshes[i].m_material.apply();
-			m_model.m_diff_spec_norm_meshes[i].m_material.m_shader_program->setMat("model", m_transform.getModelMatrix());
-			m_model.m_diff_spec_norm_meshes[i].m_mesh->draw();
-		}
-		for (int i = 0; i < m_model.m_diff_spec_norm_height_meshes.size(); ++i)
-		{
-			m_model.m_diff_spec_norm_height_meshes[i].m_material.apply();
-			m_model.m_diff_spec_norm_height_meshes[i].m_material.m_shader_program->setMat("model", m_transform.getModelMatrix());
-			m_model.m_diff_spec_norm_height_meshes[i].m_mesh->draw();
-		}
+		m_model.draw(m_transform.getModelMatrix());
 	}
-
-
 
 	for (auto& e : m_children)
 	{

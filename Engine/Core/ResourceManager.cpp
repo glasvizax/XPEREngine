@@ -1,6 +1,10 @@
 #include "ResourceManager.h"
 
 #include <fstream>
+#include <thread>
+#include <algorithm>
+#include <mutex>
+#include <execution>
 
 #include <stb_image.h>
 
@@ -27,7 +31,7 @@ using namespace std::string_literals;
 bool ResourceManager::init()
 {
 	m_current_path = std::filesystem::current_path();
-	m_textures_path = "content\\textures\\";
+	m_textures_path.append("content").append("textures");
 	return true;
 }
 
@@ -39,13 +43,13 @@ bool ResourceManager::initLoadShaderProgram(const std::string& vertex_name, cons
 {
 	std::string			  vertex_src, fragment_src;
 	std::filesystem::path current = m_current_path;
-	if (!readFile(current.concat("\\").concat(vertex_name), vertex_src))
+	if (!readFile(current.append(vertex_name), vertex_src))
 	{
 		return false;
 	}
 
 	current = m_current_path;
-	if (!readFile(current.concat("\\").concat(fragment_name), fragment_src))
+	if (!readFile(current.append(fragment_name), fragment_src))
 	{
 		return false;
 	}
@@ -58,19 +62,19 @@ bool ResourceManager::initLoadShaderProgram(const std::string& vertex_name, cons
 	std::string vertex_src, fragment_src, geometry_src;
 
 	std::filesystem::path current = m_current_path;
-	if (!readFile(current.concat("\\").concat(vertex_name), vertex_src))
+	if (!readFile(current.append(vertex_name), vertex_src))
 	{
 		return false;
 	}
 	current = m_current_path;
 
-	if (!readFile(current.concat("\\").concat(fragment_name), fragment_src))
+	if (!readFile(current.append(fragment_name), fragment_src))
 	{
 		return false;
 	}
 
 	current = m_current_path;
-	if (!readFile(current.concat("\\").concat(fragment_name), fragment_src))
+	if (!readFile(current.append(fragment_name), fragment_src))
 	{
 		return false;
 	}
@@ -87,10 +91,6 @@ bool ResourceManager::initLoadTexture(const std::string& name, Texture& texture,
 	{
 		LOG_ERROR_F("couldn't load file [%s] reason [%s]", name.c_str(), stbi_failure_reason());
 		return false;
-	}
-	else
-	{
-		LOG_INFO_F("success load file [%s]", name.c_str());
 	}
 
 	GLint format = GL_RGB;
@@ -138,23 +138,6 @@ bool ResourceManager::readFile(const std::filesystem::path& path, std::string& c
 	return true;
 }
 
-bool ResourceManager::loadModel(const std::string path, Entity& root_entity)
-{
-	Assimp::Importer importer;
-
-	std::filesystem::path current_path = m_current_path;
-	current_path.concat("\\").concat(path);
-
-	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals /* | aiProcess_CalcTangentSpace */);
-	if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
-	{
-		LOG_ERROR_F("couldn't load file [%s] : assimp info : [%s]", path.c_str(), importer.GetErrorString());
-		return false;
-	}
-
-	processNode(scene->mRootNode, scene, &root_entity);
-}
-
 std::vector<fs::path> ResourceManager::findFiles(const std::string& filename)
 {
 	std::vector<fs::path> res;
@@ -166,6 +149,23 @@ std::vector<fs::path> ResourceManager::findFiles(const std::string& filename)
 		}
 	}
 	return res;
+}
+
+bool ResourceManager::loadModel(const std::string path, Entity& root_entity)
+{
+	Assimp::Importer importer;
+
+	std::filesystem::path current_path = m_current_path;
+	current_path.append(path);
+
+	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals /* | aiProcess_CalcTangentSpace */);
+	if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
+	{
+		LOG_ERROR_F("couldn't load file [%s] : assimp info : [%s]", path.c_str(), importer.GetErrorString());
+		return false;
+	}
+
+	processNode(scene->mRootNode, scene, &root_entity);
 }
 
 void ResourceManager::processNode(aiNode* node, const aiScene* scene, Entity* parent)
@@ -190,15 +190,24 @@ void ResourceManager::processNode(aiNode* node, const aiScene* scene, Entity* pa
 		Transform transform;
 		transform.setPosition(translation);
 		transform.setRotationQuat(rotation);
-		transform.setScale(glm::vec3(1.0f/80.0f));
-
+		transform.setScale(scale);
 		Model model;
+
+		std::for_each(std::execution::par,
+			node->mMeshes,
+			node->mMeshes + node->mNumMeshes,
+			[&](unsigned int meshIndex) { 
+				aiMesh* mesh = scene->mMeshes[meshIndex];
+				processMesh(mesh, scene, model);
+			});
+
+		/*
 		for (uint i = 0; i < node->mNumMeshes; ++i)
 		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			processMesh(mesh, scene, model);
-		}
-
+		}	
+		*/
 		next_parent = &parent->addChild(model, transform);
 	}
 
@@ -223,8 +232,6 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 			for (uint i = 0; i < num_vertices; ++i)
 			{
 				vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
-				//std::cout << "vertices[i].m_position" << vertices[i].m_position << std::endl;
-
 				vertices[i].m_uv.x = mesh->mTextureCoords[0][i].x;
 				vertices[i].m_uv.y = mesh->mTextureCoords[0][i].y;
 				vertices[i].m_normal = assimpToGLMVec3(mesh->mNormals[i]);
@@ -269,8 +276,9 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 			counter++;
 		}
 	}
-	m_meshes.emplace_back(vertices, indices);
 
+	Mesh* my_mesh = syncEmplaceMesh(vertices, indices);
+	
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	float		shininess;
 	if (material->Get(AI_MATKEY_SHININESS, shininess) != AI_SUCCESS)
@@ -306,6 +314,7 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 		}	
 	}
 	
+	//potential race cond
 	RenderSystem& rs = Engine::getInstance().getRenderSystem();
 	ShaderProgramManager& spm = rs.getShaderProgramManager(); 
 
@@ -330,7 +339,7 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 					entry.m_material.m_diff_spec_norm_height.setHeight(height[0]);
 					entry.m_material.m_shininess.m_value = shininess;
 					entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
-					model.m_diff_spec_norm_height_meshes.emplace_back(entry);
+					model.syncPushDiffSpecNormHeightEntry(entry);
 					return;
 				}
 				ModelEntry<MaterialDiffSpecNorm> entry;
@@ -345,7 +354,7 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 				entry.m_material.m_diff_spec_norm.setNormal(normal[0]);
 				entry.m_material.m_shininess.m_value = shininess;
 				entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL);
-				model.m_diff_spec_norm_meshes.emplace_back(entry);
+				model.syncPushDiffSpecNormEntry(entry);
 				return;
 			}
 			ModelEntry<MaterialDiffSpec> entry;
@@ -359,7 +368,7 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 			}
 			entry.m_material.m_shininess.m_value = shininess;
 			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR);
-			model.m_diff_spec_meshes.emplace_back(entry);
+			model.syncPushDiffSpecEntry(entry);
 			return;
 		}
 		ModelEntry<MaterialDiff> entry;
@@ -374,7 +383,7 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 		entry.m_material.m_shininess.m_value = shininess;
 		entry.m_material.m_specular_scalar.m_value = specular_scalar;
 		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE);
-		model.m_diff_meshes.emplace_back(entry);
+		model.syncPushDiffEntry(entry);
 		return;
 	}
 
@@ -393,13 +402,12 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 	entry.m_material.m_shininess.m_value = shininess;
 	entry.m_material.m_specular.m_value = specular_scalar;
 	entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::COLOR);
-	model.m_color_meshes.emplace_back(entry);
+	model.syncPushColorEntry(entry);
 }
 
 std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material, aiTextureType type, uint max_count)
 {
 	uint count = material->GetTextureCount(type);
-	LOG_INFO_F("type [%d] count [%d]", type, count);
 
 	if (count == 0)
 	{
@@ -421,7 +429,6 @@ std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material,
 			LOG_WARNING_F("material->GetTexture returned != AI_SUCCESS while getting texture type [%d] ", type);
 			continue;
 		}
-		LOG_INFO_F("path.C_Str(): [%s]", path.C_Str());
 
 		fs::path file = m_textures_path;
 		fs::path _dirty_path = path.C_Str();
@@ -432,10 +439,10 @@ std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material,
 
 		size_t			 hash = hasher(hashed);
 
-		auto it = m_cache_mat_textures.find(hash);
-		if (it != m_cache_mat_textures.end())
+		Texture* cached = syncGetCachedTexture(hash);
+		if (cached)
 		{
-			res.push_back(it->second);
+			res.push_back(cached);
 			continue;
 		}
 
@@ -445,10 +452,38 @@ std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material,
 			continue;
 		}
 
-		m_textures.push_back(std::move(tex));
-		m_cache_mat_textures[hash] = &m_textures.back();
-
+		Texture* new_tex = syncPushTexture(tex);
+		syncCacheTexture(hash, new_tex);
 	}
 	return res;
+}
 
+Mesh* ResourceManager::syncEmplaceMesh(std::vector<Vertex>& vertices, std::vector<uint>& indices)
+{
+	std::lock_guard lk(m_meshes_mtx);
+	return &m_meshes.emplace_back(std::move(vertices), std::move(indices));
+}
+
+Texture* ResourceManager::syncGetCachedTexture(size_t hash)
+{
+	std::lock_guard lk(m_cache_mat_textures_mtx);
+	auto			it = m_cache_mat_textures.find(hash);
+	if (it != m_cache_mat_textures.end())
+	{
+		return it->second;
+	}
+	return nullptr;
+}
+
+Texture* ResourceManager::syncPushTexture(Texture& texture)
+{
+	std::lock_guard lk(m_texures_mtx);
+	m_textures.push_back(std::move(texture));
+	return &m_textures.back();
+}
+
+void ResourceManager::syncCacheTexture(size_t hash, Texture* texture)
+{
+	std::lock_guard lk(m_cache_mat_textures_mtx);
+	m_cache_mat_textures[hash] = texture;
 }

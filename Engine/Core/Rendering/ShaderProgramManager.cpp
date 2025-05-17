@@ -60,6 +60,8 @@ bool ShaderProgramManager::init()
 	return true;
 }
 
+
+// should be thread safe ...
 ShaderProgram* ShaderProgramManager::getShaderProgramPtr(ShaderProgramType type)
 {
 	auto found = m_default_shaders.find(type);
