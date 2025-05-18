@@ -46,47 +46,50 @@ bool RenderSystem::init()
 	ResourceManager& rm = engine.getResourceManager();
 	WindowManager&	 wm = engine.getWindowManager();
 
+
 	glm::ivec2 window_size = wm.getWindowSize();
 	glViewport(0, 0, window_size.x, window_size.y);
 
 	m_camera.setAspectRatio(scast<float>(window_size.x) / window_size.y);
+	m_camera.setPosition(glm::vec3(10.0f, 10.0f, -10.0f));
+
 
 	checkGeneralErrorGL("render_system");
 
-	m_root_entity.addChild(Model());
-	m_root_entity.addChild(Model());
-	rm.loadModel("content/backpack.obj", m_root_entity.m_children.back(), false);
-	rm.loadModel("content/Cottage_FREE.obj", m_root_entity);
+	m_root_entity.addChild();
+	rm.loadModel("content/Lowpoly_tree_sample.obj", m_root_entity.m_children.back(), false);
+	m_root_entity.m_children.back().getTransform()
+		.setScale(glm::vec3(0.4f))
+		.setPosition(glm::vec3(10.0f, 0.0f, 10.0f));
+
+	m_root_entity.addChild();
+	rm.loadModel("content/Cottage_FREE.obj", m_root_entity.m_children.back());
+
+	m_root_entity.addChild();
+	rm.loadModel("content/osaka.obj", m_root_entity.m_children.back());
+	m_root_entity.m_children.back().getTransform()
+		.setScale(glm::vec3(1.0f/25.0f))
+		.setPosition(glm::vec3(10.0f, 0.0f, 7.0f));
+
+	m_root_entity.addChild();
+	rm.loadModel("content/chiyo.obj", m_root_entity.m_children.back());
+	m_root_entity.m_children.back().getTransform()
+		.setScale(glm::vec3(1.0f / 25.0f))
+		.setPosition(glm::vec3(7.0f, 0.0f, 10.0f))
+		.setRotationEuler(glm::vec3(0.0f, -90.0f, 0.0f));
+
+
+	m_root_entity.addChild(); 
+	Mesh& cube = rm.storeMesh(generateIdenticalCube());
+
+	ModelEntry<MaterialColor> floor_entry;
+	floor_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::COLOR);
+	floor_entry.m_material.m_color.m_vector = glm::vec3(0.15f, 0.55f, 0.16f);
+	floor_entry.m_mesh = &cube;
 	
-	/*
-	if (!rm.initLoadTexture("content/wood.jpg", wood_tex, true))
-	{
-		return false;
-	}
-	
-	m_cube_mesh = generateIdenticalCube();
-	
-	Model model;
+	m_root_entity.m_children.back().m_model.m_meshes_color.push_back(floor_entry);
 
-	ModelEntry<MaterialColor> model_entry;
-	model_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::COLOR);
-	model_entry.m_material.m_color.m_value = glm::vec4(0.3f, 0.6f, 0.9f, 1.0f);
-	model_entry.m_mesh = &m_cube_mesh;
-	model.m_color_meshes.emplace_back(model_entry);
-
-	Model				  model2;
-	ModelEntry<MaterialDiff> model2_entry;
-	model2_entry.m_mesh = &m_cube_mesh;
-	model2_entry.m_material.m_diffuse.pushDiffuse(&wood_tex);
-	model2_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::DIFFUSE);
-	model2.m_diff_meshes.emplace_back(model2_entry);
-
-	Transform transform;
-	transform.setPosition(glm::vec3(2.0f));
-
-	m_root_entity.addChild(model);
-	m_root_entity.m_children.front().addChild(model2, transform);
-	*/                                                                                                                   
+	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(12.0f, 0.05f, 12.0f));                                                                                                           
 
 	m_matrices_buffer.init(sizeof(glm::mat4) * 2, 0);
 	m_matrices_buffer.fill(0, sizeof(glm::mat4), glm::value_ptr(m_camera.getProjectionMatrix()));

@@ -47,7 +47,16 @@ public:
 
 	std::vector<fs::path> findFiles(const std::string& filename);
 
+	Mesh& storeMesh(Mesh&& mesh) 
+	{
+		return m_general_meshes.emplace_back(std::move(mesh));
+	}
+	Texture& storeTexture(Texture&& texture)
+	{
+		return m_general_textures.emplace_back(std::move(texture));
+	}
 private:
+
 	void processNode(aiNode* node, const aiScene* scene, Entity* parent);
 
 	void processMesh(aiMesh* mesh, const aiScene* scene, Model& model);
@@ -56,20 +65,23 @@ private:
 
 	std::vector<Texture*> loadMaterialTexture(aiMaterial* material, aiTextureType type, uint max_count);
 
+	Mesh* syncEmplaceModelMesh(std::vector<Vertex>& vertices, std::vector<uint>& indices);
+
+	Texture* syncGetCachedModelTexture(size_t hash);
+
+	Texture* syncPushModelTexture(Texture& texture);
+
+	void syncCacheModelTexture(size_t hash, Texture* texture);
+
 	fs::path m_current_path;
 	fs::path m_textures_path;
 
-	Mesh* syncEmplaceMesh(std::vector<Vertex>& vertices, std::vector<uint>& indices);
+	std::deque<Texture> m_general_textures;
+	std::deque<Mesh>	m_general_meshes;
 
-	Texture* syncGetCachedTexture(size_t hash);
-
-	Texture* syncPushTexture(Texture& texture);
-
-	void syncCacheTexture(size_t hash, Texture* texture);
-
-	std::deque<Mesh>					 m_meshes;
-	std::deque<Texture>					 m_textures;
-	std::unordered_map<size_t, Texture*> m_cache_mat_textures;
+	std::deque<Mesh>					 m_model_meshes;
+	std::deque<Texture>					 m_model_textures;
+	std::unordered_map<size_t, Texture*> m_cache_model_textures;
 
 	std::mutex m_meshes_mtx;
 	std::mutex m_texures_mtx;

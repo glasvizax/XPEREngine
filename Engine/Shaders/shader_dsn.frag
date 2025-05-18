@@ -1,7 +1,6 @@
 #version 460
 
-
-struct MaterialDS 
+struct MaterialDSN
 {
 	sampler2D diffuse;
 	sampler2D specular;
@@ -15,7 +14,7 @@ in VS_OUT
 	vec2 uv;
 } fs_in;
 
-uniform MaterialDS material;
+uniform MaterialDSN material;
 
 out vec4 a_fragment_color;
 

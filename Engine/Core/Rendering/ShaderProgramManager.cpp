@@ -2,11 +2,13 @@
 
 // clang-format off
 std::unordered_map<ShaderProgramType, VertexFragmentNames> DEFAULT_SHADER_NAMES = {
-	{ ShaderProgramType::COLOR,								{ "color_shader.vert",	"color_shader.frag" } },
-	{ ShaderProgramType::DIFFUSE,							{ "diffuse_shader.vert", "diffuse_shader.frag" } },
-	{ ShaderProgramType::DIFFUSE_SPECULAR,					{ "diffuse_specular_shader.vert", "diffuse_specular_shader.frag" } },
-	{ ShaderProgramType::DIFFUSE_SPECULAR_NORMAL,			{ "diffuse_specular_normal_shader.vert", "diffuse_specular_normal_shader.frag" } },
-	{ ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT,	{ "diffuse_specular_normal_height_shader.vert", "diffuse_specular_normal_height_shader.frag" } },
+	{ ShaderProgramType::COLOR,								{ "shader_color.vert",	"shader_color.frag" } },
+	{ ShaderProgramType::DIFFUSE,							{ "shader_d.vert",		"shader_d.frag" } },
+	{ ShaderProgramType::DIFFUSE_NORMAL,					{ "shader_dn.vert",		"shader_dn.frag" } },
+	{ ShaderProgramType::DIFFUSE_NORMAL_HEIGHT,				{ "shader_dnh.vert",	"shader_dnh.frag" } },
+	{ ShaderProgramType::DIFFUSE_SPECULAR,					{ "shader_ds.vert",		"shader_ds.frag" } },
+	{ ShaderProgramType::DIFFUSE_SPECULAR_NORMAL,			{ "shader_dsn.vert",	"shader_dsn.frag" } },
+	{ ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT,	{ "shader_dsnh.vert",	"shader_dsnh.frag" } },
 };
 
 // clang-format on
@@ -59,7 +61,6 @@ bool ShaderProgramManager::init()
 
 	return true;
 }
-
 
 // should be thread safe ...
 ShaderProgram* ShaderProgramManager::getShaderProgramPtr(ShaderProgramType type)

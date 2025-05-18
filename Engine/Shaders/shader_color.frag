@@ -9,7 +9,7 @@ struct DiffuseTexture
 
 struct MaterialColor
 {
-	vec4 color;
+	vec3 color;
 	float shininess;
 	float specular;
 };

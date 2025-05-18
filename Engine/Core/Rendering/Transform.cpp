@@ -22,40 +22,46 @@ Transform& Transform::operator=(const Transform& tranform)
 	return *this;
 }
 
-void Transform::updateModelMatrix()
+Transform& Transform::updateModelMatrix()
 {
 	m_model = recalcModelMatrix();
 	m_dirty = false;
+	return *this;
 }
 
-void Transform::updateModelMatrix(const glm::mat4& parent)
+Transform& Transform::updateModelMatrix(const glm::mat4& parent)
 {
 	m_model = parent * recalcModelMatrix();
 	m_dirty = false;
+	return *this;
 }
 
-void Transform::setPosition(glm::vec3 new_position)
+Transform& Transform::setPosition(glm::vec3 new_position)
 {
 	m_position = new_position;
 	m_dirty = true;
+	return *this;
 }
 
-void Transform::setRotationEuler(glm::vec3 euler_degrees)
+Transform& Transform::setRotationEuler(glm::vec3 euler_degrees)
 {
 	m_rotation = glm::quat(glm::radians(euler_degrees));
 	m_dirty = true;
+	return *this;
 }
 
-void Transform::setRotationQuat(glm::quat& quat)
+Transform& Transform::setRotationQuat(glm::quat& quat)
 {
 	m_rotation = quat;
 	m_dirty = true;
+	return *this;
 }
 
-void Transform::setScale(glm::vec3 new_scale)
+Transform& Transform::setScale(glm::vec3 new_scale)
 {
 	m_scale = new_scale;
 	m_dirty = true;
+	return *this;
 }
 
 glm::vec3 Transform::getPosition() const

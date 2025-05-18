@@ -25,7 +25,7 @@ private:
 	Camera* m_camera = nullptr;
 	RenderSystem* m_render_system = nullptr;
 
-	float m_speed = 3.0f;
+	float m_speed = 5.0f;
 	float m_sensitivity_vertical = 3.0f;
 	float m_sensitivity_horizontal = 3.0f;
 

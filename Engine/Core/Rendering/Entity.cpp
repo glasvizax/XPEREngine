@@ -53,6 +53,13 @@ Entity::Entity(Model&& model, const Transform& transform)
 	m_transform = transform;
 }
 
+Entity& Entity::addChild()
+{
+	m_children.emplace_back();
+	m_children.back().m_parent = this;
+	return m_children.back();
+}
+
 Entity& Entity::addChild(const Model& model)
 {
 	m_children.emplace_back(model);

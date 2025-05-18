@@ -15,17 +15,17 @@ public:
 	Transform& operator=(Transform&& tranform) noexcept = delete;
 
 public:
-	void updateModelMatrix();
+	Transform& updateModelMatrix();
 
-	void updateModelMatrix(const glm::mat4& parent);
+	Transform& updateModelMatrix(const glm::mat4& parent);
 
-	void setPosition(glm::vec3 new_position);
+	Transform& setPosition(glm::vec3 new_position);
 
-	void setRotationEuler(glm::vec3 euler_degrees);
+	Transform& setRotationEuler(glm::vec3 euler_degrees);
 
-	void setRotationQuat(glm::quat& quat);
+	Transform& setRotationQuat(glm::quat& quat);
 
-	void setScale(glm::vec3 new_scale);
+	Transform& setScale(glm::vec3 new_scale);
 
 	glm::vec3 getPosition() const;
 

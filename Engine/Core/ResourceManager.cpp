@@ -6,7 +6,7 @@
 #include <mutex>
 #include <execution>
 #include <stb_image.h>
-
+#define ASSIMP_ENABLE_THREAD_CHECKS 1
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -155,14 +155,13 @@ bool ResourceManager::loadModel(const std::string path, Entity& root_entity, boo
 
 	std::filesystem::path current_path = m_current_path;
 	current_path.append(path);
-
+;
 	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | (flip_uv ? aiProcess_FlipUVs : 0) /* | aiProcess_CalcTangentSpace */);
 	if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
 	{
 		LOG_ERROR_F("couldn't load file [%s] : assimp info : [%s]", path.c_str(), importer.GetErrorString());
 		return false;
 	}
-
 	processNode(scene->mRootNode, scene, &root_entity);
 }
 
@@ -190,15 +189,14 @@ void ResourceManager::processNode(aiNode* node, const aiScene* scene, Entity* pa
 		transform.setRotationQuat(rotation);
 		transform.setScale(scale);
 		Model model;
-
-		std::for_each(std::execution::par,
+		std::for_each(std::execution::seq,
 			node->mMeshes,
 			node->mMeshes + node->mNumMeshes,
 			[&](unsigned int mesh_index) {
 				aiMesh* mesh = scene->mMeshes[mesh_index];
 				processMesh(mesh, scene, model);
 			});
-
+		
 		/*
 		for (uint i = 0; i < node->mNumMeshes; ++i)
 		{
@@ -224,7 +222,7 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 	uint				num_faces = mesh->mNumFaces;
 	vertices.resize(num_vertices);
 	indices.resize(mesh->mNumFaces * 3);
-	if (mesh->mTextureCoords[0])
+	if (mesh->HasTextureCoords(0))
 	{
 		if (mesh->HasNormals())
 		{
@@ -275,15 +273,14 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 			counter++;
 		}
 	}
-
-	Mesh* my_mesh = syncEmplaceMesh(vertices, indices);
-
+	Mesh* my_mesh = syncEmplaceModelMesh(vertices, indices);
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	processMaterial(my_mesh, material, model);
 }
 
 void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& model)
 {
+
 	float shininess;
 	if (material->Get(AI_MATKEY_SHININESS, shininess) != AI_SUCCESS)
 	{
@@ -305,7 +302,6 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 	// potential race cond
 	RenderSystem&		  rs = Engine::getInstance().getRenderSystem();
 	ShaderProgramManager& spm = rs.getShaderProgramManager();
-
 	if (diffuse.size() == 0)
 	{
 		// MaterialColor
@@ -325,8 +321,9 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 		entry.m_material.m_specular_scalar.m_scalar = specular_scalar;
 
 		entry.m_material.m_shininess.m_scalar = shininess;
-		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::COLOR);
 		model.syncPushMeshColor(entry);
+		return;
 	}
 	std::vector<Texture*> specular = loadMaterialTexture(material, aiTextureType::aiTextureType_SPECULAR, 1);
 	if (specular.size() == 0)
@@ -341,7 +338,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 			entry.m_material.m_specular_scalar.m_scalar = specular_scalar;
 
 			entry.m_material.m_shininess.m_scalar = shininess;
-			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE);
 			model.syncPushMeshD(entry);
 			return;
 		}
@@ -356,7 +353,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 			entry.m_material.m_normal.m_texture = normal[0];
 
 			entry.m_material.m_shininess.m_scalar = shininess;
-			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_NORMAL);
 			model.syncPushMeshDN(entry);
 			return;
 		}
@@ -369,7 +366,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 		entry.m_material.m_height.m_texture = height[0];
 
 		entry.m_material.m_shininess.m_scalar = shininess;
-		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_NORMAL_HEIGHT);
 		model.syncPushMeshDNH(entry);
 		return;
 	}
@@ -386,7 +383,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 			entry.m_material.m_specular.m_texture = specular[0];
 
 			entry.m_material.m_shininess.m_scalar = shininess;
-			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR);
 			model.syncPushMeshDS(entry);
 			return;
 		}
@@ -402,7 +399,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 			entry.m_material.m_normal.m_texture = normal[0];
 
 			entry.m_material.m_shininess.m_scalar = shininess;
-			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL);
 			model.syncPushMeshDSN(entry);
 			return;
 		}
@@ -455,7 +452,7 @@ std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material,
 
 		size_t hash = hasher(hashed);
 
-		Texture* cached = syncGetCachedTexture(hash);
+		Texture* cached = syncGetCachedModelTexture(hash);
 		if (cached)
 		{
 			res.push_back(cached);
@@ -467,40 +464,40 @@ std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material,
 		{
 			continue;
 		}
-		Texture* new_tex = syncPushTexture(tex);
-		syncCacheTexture(hash, new_tex);
+		Texture* new_tex = syncPushModelTexture(tex);
+		syncCacheModelTexture(hash, new_tex);
 
 		res.push_back(new_tex);
 	}
 	return res;
 }
 
-Mesh* ResourceManager::syncEmplaceMesh(std::vector<Vertex>& vertices, std::vector<uint>& indices)
+Mesh* ResourceManager::syncEmplaceModelMesh(std::vector<Vertex>& vertices, std::vector<uint>& indices)
 {
 	std::lock_guard lk(m_meshes_mtx);
-	return &m_meshes.emplace_back(std::move(vertices), std::move(indices));
+	return &m_model_meshes.emplace_back(std::move(vertices), std::move(indices));
 }
 
-Texture* ResourceManager::syncGetCachedTexture(size_t hash)
+Texture* ResourceManager::syncGetCachedModelTexture(size_t hash)
 {
 	std::lock_guard lk(m_cache_mat_textures_mtx);
-	auto			it = m_cache_mat_textures.find(hash);
-	if (it != m_cache_mat_textures.end())
+	auto			it = m_cache_model_textures.find(hash);
+	if (it != m_cache_model_textures.end())
 	{
 		return it->second;
 	}
 	return nullptr;
 }
 
-Texture* ResourceManager::syncPushTexture(Texture& texture)
+Texture* ResourceManager::syncPushModelTexture(Texture& texture)
 {
 	std::lock_guard lk(m_texures_mtx);
-	m_textures.push_back(std::move(texture));
-	return &m_textures.back();
+	m_model_textures.push_back(std::move(texture));
+	return &m_model_textures.back();
 }
 
-void ResourceManager::syncCacheTexture(size_t hash, Texture* texture)
+void ResourceManager::syncCacheModelTexture(size_t hash, Texture* texture)
 {
 	std::lock_guard lk(m_cache_mat_textures_mtx);
-	m_cache_mat_textures[hash] = texture;
+	m_cache_model_textures[hash] = texture;
 }

@@ -1,7 +1,7 @@
 #version 460
 #define MAX_TEXTURES_NUM 16
 
-struct MaterialDS 
+struct MaterialDSNH 
 {
 	sampler2D diffuse;
 	sampler2D specular;
@@ -16,7 +16,7 @@ in VS_OUT
 	vec2 uv;
 } fs_in;
 
-uniform MaterialDS material;
+uniform MaterialDSNH material;
 
 out vec4 a_fragment_color;
 

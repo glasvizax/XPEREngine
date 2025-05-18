@@ -1,6 +1,7 @@
 find_package(glfw3 CONFIG REQUIRED)
 find_package(assimp REQUIRED)
 
+
 # getting engine src files
 file(GLOB_RECURSE ENGINE_SRC
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.cpp" 
@@ -65,12 +66,25 @@ foreach(subdir IN LISTS ENGINE_SUBDIRS)
   target_include_directories(Main PRIVATE ${subdir})
 endforeach()
 
-message(${GLSL_FILES})
-
-add_custom_command(
-    TARGET Engine
-    PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GLSL_FILES} ${BIN_PATH}
+set(GLSL_STAMP_FILE 
+    ${CMAKE_BINARY_DIR}/glsl_copied.stamp  # Пример: размещение в директории сборки
 )
+
+# Создание файла-маркера после копирования
+add_custom_command(
+    OUTPUT ${GLSL_STAMP_FILE}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GLSL_FILES} ${BIN_PATH}
+    COMMAND ${CMAKE_COMMAND} -E touch ${GLSL_STAMP_FILE}
+    DEPENDS ${GLSL_FILES}
+)
+
+# Цель, зависящая от файла-маркера
+add_custom_target(
+    CopyGLSL
+    DEPENDS ${GLSL_STAMP_FILE}
+)
+
+# Связь с основной целью
+add_dependencies(Engine CopyGLSL)
 
 set_property(TARGET Main PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${BIN_PATH}")

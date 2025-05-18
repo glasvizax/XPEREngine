@@ -44,7 +44,6 @@ struct Model
 
 	void draw(const glm::mat4& model);
 
-private:
 	std::vector<ModelEntry<MaterialColor>> m_meshes_color;
 	std::vector<ModelEntry<MaterialD>>	   m_meshes_d;
 	std::vector<ModelEntry<MaterialDN>>	   m_meshes_dn;
@@ -53,6 +52,7 @@ private:
 	std::vector<ModelEntry<MaterialDSN>>   m_meshes_dsn;
 	std::vector<ModelEntry<MaterialDSNH>>  m_meshes_dsnh;
 
+private:
 	std::mutex m_color_mtx;
 	std::mutex m_d_mtx;
 	std::mutex m_dn_mtx;

@@ -12,8 +12,7 @@ class Entity
 {
 	friend class ResourceManager;
 	friend class RenderSystem;
-	Entity() = default;
-
+	
 public:
 	Entity(const Entity&) = delete;
 	Entity& operator=(const Entity&) = delete;
@@ -21,11 +20,13 @@ public:
 	Entity(Entity&& other) noexcept;
 	Entity& operator=(Entity&& other) noexcept;
 
+	Entity() = default;
 	Entity(const Model& model);
 	Entity(Model&& model);
 	Entity(const Model& model, const Transform& transform);
 	Entity(Model&& model, const Transform& transform);
-
+	
+	Entity& addChild();
 	Entity& addChild(const Model& model);
 	Entity& addChild(Model&& model);
 

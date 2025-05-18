@@ -38,10 +38,12 @@ int Engine::runWinForms(void* panel_handle)
 	{
 		return EXIT_FAILURE;
 	}
+
 	if (!g_input_manager.init(g_window_manager.getWindow()))
 	{
 		return EXIT_FAILURE;
 	}
+	
 	if (!g_render_system.init())
 	{
 		return EXIT_FAILURE;
