@@ -98,7 +98,6 @@ void PlayerInputManager::destroy()
 	input_manager.unregKeyCallback(GLFW_KEY_S, NULL, GLFW_RELEASE);
 	input_manager.unregKeyCallback(GLFW_KEY_D, NULL, GLFW_RELEASE);
 	input_manager.unregKeyCallback(GLFW_KEY_A, NULL, GLFW_RELEASE);
-
 	
 	input_manager.unregKeyCallback(GLFW_KEY_K, NULL, GLFW_PRESS);
 	input_manager.unregKeyCallback(GLFW_KEY_H, NULL, GLFW_PRESS);

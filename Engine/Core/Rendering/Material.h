@@ -11,80 +11,84 @@ struct Material
 {
 	void apply();
 
-	MP_Shininess m_shininess;
-
+	MP_FloatScalar m_shininess{ "material.shininess" };
 	ShaderProgram* m_shader_program = nullptr;
 };
 
-/// <summary>
-/// color
-/// </summary>
+
 struct MaterialColor : public Material<MaterialColor>
 {
 	void applyImpl();
 
-	MP_Color		  m_color;
-	MP_SpecularScalar m_specular;
+	MP_FloatVector m_color{ "material.color" };
+	MP_FloatScalar m_specular_scalar{ "material.specular_scalar" };
 };
 
-/// <summary>
-/// 16 diffuse
-/// </summary>
-struct MaterialDiff : public Material<MaterialDiff>
+struct MaterialD : public Material<MaterialD>
 {
 	void applyImpl();
 
-	MP_Diffuse16	   m_diffuse;
-	MP_DiffuseBlends16 m_diff_blends;
-	MP_SpecularScalar  m_specular_scalar;
+	MP_Texture<0>  m_diffuse{ "material.diffuse" };
+	MP_FloatScalar m_specular_scalar{ "material.specular_scalar" };
 };
 
-/// <summary>
-/// 8 diffuse + 8 specular
-/// </summary>
-struct MaterialDiffSpec : public Material<MaterialDiffSpec>
+struct MaterialDS : public Material<MaterialDS>
 {
 	void applyImpl();
 
-	MP_Diff8Spec8	   m_diff_spec;
-	MP_SpecularBlends8 m_spec_blends;
-	MP_DiffuseBlends8  m_diff_blends;
+	MP_Texture<0>  m_diffuse{ "material.diffuse" };
+	MP_Texture<1>  m_specular{ "material.specular" };
 };
 
-/// <summary>
-// 7 diffuse + 7 specular + normal
-/// </summary>
-struct MaterialDiffSpecNorm : public Material<MaterialDiffSpecNorm>
+struct MaterialDN : public Material<MaterialDN>
 {
 	void applyImpl();
 
-	MP_Diff7Spec7Norm  m_diff_spec_norm;
-	MP_SpecularBlends8 m_spec_blends;
-	MP_DiffuseBlends8  m_diff_blends;
+	MP_Texture<0> m_diffuse{ "material.diffuse" };
+	MP_Texture<1> m_normal{ "material.normal" };
+	MP_FloatScalar m_specular_scalar{ "material.specular_scalar" };
 };
 
-/// <summary>
-/// 7 diffuse + 7 specular + normal + height
-/// </summary>
-struct MaterialDiffSpecNormHeight : public Material<MaterialDiffSpecNormHeight>
+struct MaterialDNH : public Material<MaterialDNH>
 {
 	void applyImpl();
 
-	MP_Diff7Spec7NormHeight m_diff_spec_norm_height;
-	MP_SpecularBlends8		m_spec_blends;
-	MP_DiffuseBlends8		m_diff_blends;
+	MP_Texture<0>  m_diffuse{ "material.diffuse" };
+	MP_Texture<1>  m_normal{ "material.normal" };
+	MP_Texture<2>  m_height{ "material.height" };
+	MP_FloatScalar m_specular_scalar{ "material.specular_scalar" };
 };
 
+// TODO: DH
+
+struct MaterialDSN : public Material<MaterialDSN>
+{
+	void applyImpl();
+
+	MP_Texture<0> m_diffuse{ "material.diffuse" };
+	MP_Texture<1> m_specular{ "material.specular" };
+	MP_Texture<2> m_normal{ "material.normal" };
+};
+
+struct MaterialDSNH : public Material<MaterialDSNH>
+{
+	void applyImpl();
+
+	MP_Texture<0> m_diffuse{ "material.diffuse" };
+	MP_Texture<1> m_specular{ "material.specular" };
+	MP_Texture<2> m_normal{ "material.normal" };
+	MP_Texture<3> m_height{ "material.height" };
+};
 
 template <typename Derived>
 inline void Material<Derived>::apply()
 {
 	if (!m_shader_program)
 	{
-		LOG_ERROR_F("ShaderProgram invalid in %s", typeid(Derived).name());
+		LOG_ERROR_S("m_shader_program was invalid");
 		return;
 	}
-	m_shader_program->use();
 	m_shininess.apply(m_shader_program);
 	static_cast<Derived*>(this)->applyImpl();
 }
+

@@ -1,5 +1,10 @@
 #include "Camera.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
+
+#include "Debug.h"
 
 void Camera::rotatePitch(float degrees)
 {
@@ -125,6 +130,9 @@ void Camera::updateVectors()
 
 	//float sin_yaw = glm::sqrt((1 - glm::pow(cos_yaw, 2)));
 	//float sin_pitch = glm::sqrt((1 - glm::pow(cos_pitch, 2)));
+
+
+
 
 	float sin_yaw = glm::sin(glm::radians(m_yaw));
 	float sin_pitch = glm::sin(glm::radians(m_pitch));

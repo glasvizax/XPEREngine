@@ -4,11 +4,13 @@ Model::Model(const Model& other)
 {
 	if (&other != this)
 	{
-		m_color_meshes = other.m_color_meshes;
-		m_diff_meshes = other.m_diff_meshes;
-		m_diff_spec_meshes = other.m_diff_spec_meshes;
-		m_diff_spec_norm_meshes = other.m_diff_spec_norm_meshes;
-		m_diff_spec_norm_height_meshes = other.m_diff_spec_norm_height_meshes;
+		m_meshes_color = other.m_meshes_color;
+		m_meshes_d = other.m_meshes_d;
+		m_meshes_dn = other.m_meshes_dn;
+		m_meshes_dnh = other.m_meshes_dnh;
+		m_meshes_ds = other.m_meshes_ds;
+		m_meshes_dsn = other.m_meshes_dsn;
+		m_meshes_dsnh = other.m_meshes_dsnh;
 	}
 }
 
@@ -16,100 +18,127 @@ Model& Model::operator=(const Model& other)
 {
 	if (&other != this)
 	{
-		m_color_meshes = other.m_color_meshes;
-		m_diff_meshes = other.m_diff_meshes;
-		m_diff_spec_meshes = other.m_diff_spec_meshes;
-		m_diff_spec_norm_meshes = other.m_diff_spec_norm_meshes;
-		m_diff_spec_norm_height_meshes = other.m_diff_spec_norm_height_meshes;
+		m_meshes_color = other.m_meshes_color;
+		m_meshes_d = other.m_meshes_d;
+		m_meshes_dn = other.m_meshes_dn;
+		m_meshes_dnh = other.m_meshes_dnh;
+		m_meshes_ds = other.m_meshes_ds;
+		m_meshes_dsn = other.m_meshes_dsn;
+		m_meshes_dsnh = other.m_meshes_dsnh;
 	}
 	return *this;
 }
 
 Model::Model(Model&& other) noexcept
 {
-	if (&other != this)
-	{
-		m_color_meshes = std::move(other.m_color_meshes);
-		m_diff_meshes = std::move(other.m_diff_meshes);
-		m_diff_spec_meshes = std::move(other.m_diff_spec_meshes);
-		m_diff_spec_norm_meshes = std::move(other.m_diff_spec_norm_meshes);
-		m_diff_spec_norm_height_meshes = std::move(other.m_diff_spec_norm_height_meshes);
-	}
+	m_meshes_color = std::move(other.m_meshes_color);
+	m_meshes_d = std::move(other.m_meshes_d);
+	m_meshes_dn = std::move(other.m_meshes_dn);
+	m_meshes_dnh = std::move(other.m_meshes_dnh);
+	m_meshes_ds = std::move(other.m_meshes_ds);
+	m_meshes_dsn = std::move(other.m_meshes_dsn);
+	m_meshes_dsnh = std::move(other.m_meshes_dsnh);
 }
 
 Model& Model::operator=(Model&& other) noexcept
 {
 	if (&other != this)
 	{
-		m_color_meshes = std::move(other.m_color_meshes);
-		m_diff_meshes = std::move(other.m_diff_meshes);
-		m_diff_spec_meshes = std::move(other.m_diff_spec_meshes);
-		m_diff_spec_norm_meshes = std::move(other.m_diff_spec_norm_meshes);
-		m_diff_spec_norm_height_meshes = std::move(other.m_diff_spec_norm_height_meshes);
+		m_meshes_color = std::move(other.m_meshes_color);
+		m_meshes_d = std::move(other.m_meshes_d);
+		m_meshes_dn = std::move(other.m_meshes_dn);
+		m_meshes_dnh = std::move(other.m_meshes_dnh);
+		m_meshes_ds = std::move(other.m_meshes_ds);
+		m_meshes_dsn = std::move(other.m_meshes_dsn);
+		m_meshes_dsnh = std::move(other.m_meshes_dsnh);
 	}
 	return *this;
 }
 
-void Model::syncPushColorEntry(ModelEntry<MaterialColor>& entry)
+void Model::syncPushMeshColor(ModelEntry<MaterialColor>& entry)
 {
 	std::lock_guard lk(m_color_mtx);
-	m_color_meshes.push_back(entry);
+	m_meshes_color.push_back(entry);
 }
 
-void Model::syncPushDiffEntry(ModelEntry<MaterialDiff>& entry)
+void Model::syncPushMeshD(ModelEntry<MaterialD>& entry)
 {
-	std::lock_guard lk(m_diff_mtx);
-	m_diff_meshes.push_back(entry);
+	std::lock_guard lk(m_d_mtx);
+	m_meshes_d.push_back(entry);
 }
 
-void Model::syncPushDiffSpecEntry(ModelEntry<MaterialDiffSpec>& entry)
+void Model::syncPushMeshDN(ModelEntry<MaterialDN>& entry)
 {
-	std::lock_guard lk(m_diff_spec_mtx);
-	m_diff_spec_meshes.push_back(entry);
+	std::lock_guard lk(m_dn_mtx);
+	m_meshes_dn.push_back(entry);
 }
 
-void Model::syncPushDiffSpecNormEntry(ModelEntry<MaterialDiffSpecNorm>& entry)
+void Model::syncPushMeshDNH(ModelEntry<MaterialDNH>& entry)
 {
-	std::lock_guard lk(m_diff_spec_norm_height_mtx);
-	m_diff_spec_norm_meshes.push_back(entry);
+	std::lock_guard lk(m_dnh_mtx);
+	m_meshes_dnh.push_back(entry);
 }
 
-void Model::syncPushDiffSpecNormHeightEntry(ModelEntry<MaterialDiffSpecNormHeight>& entry)
+void Model::syncPushMeshDS(ModelEntry<MaterialDS>& entry)
 {
-	std::lock_guard lk(m_diff_spec_norm_height_mtx);
-	m_diff_spec_norm_height_meshes.push_back(entry);
+	std::lock_guard lk(m_ds_mtx);
+	m_meshes_ds.push_back(entry);
+}
+
+void Model::syncPushMeshDSN(ModelEntry<MaterialDSN>& entry)
+{
+	std::lock_guard lk(m_dsn_mtx);
+	m_meshes_dsn.push_back(entry);
+}
+
+void Model::syncPushMeshDSNH(ModelEntry<MaterialDSNH>& entry)
+{
+	std::lock_guard lk(m_dsnh_mtx);
+	m_meshes_dsnh.push_back(entry);
 }
 
 void Model::draw(const glm::mat4& model)
 {
-	for (int i = 0; i < m_color_meshes.size(); ++i)
+	for (int i = 0; i < m_meshes_color.size(); ++i)
 	{
-		m_color_meshes[i].m_material.apply();
-		m_color_meshes[i].m_material.m_shader_program->setMat("model", model);
-		m_color_meshes[i].m_mesh->draw();
+		m_meshes_color[i].m_material.apply();
+		m_meshes_color[i].m_material.m_shader_program->setMat("model", model);
+		m_meshes_color[i].m_mesh->draw();
 	}
-	for (int i = 0; i < m_diff_meshes.size(); ++i)
+	for (int i = 0; i < m_meshes_d.size(); ++i)
 	{
-		m_diff_meshes[i].m_material.apply();
-		m_diff_meshes[i].m_material.m_shader_program->setMat("model", model);
-		m_diff_meshes[i].m_mesh->draw();
+		m_meshes_d[i].m_material.apply();
+		m_meshes_d[i].m_material.m_shader_program->setMat("model", model);
+		m_meshes_d[i].m_mesh->draw();
 	}
-	for (int i = 0; i < m_diff_spec_meshes.size(); ++i)
+	for (int i = 0; i < m_meshes_dn.size(); ++i)
 	{
-		m_diff_spec_meshes[i].m_material.apply();
-		m_diff_spec_meshes[i].m_material.m_shader_program->setMat("model", model);
-		m_diff_spec_meshes[i].m_mesh->draw();
+		m_meshes_dn[i].m_material.apply();
+		m_meshes_dn[i].m_material.m_shader_program->setMat("model", model);
+		m_meshes_dn[i].m_mesh->draw();
 	}
-	for (int i = 0; i < m_diff_spec_norm_meshes.size(); ++i)
+	for (int i = 0; i < m_meshes_dnh.size(); ++i)
 	{
-		m_diff_spec_norm_meshes[i].m_material.apply();
-		m_diff_spec_norm_meshes[i].m_material.m_shader_program->setMat("model", model);
-		m_diff_spec_norm_meshes[i].m_mesh->draw();
+		m_meshes_dnh[i].m_material.apply();
+		m_meshes_dnh[i].m_material.m_shader_program->setMat("model", model);
+		m_meshes_dnh[i].m_mesh->draw();
 	}
-	for (int i = 0; i < m_diff_spec_norm_height_meshes.size(); ++i)
+	for (int i = 0; i < m_meshes_ds.size(); ++i)
 	{
-		m_diff_spec_norm_height_meshes[i].m_material.apply();
-		m_diff_spec_norm_height_meshes[i].m_material.m_shader_program->setMat("model", model);
-		m_diff_spec_norm_height_meshes[i].m_mesh->draw();
+		m_meshes_ds[i].m_material.apply();
+		m_meshes_ds[i].m_material.m_shader_program->setMat("model", model);
+		m_meshes_ds[i].m_mesh->draw();
+	}
+	for (int i = 0; i < m_meshes_dsn.size(); ++i)
+	{
+		m_meshes_dsn[i].m_material.apply();
+		m_meshes_dsn[i].m_material.m_shader_program->setMat("model", model);
+		m_meshes_dsn[i].m_mesh->draw();
+	}
+	for (int i = 0; i < m_meshes_dsnh.size(); ++i)
+	{
+		m_meshes_dsnh[i].m_material.apply();
+		m_meshes_dsnh[i].m_material.m_shader_program->setMat("model", model);
+		m_meshes_dsnh[i].m_mesh->draw();
 	}
 }

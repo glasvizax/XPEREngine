@@ -23,7 +23,7 @@ void VertexArray::init()
 {
 	if (m_id)
 	{
-		LOG_ERROR_F("[%s] : VertexArray is already initialized", m_debug_name.c_str());
+		LOG_WARNING_F("[%s] : VertexArray is already initialized", m_debug_name.c_str());
 		glDeleteVertexArrays(1, &m_id);
 	}
 	glGenVertexArrays(1, &m_id);

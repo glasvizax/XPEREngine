@@ -41,7 +41,7 @@ public:
 
 	bool initLoadTexture(const std::string& path, Texture& texture, bool generate_mipmap);
 
-	bool loadModel(const std::string path, Entity& root_entity);
+	bool loadModel(const std::string path, Entity& root_entity, bool flip_uv = true);
 
 	bool readFile(const std::filesystem::path& path, std::string& content);
 
@@ -51,6 +51,8 @@ private:
 	void processNode(aiNode* node, const aiScene* scene, Entity* parent);
 
 	void processMesh(aiMesh* mesh, const aiScene* scene, Model& model);
+
+	void processMaterial(Mesh* mesh, aiMaterial* material, Model& model);
 
 	std::vector<Texture*> loadMaterialTexture(aiMaterial* material, aiTextureType type, uint max_count);
 

@@ -1,11 +1,8 @@
 #version 460
-#define MAX_TEXTURES_NUM 16
 
 struct MaterialD 
 {
-	sampler2D diffuse[MAX_TEXTURES_NUM];
-	int diffuse_count;
-	float diffuse_blends[MAX_TEXTURES_NUM];
+	sampler2D diffuse;
 	float shininess;
 	float specular;
 };
@@ -22,10 +19,12 @@ out vec4 a_fragment_color;
 
 void main()
 {
-	vec3 color = vec3(0.0f);
-	for(int i = 0; i < material.diffuse_count; ++i) 
+	vec3 color = texture(material.diffuse, fs_in.uv).rgb;
+
+	if(color.r > 0.98f && color.g > 0.98f && color.b > 0.98f) 
 	{
-		color += texture(material.diffuse[i], fs_in.uv).rgb * material.diffuse_blends[i];
+		discard;
 	}
+
 	a_fragment_color = vec4(color, 1.0f);
 }

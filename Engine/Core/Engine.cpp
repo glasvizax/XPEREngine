@@ -101,7 +101,7 @@ int Engine::runStandalone()
 
 		g_window_manager.swapBuffers();
 	}
-
+	g_player_input_manager.destroy();
 	g_render_system.destroy();
 	g_input_manager.destroy();
 	g_window_manager.destroy();

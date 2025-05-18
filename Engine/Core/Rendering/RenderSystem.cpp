@@ -53,9 +53,11 @@ bool RenderSystem::init()
 
 	checkGeneralErrorGL("render_system");
 
-	rm.loadModel("content/backpack.obj", m_root_entity);
-	//rm.loadModel("content/NewSponza_Main_Yup_003.fbx", m_root_entity);
-
+	m_root_entity.addChild(Model());
+	m_root_entity.addChild(Model());
+	rm.loadModel("content/backpack.obj", m_root_entity.m_children.back(), false);
+	rm.loadModel("content/Cottage_FREE.obj", m_root_entity);
+	
 	/*
 	if (!rm.initLoadTexture("content/wood.jpg", wood_tex, true))
 	{
@@ -84,15 +86,11 @@ bool RenderSystem::init()
 
 	m_root_entity.addChild(model);
 	m_root_entity.m_children.front().addChild(model2, transform);
-	*/
+	*/                                                                                                                   
 
-	glGenBuffers(1, &m_matrices_ubo);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_matrices_ubo);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, nullptr, GL_STATIC_DRAW);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_matrices_ubo);
-
-	glBindBuffer(GL_UNIFORM_BUFFER, m_matrices_ubo);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(m_camera.getProjectionMatrix()));
+	m_matrices_buffer.init(sizeof(glm::mat4) * 2, 0);
+	m_matrices_buffer.fill(0, sizeof(glm::mat4), glm::value_ptr(m_camera.getProjectionMatrix()));
+	m_matrices_buffer.fill(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(m_camera.getViewMatrix()));
 
 	glEnable(GL_DEPTH_TEST);
 	// glDepthFunc(GL_LEQUAL);
@@ -104,8 +102,7 @@ bool RenderSystem::init()
 void RenderSystem::render()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_matrices_ubo);
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(m_camera.getViewMatrix()));
+	updateMatrices();
 
 	m_root_entity.update();
 	m_root_entity.draw();
@@ -113,6 +110,19 @@ void RenderSystem::render()
 
 void RenderSystem::destroy()
 {
+	
+}
+
+void RenderSystem::updateMatrices()
+{
+	if (m_camera.isProjectionDirty())
+	{
+		m_matrices_buffer.fill(0, sizeof(glm::mat4), glm::value_ptr(m_camera.getProjectionMatrix()));
+	}
+	if (m_camera.isViewDirty())
+	{
+		m_matrices_buffer.fill(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(m_camera.getViewMatrix()));
+	}
 }
 
 Camera& RenderSystem::getCamera()

@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <mutex>
 #include <execution>
-
 #include <stb_image.h>
 
 #include <assimp/Importer.hpp>
@@ -119,10 +118,9 @@ bool ResourceManager::initLoadTexture(const std::string& name, Texture& texture,
 	texture.loadData(GL_UNSIGNED_BYTE, format, data);
 
 	stbi_image_free(data);
-
+	LOG_INFO_F("loaded texture [%s]", name.c_str());
 	return true;
 }
-
 
 bool ResourceManager::readFile(const std::filesystem::path& path, std::string& content)
 {
@@ -151,14 +149,14 @@ std::vector<fs::path> ResourceManager::findFiles(const std::string& filename)
 	return res;
 }
 
-bool ResourceManager::loadModel(const std::string path, Entity& root_entity)
+bool ResourceManager::loadModel(const std::string path, Entity& root_entity, bool flip_uv)
 {
 	Assimp::Importer importer;
 
 	std::filesystem::path current_path = m_current_path;
 	current_path.append(path);
 
-	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals /* | aiProcess_CalcTangentSpace */);
+	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | (flip_uv ? aiProcess_FlipUVs : 0) /* | aiProcess_CalcTangentSpace */);
 	if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
 	{
 		LOG_ERROR_F("couldn't load file [%s] : assimp info : [%s]", path.c_str(), importer.GetErrorString());
@@ -177,14 +175,14 @@ void ResourceManager::processNode(aiNode* node, const aiScene* scene, Entity* pa
 		glm::vec3 scale, translation, _skew;
 		glm::quat rotation;
 		glm::vec4 _perspective;
-		
+
 		glm::mat4 transform_matrix = assimpToGLMMat4(node->mTransformation);
 		if (glm::determinant(transform_matrix) < 0.001f)
 		{
 			LOG_WARNING_S("Invalid node transformation matrix");
 			transform_matrix = glm::mat4(1.0f); // Идентичная матрица по умолчанию
 		}
-		
+
 		glm::decompose(assimpToGLMMat4(node->mTransformation), scale, rotation, translation, _skew, _perspective);
 
 		Transform transform;
@@ -196,8 +194,8 @@ void ResourceManager::processNode(aiNode* node, const aiScene* scene, Entity* pa
 		std::for_each(std::execution::par,
 			node->mMeshes,
 			node->mMeshes + node->mNumMeshes,
-			[&](unsigned int meshIndex) { 
-				aiMesh* mesh = scene->mMeshes[meshIndex];
+			[&](unsigned int mesh_index) {
+				aiMesh* mesh = scene->mMeshes[mesh_index];
 				processMesh(mesh, scene, model);
 			});
 
@@ -206,8 +204,9 @@ void ResourceManager::processNode(aiNode* node, const aiScene* scene, Entity* pa
 		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			processMesh(mesh, scene, model);
-		}	
+		}
 		*/
+
 		next_parent = &parent->addChild(model, transform);
 	}
 
@@ -270,7 +269,7 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 	for (uint i = 0; i < num_faces; ++i)
 	{
 		aiFace face = mesh->mFaces[i];
-		for (uint j = 0; j < 3; ++j) 
+		for (uint j = 0; j < 3; ++j)
 		{
 			indices[counter] = face.mIndices[j];
 			counter++;
@@ -278,131 +277,147 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 	}
 
 	Mesh* my_mesh = syncEmplaceMesh(vertices, indices);
-	
+
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-	float		shininess;
+	processMaterial(my_mesh, material, model);
+}
+
+void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& model)
+{
+	float shininess;
 	if (material->Get(AI_MATKEY_SHININESS, shininess) != AI_SUCCESS)
 	{
 		shininess = 0.0f;
 	}
-
 	float specular_scalar;
 	if (material->Get(AI_MATKEY_SPECULAR_FACTOR, specular_scalar) != AI_SUCCESS)
 	{
 		specular_scalar = 1.0f;
 	}
 
-	std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_NORMALS, 1u);
-	std::vector<Texture*> height = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1u);
-	std::vector<Texture*> specular, diffuse;
-	if (normal.size() > 0)
+	std::vector<Texture*> diffuse;
+	diffuse = loadMaterialTexture(material, aiTextureType::aiTextureType_DIFFUSE, 1);
+	if (diffuse.size() == 0)
 	{
-		specular = loadMaterialTexture(material, aiTextureType::aiTextureType_SPECULAR, 7);
-		diffuse = loadMaterialTexture(material, aiTextureType::aiTextureType_DIFFUSE, 7);
-		if (diffuse.size() == 0)
+		diffuse = loadMaterialTexture(material, aiTextureType::aiTextureType_BASE_COLOR, 1);
+	}
+
+	// potential race cond
+	RenderSystem&		  rs = Engine::getInstance().getRenderSystem();
+	ShaderProgramManager& spm = rs.getShaderProgramManager();
+
+	if (diffuse.size() == 0)
+	{
+		// MaterialColor
+
+		glm::vec4 color;
+		aiColor4D _aicolor;
+
+		if (material->Get(AI_MATKEY_COLOR_DIFFUSE, _aicolor) != AI_SUCCESS)
 		{
-			diffuse = loadMaterialTexture(material, aiTextureType::aiTextureType_BASE_COLOR, 7);
+			color = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
 		}
+		color = glm::vec4(_aicolor.r, _aicolor.g, _aicolor.b, _aicolor.a);
+
+		ModelEntry<MaterialColor> entry;
+		entry.m_mesh = mesh;
+		entry.m_material.m_color.m_vector = color;
+		entry.m_material.m_specular_scalar.m_scalar = specular_scalar;
+
+		entry.m_material.m_shininess.m_scalar = shininess;
+		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+		model.syncPushMeshColor(entry);
+	}
+	std::vector<Texture*> specular = loadMaterialTexture(material, aiTextureType::aiTextureType_SPECULAR, 1);
+	if (specular.size() == 0)
+	{
+		std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_NORMALS, 1);
+		if (normal.size() == 0)
+		{
+			// MaterialD
+			ModelEntry<MaterialD> entry;
+			entry.m_mesh = mesh;
+			entry.m_material.m_diffuse.m_texture = diffuse[0];
+			entry.m_material.m_specular_scalar.m_scalar = specular_scalar;
+
+			entry.m_material.m_shininess.m_scalar = shininess;
+			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+			model.syncPushMeshD(entry);
+			return;
+		}
+		std::vector<Texture*> height = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1);
+		if (height.size() == 0)
+		{
+			// MaterialDN
+			ModelEntry<MaterialDN> entry;
+			entry.m_mesh = mesh;
+			entry.m_material.m_diffuse.m_texture = diffuse[0];
+			entry.m_material.m_specular_scalar.m_scalar = specular_scalar;
+			entry.m_material.m_normal.m_texture = normal[0];
+
+			entry.m_material.m_shininess.m_scalar = shininess;
+			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+			model.syncPushMeshDN(entry);
+			return;
+		}
+		// MaterialDNH
+		ModelEntry<MaterialDNH> entry;
+		entry.m_mesh = mesh;
+		entry.m_material.m_diffuse.m_texture = diffuse[0];
+		entry.m_material.m_specular_scalar.m_scalar = specular_scalar;
+		entry.m_material.m_normal.m_texture = normal[0];
+		entry.m_material.m_height.m_texture = height[0];
+
+		entry.m_material.m_shininess.m_scalar = shininess;
+		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+		model.syncPushMeshDNH(entry);
+		return;
 	}
 	else
 	{
-		specular = loadMaterialTexture(material, aiTextureType::aiTextureType_SPECULAR, 8);
-		diffuse = loadMaterialTexture(material, aiTextureType::aiTextureType_DIFFUSE, specular.size() > 0 ? 8 : 16);
-		if (diffuse.size() == 0)
+		std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_NORMALS, 1);
+		if (normal.size() == 0)
 		{
-			diffuse = loadMaterialTexture(material, aiTextureType::aiTextureType_BASE_COLOR, specular.size() > 0 ? 8 : 16);
-		}	
-	}
-	
-	//potential race cond
-	RenderSystem& rs = Engine::getInstance().getRenderSystem();
-	ShaderProgramManager& spm = rs.getShaderProgramManager(); 
+			// MaterialDS
 
-	if (diffuse.size() > 0)
-	{
-		if (specular.size() > 0)
-		{
-			if (normal.size() > 0)
-			{
-				if (height.size() > 0)
-				{
-					ModelEntry<MaterialDiffSpecNormHeight> entry;
-					entry.m_mesh = &m_meshes.back();
+			ModelEntry<MaterialDS> entry;
+			entry.m_mesh = mesh;
+			entry.m_material.m_diffuse.m_texture = diffuse[0];
+			entry.m_material.m_specular.m_texture = specular[0];
 
-					uint max_num = diffuse.size() > 7 ? 7 : diffuse.size();
-					for (uint i = 0; i < max_num; ++i)
-					{
-						entry.m_material.m_diff_spec_norm_height.pushDiffuse(diffuse[i]);
-						entry.m_material.m_diff_spec_norm_height.pushSpecular(specular[i]);
-					}
-					entry.m_material.m_diff_spec_norm_height.setNormal(normal[0]);
-					entry.m_material.m_diff_spec_norm_height.setHeight(height[0]);
-					entry.m_material.m_shininess.m_value = shininess;
-					entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
-					model.syncPushDiffSpecNormHeightEntry(entry);
-					return;
-				}
-				ModelEntry<MaterialDiffSpecNorm> entry;
-				entry.m_mesh = &m_meshes.back();
-
-				uint max_num = diffuse.size() > 7 ? 7 : diffuse.size();
-				for (uint i = 0; i < max_num; ++i)
-				{
-					entry.m_material.m_diff_spec_norm.pushDiffuse(diffuse[i]);
-					entry.m_material.m_diff_spec_norm.pushSpecular(specular[i]);
-				}
-				entry.m_material.m_diff_spec_norm.setNormal(normal[0]);
-				entry.m_material.m_shininess.m_value = shininess;
-				entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL);
-				model.syncPushDiffSpecNormEntry(entry);
-				return;
-			}
-			ModelEntry<MaterialDiffSpec> entry;
-			entry.m_mesh = &m_meshes.back();
-
-			uint max_num = diffuse.size() > 8 ? 8 : diffuse.size();
-			for (uint i = 0; i < max_num; ++i)
-			{
-				entry.m_material.m_diff_spec.pushDiffuse(diffuse[i]);
-				entry.m_material.m_diff_spec.pushSpecular(specular[i]);
-			}
-			entry.m_material.m_shininess.m_value = shininess;
-			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR);
-			model.syncPushDiffSpecEntry(entry);
+			entry.m_material.m_shininess.m_scalar = shininess;
+			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+			model.syncPushMeshDS(entry);
 			return;
 		}
-		ModelEntry<MaterialDiff> entry;
-
-		entry.m_mesh = &m_meshes.back();
-
-		uint max_num = diffuse.size() > 16 ? 16 : diffuse.size();
-		for (uint i = 0; i < max_num; ++i)
+		std::vector<Texture*> height = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1);
+		if (height.size() == 0)
 		{
-			entry.m_material.m_diffuse.pushDiffuse(diffuse[i]);
+			// MaterialDSN
+
+			ModelEntry<MaterialDSN> entry;
+			entry.m_mesh = mesh;
+			entry.m_material.m_diffuse.m_texture = diffuse[0];
+			entry.m_material.m_specular.m_texture = specular[0];
+			entry.m_material.m_normal.m_texture = normal[0];
+
+			entry.m_material.m_shininess.m_scalar = shininess;
+			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+			model.syncPushMeshDSN(entry);
+			return;
 		}
-		entry.m_material.m_shininess.m_value = shininess;
-		entry.m_material.m_specular_scalar.m_value = specular_scalar;
-		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE);
-		model.syncPushDiffEntry(entry);
-		return;
+		// MaterialDSNH
+		ModelEntry<MaterialDSNH> entry;
+		entry.m_mesh = mesh;
+		entry.m_material.m_diffuse.m_texture = diffuse[0];
+		entry.m_material.m_specular.m_texture = specular[0];
+		entry.m_material.m_normal.m_texture = normal[0];
+		entry.m_material.m_height.m_texture = height[0];
+
+		entry.m_material.m_shininess.m_scalar = shininess;
+		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+		model.syncPushMeshDSNH(entry);
 	}
-
-	glm::vec4 color;
-	aiColor4D aicolor;
-
-	if (material->Get(AI_MATKEY_COLOR_DIFFUSE, aicolor) != AI_SUCCESS)
-	{
-		color = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
-	}
-	color = glm::vec4(aicolor.r, aicolor.g, aicolor.b, aicolor.a);
-
-	ModelEntry<MaterialColor> entry;
-	entry.m_mesh = &m_meshes.back();
-	entry.m_material.m_color.m_value = color;
-	entry.m_material.m_shininess.m_value = shininess;
-	entry.m_material.m_specular.m_value = specular_scalar;
-	entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::COLOR);
-	model.syncPushColorEntry(entry);
 }
 
 std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material, aiTextureType type, uint max_count)
@@ -418,6 +433,7 @@ std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material,
 		LOG_WARNING_F("Textures of type [%d] > than max count [%d]", type, max_count);
 		count = max_count;
 	}
+
 	std::vector<Texture*> res;
 	res.reserve(count);
 
@@ -434,10 +450,10 @@ std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material,
 		fs::path _dirty_path = path.C_Str();
 		file.append(_dirty_path.filename().generic_string());
 
-		std::string_view hashed(path.C_Str());
+		std::string_view			hashed(path.C_Str());
 		std::hash<std::string_view> hasher;
 
-		size_t			 hash = hasher(hashed);
+		size_t hash = hasher(hashed);
 
 		Texture* cached = syncGetCachedTexture(hash);
 		if (cached)
@@ -451,9 +467,10 @@ std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material,
 		{
 			continue;
 		}
-
 		Texture* new_tex = syncPushTexture(tex);
 		syncCacheTexture(hash, new_tex);
+
+		res.push_back(new_tex);
 	}
 	return res;
 }

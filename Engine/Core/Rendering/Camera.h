@@ -34,6 +34,16 @@ public:
 	glm::mat4 getViewMatrix();
 	glm::mat4 getProjectionMatrix();
 
+	bool isViewDirty() 
+	{
+		return m_view_dirty;
+	}
+
+	bool isProjectionDirty()
+	{
+		return m_proj_dirty;
+	}
+
 private:
 	float m_yaw = -90.0f;
 	float m_pitch = 0.0f;
@@ -42,7 +52,7 @@ private:
 	float m_fov = 60.0f;
 
 	float m_near = 0.1f;
-	float m_far = 500.0f;
+	float m_far = 2200.0f;
 
 	glm::vec3 m_position{ 0.0f, 0.0f, 0.0f };
 

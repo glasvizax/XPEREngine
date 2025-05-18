@@ -11,6 +11,7 @@
 #include "Camera.h"
 #include "ShaderProgramManager.h"
 #include "Model.h"
+#include "UniformBuffer.h"
 
 class RenderSystem
 {
@@ -31,9 +32,10 @@ class RenderSystem
 	uint m_matrices_ubo;
 
 	Camera m_camera;
+	
+	UniformBuffer m_matrices_buffer;
 
-	//Model backpack;
-	//Texture wood_tex;
+	void updateMatrices();
 
 public:
 
