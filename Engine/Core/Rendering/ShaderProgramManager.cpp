@@ -2,64 +2,29 @@
 
 // clang-format off
 std::unordered_map<ShaderProgramType, VertexFragmentNames> DEFAULT_SHADER_NAMES = {
-	{ ShaderProgramType::COLOR,								{ "shader_color.vert",	"shader_color.frag" } },
-	{ ShaderProgramType::DIFFUSE,							{ "shader_d.vert",		"shader_d.frag" } },
-	{ ShaderProgramType::DIFFUSE_NORMAL,					{ "shader_dn.vert",		"shader_dn.frag" } },
-	{ ShaderProgramType::DIFFUSE_NORMAL_HEIGHT,				{ "shader_dnh.vert",	"shader_dnh.frag" } },
-	{ ShaderProgramType::DIFFUSE_SPECULAR,					{ "shader_ds.vert",		"shader_ds.frag" } },
-	{ ShaderProgramType::DIFFUSE_SPECULAR_NORMAL,			{ "shader_dsn.vert",	"shader_dsn.frag" } },
-	{ ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT,	{ "shader_dsnh.vert",	"shader_dsnh.frag" } },
+	{ ShaderProgramType::COLOR,								{ "shader_color.vert",			"shader_color.frag" } },
+	{ ShaderProgramType::DIFFUSE,							{ "shader_d.vert",				"shader_d.frag" } },
+	{ ShaderProgramType::DIFFUSE_NORMAL,					{ "shader_dn.vert",				"shader_dn.frag" } },
+	{ ShaderProgramType::DIFFUSE_NORMAL_HEIGHT,				{ "shader_dnh.vert",			"shader_dnh.frag" } },
+	{ ShaderProgramType::DIFFUSE_SPECULAR,					{ "shader_ds.vert",				"shader_ds.frag" } },
+	{ ShaderProgramType::DIFFUSE_SPECULAR_NORMAL,			{ "shader_dsn.vert",			"shader_dsn.frag" } },
+	{ ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT,	{ "shader_dsnh.vert",			"shader_dsnh.frag" } },
+	{ ShaderProgramType::POSTPROCESS,						{ "shader_postprocess.vert",	"shader_postprocess.frag" } },
 };
 
-// clang-format on
-bool ShaderProgramManager::init()
+// clang-forat on
+
+void ShaderProgramManager::init()
 {
 	Engine&			 engine = Engine::getInstance();
 	ResourceManager& rm = engine.getResourceManager();
 
-	auto color_names = DEFAULT_SHADER_NAMES[ShaderProgramType::COLOR];
-	auto diff_names = DEFAULT_SHADER_NAMES[ShaderProgramType::DIFFUSE];
-	auto diff_spec_names = DEFAULT_SHADER_NAMES[ShaderProgramType::DIFFUSE_SPECULAR];
-	auto diff_spec_norm_names = DEFAULT_SHADER_NAMES[ShaderProgramType::DIFFUSE_SPECULAR_NORMAL];
-	auto diff_spec_norm_height_names = DEFAULT_SHADER_NAMES[ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT];
-
-	ShaderProgram sp_color;
-	if (!rm.initLoadShaderProgram(color_names.vertex, color_names.fragment, sp_color))
-	{
-		return false;
-	}
-
-	m_default_shaders[ShaderProgramType::COLOR] = std::move(sp_color);
-
-	ShaderProgram sp_diff;
-	if (!rm.initLoadShaderProgram(diff_names.vertex, diff_names.fragment, sp_diff))
-	{
-		return false;
-	}
-	m_default_shaders[ShaderProgramType::DIFFUSE] = std::move(sp_diff);
-
-	ShaderProgram sp_diff_spec;
-	if (!rm.initLoadShaderProgram(diff_spec_names.vertex, diff_spec_names.fragment, sp_diff_spec))
-	{
-		return false;
-	}
-	m_default_shaders[ShaderProgramType::DIFFUSE_SPECULAR] = std::move(sp_diff_spec);
-
-	ShaderProgram sp_diff_spec_norm;
-	if (!rm.initLoadShaderProgram(diff_spec_norm_names.vertex, diff_spec_norm_names.fragment, sp_diff_spec_norm))
-	{
-		return false;
-	}
-	m_default_shaders[ShaderProgramType::DIFFUSE_SPECULAR_NORMAL] = std::move(sp_diff_spec_norm);
-
-	ShaderProgram sp_diff_spec_norm_height;
-	if (!rm.initLoadShaderProgram(diff_spec_norm_height_names.vertex, diff_spec_norm_height_names.fragment, sp_diff_spec_norm_height))
-	{
-		return false;
-	}
-	m_default_shaders[ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT] = std::move(sp_diff_spec_norm_height);
-
-	return true;
+	loadShaders(ShaderProgramType::COLOR, rm);
+	loadShaders(ShaderProgramType::DIFFUSE, rm);
+	loadShaders(ShaderProgramType::DIFFUSE_SPECULAR, rm);
+	loadShaders(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL, rm);
+	loadShaders(ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT, rm);
+	loadShaders(ShaderProgramType::POSTPROCESS, rm);
 }
 
 // should be thread safe ...
@@ -89,6 +54,22 @@ std::string ShaderProgramManager::shaderProgramTypeName(ShaderProgramType type)
 			return "ShaderProgramType::DIFFUSE_SPECULAR_NORMAL";
 		case ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT:
 			return "ShaderProgramType::DIFFUSE_SPECULAR_NORMAL_HEIGHT";
+		case ShaderProgramType::POSTPROCESS:
+			return "ShaderProgramType::POSTPROCESS";
 	}
 	return "ShaderProgramType::COLOR";
+}
+
+void ShaderProgramManager::loadShaders(ShaderProgramType type, ResourceManager& resource_manager)
+{
+	auto names = DEFAULT_SHADER_NAMES[type];
+	
+	ShaderProgram shader_program;
+	if (!resource_manager.initLoadShaderProgram(names.vertex, names.fragment, shader_program))
+	{
+		LOG_ERROR_F("couldn't load shader : [%s]", shaderProgramTypeName(type).c_str());
+		return;
+	}
+
+	m_default_shaders[type] = std::move(shader_program);
 }

@@ -9,63 +9,38 @@
 class Framebuffer
 {
 public:
-	Framebuffer(
-#ifdef _DEBUG
-		const std::string& debug_name
-#endif
-	);
+	Framebuffer();
 
+#ifdef _DEBUG
+	Framebuffer(const std::string& debug_name);
+	std::string m_debug_name;
+#endif
+
+	Framebuffer(const Framebuffer& other) = delete;
+	Framebuffer& operator=(const Framebuffer& other) = delete;
 	Framebuffer(Framebuffer&& other) noexcept = delete;
-	Framebuffer& operator=(Framebuffer && other) noexcept = delete;
+	Framebuffer& operator=(Framebuffer&& other) noexcept = delete;
 
 	~Framebuffer();
 
-	enum class AttachmentType : GLenum
-	{
-		COLOR0 = GL_COLOR_ATTACHMENT0,
-		COLOR1 = GL_COLOR_ATTACHMENT1,
-		COLOR2 = GL_COLOR_ATTACHMENT2,
-		COLOR3 = GL_COLOR_ATTACHMENT3,
-		DEPTH = GL_DEPTH_ATTACHMENT,
-		STENCIL = GL_STENCIL_ATTACHMENT
-	};
+	void init();
+	void clear();
 
-	enum class BufferBitMasks : GLenum
-	{
-		COLOR = GL_COLOR_BUFFER_BIT,
-		DEPTH = GL_DEPTH_BUFFER_BIT,
-		STENCIL = GL_STENCIL_BUFFER_BIT
-	};
-
-	enum class GLBuffer : GLenum
-	{
-		NONE = GL_NONE,
-		FRONT = GL_FRONT,
-		BACK = GL_BACK,
-		LEFT = GL_LEFT,
-		RIGHT = GL_RIGHT,
-		FRONT_RIGHT = GL_FRONT_RIGHT,
-		BACK_LEFT = GL_BACK_LEFT
-	};
-
-	void remove();
-
-	void attachTexture2D(GLuint tex_id, AttachmentType colorAttach);
-	void attachRenderbuffer(GLuint rbo_id, AttachmentType type);
+	void attachTexture2D(GLuint tex_id, GLenum attachment_type = GL_COLOR_ATTACHMENT0);
+	void attachRenderbuffer(GLuint rbo_id, GLenum attachment_type = GL_DEPTH_STENCIL_ATTACHMENT);
+	void createAttachRenderbuffer(GLsizei width, GLsizei height, GLenum internal_format = GL_DEPTH24_STENCIL8, GLenum attachment_type = GL_DEPTH_STENCIL_ATTACHMENT);
 
 	void bind();
-	void unbind();
+	static void bindDefault();
 
-	void drawBuffers(GLuint* attachments, GLsizei size);
-
-	void drawBuffer(GLBuffer buffer);
-	void readBuffer(GLBuffer buffer);
+	void drawBuffersDefault(GLsizei size);
+	void drawBuffers(GLenum* buffers, GLsizei size);
 
 private:
+	GLuint				 m_id = 0u;
+	GLuint				 m_rbo_id = 0u;
+	bool				 m_owns_rbo = false;
+	inline static GLuint s_active_id = 0;
 
-#ifdef _DEBUG
-	std::string m_debug_name;
-#endif	
-	GLuint m_id = GLuint(0);
-	inline static GLuint s_active_id = GLuint(0);
+	static GLenum s_default_draw_buffers[16];
 };

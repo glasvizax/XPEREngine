@@ -14,7 +14,9 @@ enum class ShaderProgramType : uint8_t
 	DIFFUSE_NORMAL_HEIGHT,
 	DIFFUSE_SPECULAR,
 	DIFFUSE_SPECULAR_NORMAL,
-	DIFFUSE_SPECULAR_NORMAL_HEIGHT
+	DIFFUSE_SPECULAR_NORMAL_HEIGHT,
+
+	POSTPROCESS
 };
 
 struct VertexFragmentNames
@@ -26,7 +28,7 @@ struct VertexFragmentNames
 class ShaderProgramManager
 {
 	friend class RenderSystem;
-	bool		   init();
+	void		   init();
 
 public:
 	
@@ -44,4 +46,5 @@ public:
 private:
 	std::unordered_map<ShaderProgramType, ShaderProgram> m_default_shaders;
 	
+	void loadShaders(ShaderProgramType type, ResourceManager& resource_manager);
 };
