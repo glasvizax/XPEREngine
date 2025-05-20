@@ -139,8 +139,6 @@ void Framebuffer::drawBuffersDefault(GLsizei size)
 
 	checkGeneralErrorGL(m_debug_name);
 	checkFramebufferErrorsGL(m_debug_name);
-
-	LOG_INFO_S("void Framebuffer::drawBuffersDefault(GLsizei size)");
 }
 void Framebuffer::drawBuffers(GLenum* buffers, GLsizei size)
 {

@@ -5,7 +5,7 @@ in VS_OUT
 	vec2 uv;
 } fs_in;
 
-uniform sampler2D input_texture;
+layout (binding = 13) uniform sampler2D input_texture;
  
 out vec4 a_fragment_color;
 

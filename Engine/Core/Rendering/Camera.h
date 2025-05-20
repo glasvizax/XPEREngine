@@ -30,6 +30,8 @@ public:
 	glm::vec3 getLookVector();
 	glm::vec3 getRightVector();
 	glm::vec3 getUpVector();
+
+	glm::vec3 getPosition();
 		
 	glm::mat4 getViewMatrix();
 	glm::mat4 getProjectionMatrix();

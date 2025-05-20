@@ -1,28 +1,28 @@
 #pragma once
 
 template <size_t N, typename T>
-inline void uniformVecArrayFunc(GLint location, GLsizei count, glm::vec<N, T>* data)
+inline void uniformVecArrayFunc(GLint location, GLsizei count, const glm::vec<N, T>* const data)
 {
 	if constexpr (N == 2)
 	{
 		if constexpr (std::is_same_v<T, float>)
 		{
-			glUniform2fv(location, count, data);
+			glUniform2fv(location, count, glm::value_ptr(*data));
 		}
 
 		if constexpr (std::is_same_v<T, double>)
 		{
-			glUniform2dv(location, count, data);
+			glUniform2dv(location, count, glm::value_ptr(*data));
 		}
 
 		if constexpr (std::is_same_v<T, int>)
 		{
-			glUniform2iv(location, count, data);
+			glUniform2iv(location, count, glm::value_ptr(*data));
 		}
 
 		if constexpr (std::is_same_v<T, uint>)
 		{
-			glUniform2uiv(location, count, data);
+			glUniform2uiv(location, count, glm::value_ptr(*data));
 		}
 	}
 
@@ -30,22 +30,22 @@ inline void uniformVecArrayFunc(GLint location, GLsizei count, glm::vec<N, T>* d
 	{
 		if constexpr (std::is_same_v<T, float>)
 		{
-			glUniform3fv(location, count, data);
+			glUniform3fv(location, count, glm::value_ptr(*data));
 		}
 
 		if constexpr (std::is_same_v<T, double>)
 		{
-			glUniform3dv(location, count, data);
+			glUniform3dv(location, count, glm::value_ptr(*data));
 		}
 
 		if constexpr (std::is_same_v<T, int>)
 		{
-			glUniform3iv(location, count, data);
+			glUniform3iv(location, count, glm::value_ptr(*data));
 		}
 
 		if constexpr (std::is_same_v<T, uint>)
 		{
-			glUniform3uiv(location, count, data);
+			glUniform3uiv(location, count, glm::value_ptr(*data));
 		}
 	}
 
@@ -53,22 +53,22 @@ inline void uniformVecArrayFunc(GLint location, GLsizei count, glm::vec<N, T>* d
 	{
 		if constexpr (std::is_same_v<T, float>)
 		{
-			glUniform4fv(location, count, data);
+			glUniform4fv(location, count, glm::value_ptr(*data));
 		}
 
 		if constexpr (std::is_same_v<T, double>)
 		{
-			glUniform4dv(location, count, data);
+			glUniform4dv(location, count, glm::value_ptr(*data));
 		}
 
 		if constexpr (std::is_same_v<T, int>)
 		{
-			glUniform4iv(location, count, data);
+			glUniform4iv(location, count, glm::value_ptr(*data));
 		}
 
 		if constexpr (std::is_same_v<T, uint>)
 		{
-			glUniform4uiv(location, count, data);
+			glUniform4uiv(location, count, glm::value_ptr(*data));
 		}
 	}
 }

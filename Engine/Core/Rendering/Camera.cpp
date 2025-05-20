@@ -101,6 +101,11 @@ glm::vec3 Camera::getUpVector()
 	return m_up;
 }
 
+glm::vec3 Camera::getPosition()
+{
+	return m_position;
+}
+
 glm::mat4 Camera::getViewMatrix()
 {
 	if (m_view_dirty)

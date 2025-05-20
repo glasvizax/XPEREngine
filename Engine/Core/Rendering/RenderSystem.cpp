@@ -11,6 +11,10 @@
 #include "DebugOpenGL.h"
 #include "WindowManager.h"
 #include "Mesh.h"
+#include "Utils.h"
+#include "Light.h"
+
+int getUniformBlockSize(ShaderProgram& shader, const std::string& name);
 
 void PrintTextureRGBA16F(GLuint textureID, int width, int height)
 {
@@ -48,8 +52,6 @@ void PrintTextureRGBA16F(GLuint textureID, int width, int height)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-
-
 bool RenderSystem::init()
 {
 	if (!gladLoadGLLoader(rcast<GLADloadproc>(glfwGetProcAddress)))
@@ -74,27 +76,47 @@ bool RenderSystem::init()
 
 	m_shader_program_manager.init();
 
-	Engine&			 engine = Engine::getInstance();
+	Engine& engine = Engine::getInstance();
+	WindowManager& wm = engine.getWindowManager();
 	m_resource_manager = &engine.getResourceManager();
-	WindowManager&	 wm = engine.getWindowManager();
 
 	glm::ivec2 window_size = wm.getWindowSize();
 	glViewport(0, 0, window_size.x, window_size.y);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	m_camera.setAspectRatio(scast<float>(window_size.x) / window_size.y);
-	m_camera.setPosition(glm::vec3(10.0f, 10.0f, -10.0f));
+	m_camera.setPosition(glm::vec3(7.8f, 1.0f, -8.5f));
 	m_camera.rotateYaw(-120);
 
-	initMatrices();
-
+	initMatricesBuffer();
+	initLightsBuffer();
 	initScene();
+	initScreenQuad();
 
-	m_geometry_stage.init(window_size.x, window_size.y, *m_resource_manager);
-	m_postprocess_stage.init(m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::POSTPROCESS));
+	ShaderProgram* ssao_base = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::LIGHTING_SSAO_BASE);
+	ShaderProgram* ssao_blur = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::LIGHTING_SSAO_BLUR);
+	ShaderProgram* ambient = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::LIGHTING_AMBIENT);
+	ShaderProgram* diffspec = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::LIGHTING_DIFFUSE_SPECULAR);
+	ShaderProgram* postprocess = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::POSTPROCESS);
 
-	// glEnable(GL_DEPTH_TEST);
-	// glDepthFunc(GL_LEQUAL);
-	
+	m_geometry_stage.init(window_size.x, window_size.y, &m_root_entity);
+	m_ssao_stage.init(window_size.x, window_size.y, &m_screen_quad, ssao_base, ssao_blur, &m_geometry_stage);
+	m_lighting_ambient_stage.init(window_size.x, window_size.y, &m_screen_quad, ambient, &m_geometry_stage, &m_ssao_stage);
+	m_lighting_final_stage.init(&m_camera, diffspec, &m_geometry_stage, &m_lighting_ambient_stage);
+	m_postprocess_stage.init(postprocess, &m_screen_quad);
+
+	PointLight pl1;
+	pl1.m_position = glm::vec3(10.0f, 0.0f, 5.0f);
+	pl1.m_ambient = glm::vec3(0.2f);
+	pl1.m_diffuse = glm::vec3(0.5f);
+	pl1.m_specular = glm::vec3(0.6f);
+	pl1.m_linear = 0.027f;
+	pl1.m_quadratic = 0.0028f;
+
+	addPointLight(pl1);
+
+	LOG_INFO_F("Light size = [%d]", getUniformBlockSize(*diffspec, "Lights"));
+
 	checkGeneralErrorGL("render_system");
 	LOG_INFO_S("bool RenderSystem::init() end");
 	return true;
@@ -105,13 +127,19 @@ void RenderSystem::render()
 	updateMatrices();
 	m_root_entity.update();
 
-	m_geometry_stage.run(m_root_entity);
-	m_postprocess_stage.run(m_geometry_stage.m_output_diffuse_specular);
+	m_geometry_stage.run();
+	m_ssao_stage.run();
+
+	m_lighting_ambient_stage.run();
+
+	//m_lighting_ambient_stage.m_output_lighting_tex.bind(13);
+	m_lighting_final_stage.run();
+
+	m_postprocess_stage.run();
 }
 
 void RenderSystem::destroy()
 {
-	
 }
 
 void RenderSystem::updateMatrices()
@@ -126,11 +154,16 @@ void RenderSystem::updateMatrices()
 	}
 }
 
-void RenderSystem::initMatrices()
+void RenderSystem::initMatricesBuffer()
 {
 	m_matrices_buffer.init(sizeof(glm::mat4) * 2, 0);
 	m_matrices_buffer.fill(0, sizeof(glm::mat4), glm::value_ptr(m_camera.getProjectionMatrix()));
 	m_matrices_buffer.fill(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(m_camera.getViewMatrix()));
+}
+
+void RenderSystem::initLightsBuffer()
+{
+	m_lights_buffer.init(sizeof(PointLight) * MAX_POINT_LIGHTS + sizeof(glm::vec4), 1);
 }
 
 void RenderSystem::initScene()
@@ -148,19 +181,38 @@ void RenderSystem::initScene()
 
 	m_root_entity.addChild();
 	m_resource_manager->loadModel("content/chiyo.obj", m_root_entity.m_children.back());
-	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(1.0f / 25.0f)).setPosition(glm::vec3(7.0f, 0.0f, 10.0f)).setRotationEuler(glm::vec3(0.0f, -90.0f, 0.0f));
+	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(1.0f / 35.0f)).setPosition(glm::vec3(7.0f, 0.0f, 10.0f)).setRotationEuler(glm::vec3(0.0f, -90.0f, 0.0f));
 
 	m_root_entity.addChild();
 	Mesh& cube = m_resource_manager->storeMesh(generateIdenticalCube());
 
 	ModelEntry<MaterialColor> floor_entry;
-	floor_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::COLOR);
+	floor_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::GEOMETRY_COLOR);
 	floor_entry.m_material.m_color.m_vector = glm::vec3(0.15f, 0.55f, 0.16f);
+	floor_entry.m_material.m_shininess.m_scalar = 32.0f;
+	floor_entry.m_material.m_specular_scalar.m_scalar = 0.01f;
+
 	floor_entry.m_mesh = &cube;
 
 	m_root_entity.m_children.back().m_model.m_meshes_color.push_back(floor_entry);
 
-	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(12.0f, 0.05f, 12.0f));
+	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(20.0f, 0.05f, 20.0f));
+}
+
+void RenderSystem::initScreenQuad()
+{
+	float quad[] = {
+		-1.0f, -1.0f, 0.0f, 0.0f,
+		1.0f, -1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 0.0f, 0.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 0.0f, 1.0f
+	};
+	m_screen_quad.init();
+	m_screen_quad.attachArrayBuffer(sizeof(quad), quad);
+	m_screen_quad.enableAttribute(0, 2, 4, 0);
+	m_screen_quad.enableAttribute(1, 2, 4, 2);
 }
 
 ShaderProgramManager& RenderSystem::getShaderProgramManager()
@@ -186,4 +238,37 @@ void RenderSystem::testInputH()
 
 void RenderSystem::testInputK()
 {
+}
+
+void RenderSystem::addPointLight(PointLight& point_light)
+{
+	int size = m_lighting_final_stage.m_point_lights.size();
+	if (size > MAX_POINT_LIGHTS)
+	{
+		LOG_WARNING_S("size > MAX_POINT_LIGHTS");
+		return;
+	}
+
+	float light_max = std::fmaxf(std::fmaxf(point_light.m_diffuse.r, point_light.m_diffuse.g), point_light.m_diffuse.b);
+	point_light.m_radius = (-point_light.m_linear + std::sqrtf(point_light.m_linear * point_light.m_linear - 4 * point_light.m_quadratic * (1.0f - (256.0 / 5.0) * light_max))) / (2 * point_light.m_quadratic);
+
+	m_lights_buffer.fill(size * sizeof(PointLight), sizeof(PointLight), &point_light);
+	size++;
+	m_lights_buffer.fill(MAX_POINT_LIGHTS * sizeof(PointLight), sizeof(int), &size);
+	m_lighting_final_stage.m_point_lights.push_back(point_light);
+}
+
+int getUniformBlockSize(ShaderProgram& shader, const std::string& name)
+{
+	GLuint index = glGetUniformBlockIndex(shader.getID(), name.c_str());
+	if (index == GL_INVALID_INDEX)
+	{
+		return 0;
+	}
+	else
+	{
+		int sz = 0;
+		glGetActiveUniformBlockiv(shader.getID(), index, GL_UNIFORM_BLOCK_DATA_SIZE, &sz);
+		return sz;
+	}
 }

@@ -82,7 +82,7 @@ inline void ShaderProgram::setVecArray(const std::string& name, const std::vecto
 	{
 		location = it->second;
 	}
-	uniformVecArrayFunc<N, T>(location, array.data());
+	uniformVecArrayFunc<N, T>(location, count, array.data());
 	checkGeneralErrorGL(m_debug_name);
 }
 
