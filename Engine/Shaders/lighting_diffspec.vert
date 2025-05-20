@@ -10,10 +10,6 @@ layout (std140, binding = 0) uniform Matrices
 
 uniform mat4 light_volume_model;
 
-out VS_OUT
-{
-	vec2 uv;
-} vs_out;
 
 void main() 
 {

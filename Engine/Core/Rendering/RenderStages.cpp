@@ -80,7 +80,7 @@ void LightingSSAOStage::init(int width, int height, VertexArray* screen_quad, Sh
 		ssao_kernel[i] *= (random_floats(generator) + 1.0f) * 0.5f;
 
 		float scale = static_cast<float>(i) / kernel_size;
-		scale = glm::lerp(0.1f, 1.0f, scale * scale);
+		scale = glm::lerp(0.1f, 1.0f, scale * scale * scale);
 		ssao_kernel[i] *= scale;
 	}
 
@@ -205,6 +205,8 @@ void LightingFinalStage::run()
 		m_diffspec_sp->set("current_light_index", i);
 		m_light_volume.draw();
 	}
+
+
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);

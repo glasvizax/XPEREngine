@@ -8,6 +8,12 @@
 #include "Mesh.h"
 #include "Material.h"
 
+enum class RenderMode
+{
+	Defered,
+	Forward
+};
+
 template <typename MaterialClass>
 struct ModelEntry
 {
@@ -52,7 +58,24 @@ struct Model
 	std::vector<ModelEntry<MaterialDSN>>   m_meshes_dsn;
 	std::vector<ModelEntry<MaterialDSNH>>  m_meshes_dsnh;
 
+	RenderMode getRenderMode()
+	{
+		return m_render_mode;
+	}
+
+	void setRenderMode(RenderMode render_mode)
+	{
+		if (render_mode == m_render_mode)
+		{
+			return;
+		}
+		m_render_mode = render_mode;
+		//TODO: change shaders
+	}
+
 private:
+	RenderMode m_render_mode = RenderMode::Defered;
+
 	std::mutex m_color_mtx;
 	std::mutex m_d_mtx;
 	std::mutex m_dn_mtx;

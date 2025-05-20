@@ -106,8 +106,8 @@ bool RenderSystem::init()
 	m_postprocess_stage.init(postprocess, &m_screen_quad);
 
 	PointLight pl1;
-	pl1.m_position = glm::vec3(10.0f, 0.0f, 5.0f);
-	pl1.m_ambient = glm::vec3(0.2f);
+	pl1.m_position = glm::vec3(10.0f, 3.0f, 5.0f);
+	pl1.m_ambient = glm::vec3(0.5f);
 	pl1.m_diffuse = glm::vec3(0.5f);
 	pl1.m_specular = glm::vec3(0.6f);
 	pl1.m_linear = 0.027f;
@@ -129,12 +129,8 @@ void RenderSystem::render()
 
 	m_geometry_stage.run();
 	m_ssao_stage.run();
-
 	m_lighting_ambient_stage.run();
-
-	//m_lighting_ambient_stage.m_output_lighting_tex.bind(13);
 	m_lighting_final_stage.run();
-
 	m_postprocess_stage.run();
 }
 
@@ -188,9 +184,9 @@ void RenderSystem::initScene()
 
 	ModelEntry<MaterialColor> floor_entry;
 	floor_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::GEOMETRY_COLOR);
-	floor_entry.m_material.m_color.m_vector = glm::vec3(0.15f, 0.55f, 0.16f);
+	floor_entry.m_material.m_color.m_vector = glm::vec3(0.3f, 0.8f, 0.2f);
 	floor_entry.m_material.m_shininess.m_scalar = 32.0f;
-	floor_entry.m_material.m_specular_scalar.m_scalar = 0.01f;
+	floor_entry.m_material.m_specular_scalar.m_scalar = 0.5f;
 
 	floor_entry.m_mesh = &cube;
 

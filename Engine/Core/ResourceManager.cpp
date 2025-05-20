@@ -282,14 +282,14 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 {
 
 	float shininess;
-	if (material->Get(AI_MATKEY_SHININESS, shininess) != AI_SUCCESS)
+	if ((material->Get(AI_MATKEY_SHININESS, shininess) != AI_SUCCESS) || shininess < 1.0f)
 	{
-		shininess = 0.0f;
+		shininess = 1.0f;
 	}
 	float specular_scalar;
 	if (material->Get(AI_MATKEY_SPECULAR_FACTOR, specular_scalar) != AI_SUCCESS)
 	{
-		specular_scalar = 1.0f;
+		specular_scalar = 0.01f;
 	}
 
 	std::vector<Texture*> diffuse;

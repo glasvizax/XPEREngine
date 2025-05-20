@@ -18,11 +18,6 @@ layout (std140, binding = 1) uniform Lights
     int count;
 };
 
-in VS_OUT
-{
-	vec2 uv;
-} fs_in;
-
 layout(binding = 7) uniform sampler2D position_tex;
 layout(binding = 8) uniform sampler2D normal_shininess_tex;
 layout(binding = 9) uniform sampler2D diffuse_specular_tex;

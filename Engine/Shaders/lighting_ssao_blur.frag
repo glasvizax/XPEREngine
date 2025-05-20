@@ -14,14 +14,14 @@ void main()
 	vec2 texel_size = 1.0f / textureSize(ssao_base, 0);
 	float result = 0.0f;
 
-	for(float x = -2.0f; x < 2.0f; ++x)
+	for(float x = -4.0f; x < 4.0f; ++x)
 	{
-		for(float y = -2.0f; y < 2.0f; ++y)
+		for(float y = -4.0f; y < 4.0f; ++y)
 		{
 			vec2 offset = vec2(x, y) * texel_size;
 			result += texture(ssao_base, fs_in.uv + offset).r;
 		}
 	}
 
-	FragColor = result / 16.0f;
+	FragColor = result / 32.0f;
 }

@@ -72,7 +72,7 @@ int Engine::runStandalone()
 	{
 		return EXIT_FAILURE;
 	}
-	if (!g_window_manager.init("test", 800, 600, false))
+	if (!g_window_manager.init("test", 800, 800, false))
 	{
 		return EXIT_FAILURE;
 	}
