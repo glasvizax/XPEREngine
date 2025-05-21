@@ -1,4 +1,5 @@
 #include "Model.h"
+#include "ShaderProgramManager.h"
 
 Model::Model(const Model& other)
 {
@@ -139,6 +140,39 @@ void Model::draw(const glm::mat4& model)
 	{
 		m_meshes_dsnh[i].m_material.apply();
 		m_meshes_dsnh[i].m_material.m_shader_program->setMat("model", model);
+		m_meshes_dsnh[i].m_mesh->draw();
+	}
+}
+
+void Model::drawCustom(const glm::mat4 model, ShaderProgram* custom_sp)
+{
+	custom_sp->setMat("model", model);
+	for (int i = 0; i < m_meshes_color.size(); ++i)
+	{
+		m_meshes_color[i].m_mesh->draw();
+	}
+	for (int i = 0; i < m_meshes_d.size(); ++i)
+	{
+		m_meshes_d[i].m_mesh->draw();
+	}
+	for (int i = 0; i < m_meshes_dn.size(); ++i)
+	{
+		m_meshes_dn[i].m_mesh->draw();
+	}
+	for (int i = 0; i < m_meshes_dnh.size(); ++i)
+	{
+		m_meshes_dnh[i].m_mesh->draw();
+	}
+	for (int i = 0; i < m_meshes_ds.size(); ++i)
+	{
+		m_meshes_ds[i].m_mesh->draw();
+	}
+	for (int i = 0; i < m_meshes_dsn.size(); ++i)
+	{
+		m_meshes_dsn[i].m_mesh->draw();
+	}
+	for (int i = 0; i < m_meshes_dsnh.size(); ++i)
+	{
 		m_meshes_dsnh[i].m_mesh->draw();
 	}
 }

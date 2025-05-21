@@ -73,7 +73,7 @@ bool ResourceManager::initLoadShaderProgram(const std::string& vertex_name, cons
 	}
 
 	current = m_current_path;
-	if (!readFile(current.append(fragment_name), fragment_src))
+	if (!readFile(current.append(geometry_name), geometry_src))
 	{
 		return false;
 	}
@@ -321,7 +321,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 		entry.m_material.m_specular_scalar.m_scalar = specular_scalar;
 
 		entry.m_material.m_shininess.m_scalar = shininess;
-		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DEFERED_COLOR);
+		entry.m_material.m_shader_program = spm.getShaderProgram(ShaderProgramType::DEFERED_COLOR);
 		model.syncPushMeshColor(entry);
 		return;
 	}
@@ -338,7 +338,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 			entry.m_material.m_specular_scalar.m_scalar = specular_scalar;
 
 			entry.m_material.m_shininess.m_scalar = shininess;
-			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DEFERED_DIFFUSE);
+			entry.m_material.m_shader_program = spm.getShaderProgram(ShaderProgramType::DEFERED_DIFFUSE);
 			model.syncPushMeshD(entry);
 			return;
 		}
@@ -353,7 +353,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 			entry.m_material.m_normal.m_texture = normal[0];
 
 			entry.m_material.m_shininess.m_scalar = shininess;
-			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DEFERED_DIFFUSE_NORMAL);
+			entry.m_material.m_shader_program = spm.getShaderProgram(ShaderProgramType::DEFERED_DIFFUSE_NORMAL);
 			model.syncPushMeshDN(entry);
 			return;
 		}
@@ -366,7 +366,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 		entry.m_material.m_height.m_texture = height[0];
 
 		entry.m_material.m_shininess.m_scalar = shininess;
-		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DEFERED_DIFFUSE_NORMAL_HEIGHT);
+		entry.m_material.m_shader_program = spm.getShaderProgram(ShaderProgramType::DEFERED_DIFFUSE_NORMAL_HEIGHT);
 		model.syncPushMeshDNH(entry);
 		return;
 	}
@@ -383,7 +383,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 			entry.m_material.m_specular.m_texture = specular[0];
 
 			entry.m_material.m_shininess.m_scalar = shininess;
-			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR);
+			entry.m_material.m_shader_program = spm.getShaderProgram(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR);
 			model.syncPushMeshDS(entry);
 			return;
 		}
@@ -399,7 +399,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 			entry.m_material.m_normal.m_texture = normal[0];
 
 			entry.m_material.m_shininess.m_scalar = shininess;
-			entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL);
+			entry.m_material.m_shader_program = spm.getShaderProgram(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL);
 			model.syncPushMeshDSN(entry);
 			return;
 		}
@@ -412,7 +412,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 		entry.m_material.m_height.m_texture = height[0];
 
 		entry.m_material.m_shininess.m_scalar = shininess;
-		entry.m_material.m_shader_program = spm.getShaderProgramPtr(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL_HEIGHT);
+		entry.m_material.m_shader_program = spm.getShaderProgram(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL_HEIGHT);
 		model.syncPushMeshDSNH(entry);
 	}
 }

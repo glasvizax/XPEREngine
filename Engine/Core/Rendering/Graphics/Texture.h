@@ -45,6 +45,11 @@ public:
 
 	uint getChannelsNum() const;
 
+	glm::vec<2, GLsizei> getSize() 
+	{
+		return { m_width, m_height };
+	}
+
 private:
 	bool m_has_mipmap = false;
 

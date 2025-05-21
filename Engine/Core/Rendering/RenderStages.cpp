@@ -4,6 +4,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/compatibility.hpp>
+#include <glm/gtc/constants.hpp>
 
 #include "ResourceManager.h"
 #include "Entity.h"
@@ -11,6 +12,7 @@
 #include "Texture.h"
 #include "Camera.h"
 
+const GLuint DEPTHMAP_UNIT = 6;
 const GLuint POSITION_UNIT = 7;
 const GLuint NORMAL_SHININESS_UNIT = 8;
 const GLuint DIFFUSE_SPECULAR_UNIT = 9;
@@ -66,7 +68,7 @@ void GeometryStage::run()
 	m_geometry_rb = std::move(m_geometry_fb.m_renderbuffer);
 }
 
-void LightingSSAOStage::init(int width, int height, VertexArray* screen_quad, ShaderProgram* ssao_base_sp, ShaderProgram* ssao_blur_sp)
+void LightingSSAOStage::init(ShaderProgram* ssao_base_sp, ShaderProgram* ssao_blur_sp, int width, int height, VertexArray* screen_quad)
 {
 	m_ssao_base_sp = ssao_base_sp;
 	m_ssao_blur_sp = ssao_blur_sp;
@@ -100,7 +102,7 @@ void LightingSSAOStage::init(int width, int height, VertexArray* screen_quad, Sh
 	}
 	int noize_tex_size = NOISE_SIZE / 4;
 
-	m_ssao_base_sp->setVecArray("samples", ssao_kernel, KERNEL_SIZE);
+	m_ssao_base_sp->setVecArray("samples", ssao_kernel.data(), KERNEL_SIZE);
 
 	m_ssao_noise_tex.init(noize_tex_size, noize_tex_size, GL_RGBA16F, 3, false);
 	m_ssao_noise_tex.loadData(GL_FLOAT, GL_RGB, ssao_noise.data());
@@ -146,21 +148,21 @@ void LightingSSAOStage::run()
 	m_output_ssao_blur_tex.bind(SSAO_BLUR_UNIT);
 }
 
-void LightingAmbientStage::init(int width, int height, VertexArray* screen_quad, ShaderProgram* ambient_sp, GeometryStage* geometry_stage, LightingSSAOStage* ssao_stage)
+void LightingAmbientStage::init(ShaderProgram* ambient_sp, GeometryStage* geometry_stage, LightingSSAOStage* ssao_stage, int width, int height, VertexArray* screen_quad)
 {
 	m_screen_quad = screen_quad;
 	m_ambient_sp = ambient_sp;
 
 	m_output_ambient_tex.init(width, height, GL_RGBA16F, 4, false);
 
-	m_lighting_fb.init();
-	m_lighting_fb.createAttachRenderbuffer(width, height);
+	m_lighting_ambient_fb.init();
+	m_lighting_ambient_fb.createAttachRenderbuffer(width, height);
 }
 
 void LightingAmbientStage::run()
 {
-	m_lighting_fb.bind();
-	m_lighting_fb.attachTexture2D(m_output_ambient_tex);
+	m_lighting_ambient_fb.bind();
+	m_lighting_ambient_fb.attachTexture2D(m_output_ambient_tex);
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 	m_screen_quad->bind();
@@ -170,33 +172,113 @@ void LightingAmbientStage::run()
 	m_output_ambient_tex.bind(POSTPROCESS_INPUT_UNIT);
 }
 
-void LightingFinalStage::init(Camera* camera, ShaderProgram* diffspec_sp, LightingAmbientStage* ambient_stage)
+void LightingShadowMappingStage::init(ShaderProgram* depthmap_sp, int width, int height, int depthmap_size, float depthmap_near, float depthmap_far, Entity* root_entity, std::vector<PointLight>* point_lights)
+{
+	m_depthmap_sp = depthmap_sp;
+	m_main_height = height;
+	m_main_width = width;
+	m_root_entity = root_entity;
+	m_depthmap_far = depthmap_far;
+	m_depthmap_near = depthmap_near;
+	m_point_lights = point_lights;
+	m_depthmap_size = depthmap_size;
+
+	m_depthmap_sp->set("depthmap_far", depthmap_far);
+
+	m_depthmap_fb.init();
+
+	m_light_projection = glm::perspective(glm::half_pi<float>(), 1.0f, depthmap_near, depthmap_far);
+}
+
+void LightingShadowMappingStage::run()
+{
+	size_t pl_count = m_point_lights->size();
+
+	if (m_output_depthmaps.size() < m_point_lights->size())
+	{
+		m_output_depthmaps.reserve(m_point_lights->size() * 2);
+
+		for (size_t i = m_output_depthmaps.size(); i < pl_count; ++i)
+		{
+			Cubemap& new_cubemap = m_output_depthmaps.emplace_back();
+			new_cubemap.init(m_depthmap_size, GL_DEPTH_COMPONENT24, 1, false);
+
+			//new_cubemap.setMagFilter(GL_NEAREST);
+			//new_cubemap.setMinFilter(GL_NEAREST);
+		}
+	}
+
+	m_depthmap_fb.bind();
+	glViewport(0u, 0u, m_depthmap_size, m_depthmap_size);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+
+	m_depthmap_sp->use();
+	for (int i = 0; i < m_point_lights->size(); ++i)
+	{
+		PointLight& current_pl = m_point_lights->at(i);
+
+		glm::mat4 shadow_tranforms[6];
+		glm::vec3 pl_position = current_pl.m_position;
+		shadow_tranforms[0] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+		shadow_tranforms[1] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+		shadow_tranforms[2] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		shadow_tranforms[3] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+		shadow_tranforms[4] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+		shadow_tranforms[5] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+		
+		m_depthmap_fb.attachCubemap(m_output_depthmaps[i], GL_DEPTH_ATTACHMENT);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		m_depthmap_sp->set("current_light_index", i);
+		m_depthmap_sp->setMatArray("shadow_tranforms", shadow_tranforms, 6);
+		m_root_entity->drawCustom(m_depthmap_sp);
+	}
+	glCullFace(GL_BACK);
+	glDisable(GL_CULL_FACE);
+	glDepthFunc(GL_LESS);
+	glDisable(GL_DEPTH_TEST);
+	
+	glViewport(0u, 0u, m_main_width, m_main_height);
+}
+
+void LightingFinalStage::init(ShaderProgram* diffspec_sp, LightingAmbientStage* ambient_stage, LightingShadowMappingStage* shadow_mapping_stage, std::vector<PointLight>* point_lights, Camera* camera)
 {
 	m_diffspec_sp = diffspec_sp;
 	m_camera = camera;
+	m_lighting_final_fb = &ambient_stage->m_lighting_ambient_fb;
 	m_output_lighting_tex = &ambient_stage->m_output_ambient_tex;
+	m_input_depthmaps = &shadow_mapping_stage->m_output_depthmaps;
+	m_point_lights = point_lights;
+	m_diffspec_sp->set("depthmap_far", shadow_mapping_stage->m_depthmap_far);
+	
 	m_light_volume = generateSphere(1.0f, 18, 9);
 }
 
 void LightingFinalStage::run()
 {
+	m_lighting_final_fb->bind();
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE);
 	glBlendEquation(GL_FUNC_ADD);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-	
+
 	m_diffspec_sp->use();
 	m_diffspec_sp->setVec("camera_position", m_camera->getPosition());
-	for (int i = 0; i < m_point_lights.size(); ++i)
+	for (int i = 0; i < m_point_lights->size(); ++i)
 	{
-		glm::mat4 light_volume_model = glm::translate(IDENTICAL_MATRIX, m_point_lights[i].m_position);
-		light_volume_model = glm::scale(light_volume_model, glm::vec3(m_point_lights[i].m_radius));
+		PointLight& current_pl = m_point_lights->at(i);
+		glm::mat4	light_volume_model = glm::translate(IDENTICAL_MATRIX, current_pl.m_position);
+		light_volume_model = glm::scale(light_volume_model, glm::vec3(current_pl.m_radius));
 		m_diffspec_sp->setMat("light_volume_model", light_volume_model);
 		m_diffspec_sp->set("current_light_index", i);
+		m_input_depthmaps->at(i).bind(DEPTHMAP_UNIT);
 		m_light_volume.draw();
 	}
-	
+
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
@@ -206,7 +288,7 @@ void ForwardStage::init(ShaderProgram* forward_color_sp, GeometryStage* geometry
 {
 	m_forward_color_sp = forward_color_sp;
 	m_input_lighting_tex = lighting_final_stage->m_output_lighting_tex;
-	m_point_lights = &lighting_final_stage->m_point_lights;
+	m_point_lights = lighting_final_stage->m_point_lights;
 	m_geomentry_rb = &geometry_stage->m_geometry_rb;
 	m_light_sphere = generateSphere(1.0f, 36, 18);
 	m_forward_fb.init();

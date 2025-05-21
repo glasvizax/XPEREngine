@@ -126,6 +126,19 @@ void Entity::draw()
 	}
 }
 
+void Entity::drawCustom(ShaderProgram* custom_sp)
+{
+	if (m_parent)
+	{
+		m_model.drawCustom(m_transform.getModelMatrix(), custom_sp);
+	}
+
+	for (auto& e : m_children)
+	{
+		e.drawCustom(custom_sp);
+	}
+}
+
 void Entity::forceUpdateTransform()
 {
 	m_transform.updateModelMatrix(m_parent->getTransform().getModelMatrix());

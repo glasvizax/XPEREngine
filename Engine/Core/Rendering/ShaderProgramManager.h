@@ -20,16 +20,18 @@ enum class ShaderProgramType : uint8_t
 
 	LIGHTING_SSAO_BASE,
 	LIGHTING_SSAO_BLUR,
+	LIGHTING_DEPTHMAP,
 	LIGHTING_AMBIENT,
 	LIGHTING_DIFFUSE_SPECULAR,
 
 	POSTPROCESS
 };
 
-struct VertexFragmentNames
+struct ShadersNames
 {
 	std::string vertex;
 	std::string fragment;
+	std::string geometry;
 };
 
 class ShaderProgramManager
@@ -46,7 +48,7 @@ public:
 	ShaderProgramManager(ShaderProgramManager&&) noexcept = delete;
 	ShaderProgramManager& operator=(ShaderProgramManager&&) noexcept = delete;
 	
-	ShaderProgram* getShaderProgramPtr(ShaderProgramType type);
+	ShaderProgram* getShaderProgram(ShaderProgramType type);
 
 	std::string ShaderProgramManager::shaderProgramTypeName(ShaderProgramType type);
 

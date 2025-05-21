@@ -77,6 +77,7 @@ void Texture::init(int width, int height, GLint internal_format, uint channels_n
 	glTextureParameteri(m_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTextureParameteri(m_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTextureParameteri(m_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(m_id, GL_TEXTURE_MIN_FILTER, generate_mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 	glTextureParameteri(m_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	checkGeneralErrorGL(m_debug_name);
 

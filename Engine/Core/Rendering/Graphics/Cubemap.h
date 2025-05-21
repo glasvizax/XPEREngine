@@ -41,6 +41,10 @@ public:
 	void   bind(GLuint unit = 0);
 	GLuint getID() const;
 	uint   getChannelsNum() const;
+	GLsizei getSize() const 
+	{
+		return m_size;
+	}
 
 private:
 	bool	m_has_mipmap = false;

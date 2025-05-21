@@ -93,18 +93,20 @@ bool RenderSystem::init()
 	initScene();
 	initScreenQuad();
 
-	ShaderProgram* ssao_base = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::LIGHTING_SSAO_BASE);
-	ShaderProgram* ssao_blur = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::LIGHTING_SSAO_BLUR);
-	ShaderProgram* ambient = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::LIGHTING_AMBIENT);
-	ShaderProgram* diffspec = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::LIGHTING_DIFFUSE_SPECULAR);
-	ShaderProgram* forward_color = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::FORWARD_COLOR);
-	ShaderProgram* postprocess = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::POSTPROCESS);
+	ShaderProgram* ssao_base = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_SSAO_BASE);
+	ShaderProgram* ssao_blur = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_SSAO_BLUR);
+	ShaderProgram* ambient = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_AMBIENT);
+	ShaderProgram* diffspec = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_DIFFUSE_SPECULAR);
+	ShaderProgram* depthmap = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_DEPTHMAP);
+	ShaderProgram* forward_color = m_shader_program_manager.getShaderProgram(ShaderProgramType::FORWARD_COLOR);
+	ShaderProgram* postprocess = m_shader_program_manager.getShaderProgram(ShaderProgramType::POSTPROCESS);
 
 	m_geometry_stage.init(window_size.x, window_size.y, &m_root_entity);
-	m_ssao_stage.init(window_size.x, window_size.y, &m_screen_quad, ssao_base, ssao_blur);
-	m_lighting_ambient_stage.init(window_size.x, window_size.y, &m_screen_quad, ambient, &m_geometry_stage, &m_ssao_stage);
-	m_lighting_final_stage.init(&m_camera, diffspec, &m_lighting_ambient_stage);
-	m_forward_stage.init(forward_color, &m_geometry_stage, &m_lighting_final_stage);
+	m_ssao_stage.init(ssao_base, ssao_blur, window_size.x, window_size.y, &m_screen_quad);
+	m_ambient_stage.init(ambient, &m_geometry_stage, &m_ssao_stage, window_size.x, window_size.y, &m_screen_quad);
+	m_shadow_mapping_stage.init(depthmap, window_size.x, window_size.y, 2048, 1.0f, 100.0f, &m_root_entity, &m_point_lights);
+	m_final_stage.init(diffspec, &m_ambient_stage, &m_shadow_mapping_stage, &m_point_lights, &m_camera);
+	m_forward_stage.init(forward_color, &m_geometry_stage, &m_final_stage);
 	m_postprocess_stage.init(postprocess, &m_screen_quad);
 
 	PointLight pl1;
@@ -140,8 +142,9 @@ void RenderSystem::render()
 
 	m_geometry_stage.run();
 	m_ssao_stage.run();
-	m_lighting_ambient_stage.run();
-	m_lighting_final_stage.run();
+	m_ambient_stage.run();
+	m_shadow_mapping_stage.run();
+	m_final_stage.run();
 	m_forward_stage.run();
 	m_postprocess_stage.run();
 }
@@ -195,7 +198,7 @@ void RenderSystem::initScene()
 	Mesh& cube = m_resource_manager->storeMesh(generateIdenticalCube());
 
 	ModelEntry<MaterialColor> floor_entry;
-	floor_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgramPtr(ShaderProgramType::DEFERED_COLOR);
+	floor_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgram(ShaderProgramType::DEFERED_COLOR);
 	floor_entry.m_material.m_color.m_vector = glm::vec3(0.3f, 0.8f, 0.2f);
 	floor_entry.m_material.m_shininess.m_scalar = 32.0f;
 	floor_entry.m_material.m_specular_scalar.m_scalar = 0.5f;
@@ -250,7 +253,7 @@ void RenderSystem::testInputK()
 
 void RenderSystem::addPointLight(PointLight& point_light)
 {
-	int size = m_lighting_final_stage.m_point_lights.size();
+	int size = m_point_lights.size();
 	if (size > MAX_POINT_LIGHTS)
 	{
 		LOG_WARNING_S("size > MAX_POINT_LIGHTS");
@@ -263,7 +266,7 @@ void RenderSystem::addPointLight(PointLight& point_light)
 	m_lights_buffer.fill(size * sizeof(PointLight), sizeof(PointLight), &point_light);
 	size++;
 	m_lights_buffer.fill(MAX_POINT_LIGHTS * sizeof(PointLight), sizeof(int), &size);
-	m_lighting_final_stage.m_point_lights.push_back(point_light);
+	m_point_lights.push_back(point_light);
 }
 
 int getUniformBlockSize(ShaderProgram& shader, const std::string& name)

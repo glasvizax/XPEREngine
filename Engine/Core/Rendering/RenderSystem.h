@@ -62,10 +62,13 @@ private:
 
 	VertexArray m_screen_quad;
 
-	GeometryStage		 m_geometry_stage;
-	LightingSSAOStage	 m_ssao_stage;
-	LightingAmbientStage m_lighting_ambient_stage;
-	LightingFinalStage	 m_lighting_final_stage;
-	ForwardStage		 m_forward_stage;
-	PostProcessStage	 m_postprocess_stage;
+	std::vector<PointLight> m_point_lights;
+
+	GeometryStage			   m_geometry_stage;
+	LightingSSAOStage		   m_ssao_stage;
+	LightingAmbientStage	   m_ambient_stage;
+	LightingShadowMappingStage m_shadow_mapping_stage;
+	LightingFinalStage		   m_final_stage;
+	ForwardStage			   m_forward_stage;
+	PostProcessStage		   m_postprocess_stage;
 };

@@ -47,6 +47,8 @@ public:
 
 	void draw();
 
+	void drawCustom(ShaderProgram* custom_sp);
+
 private:
 	void forceUpdateTransform();
 

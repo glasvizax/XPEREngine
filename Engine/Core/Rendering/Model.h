@@ -8,12 +8,6 @@
 #include "Mesh.h"
 #include "Material.h"
 
-enum class RenderMode
-{
-	Defered,
-	Forward
-};
-
 template <typename MaterialClass>
 struct ModelEntry
 {
@@ -50,6 +44,8 @@ struct Model
 
 	void draw(const glm::mat4& model);
 
+	void drawCustom(const glm::mat4 model, ShaderProgram* custom_sp);
+
 	std::vector<ModelEntry<MaterialColor>> m_meshes_color;
 	std::vector<ModelEntry<MaterialD>>	   m_meshes_d;
 	std::vector<ModelEntry<MaterialDN>>	   m_meshes_dn;
@@ -58,23 +54,7 @@ struct Model
 	std::vector<ModelEntry<MaterialDSN>>   m_meshes_dsn;
 	std::vector<ModelEntry<MaterialDSNH>>  m_meshes_dsnh;
 
-	RenderMode getRenderMode()
-	{
-		return m_render_mode;
-	}
-
-	void setRenderMode(RenderMode render_mode)
-	{
-		if (render_mode == m_render_mode)
-		{
-			return;
-		}
-		m_render_mode = render_mode;
-		//TODO: change shaders
-	}
-
 private:
-	RenderMode m_render_mode = RenderMode::Defered;
 
 	std::mutex m_color_mtx;
 	std::mutex m_d_mtx;

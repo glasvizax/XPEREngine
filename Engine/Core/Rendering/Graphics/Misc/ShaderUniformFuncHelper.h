@@ -1,7 +1,7 @@
 #pragma once
 
 template <size_t N, typename T>
-inline void uniformVecArrayFunc(GLint location, GLsizei count, const glm::vec<N, T>* const data)
+inline void uniformVecArrayFunc(GLint location, const glm::vec<N, T>* const data, GLsizei count)
 {
 	if constexpr (N == 2)
 	{
@@ -200,7 +200,7 @@ inline void uniformValueArrayFunc(GLint location, T* vals, GLsizei count)
 }
 
 template <size_t N, typename T>
-inline void uniformMatArrayFunc(GLint location, const glm::mat<N, N, T>* mat, GLsizei count)
+inline void uniformMatArrayFunc(GLint location, const glm::mat<N, N, T>* const mat, GLsizei count)
 {
 	if constexpr (N == 2)
 	{

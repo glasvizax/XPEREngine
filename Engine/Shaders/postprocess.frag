@@ -6,7 +6,7 @@ in VS_OUT
 } fs_in;
 
 layout (binding = 13) uniform sampler2D input_texture;
- 
+
 out vec4 a_fragment_color;
 
 void main()

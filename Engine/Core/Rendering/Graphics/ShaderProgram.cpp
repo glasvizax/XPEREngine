@@ -19,6 +19,8 @@ ShaderProgram::ShaderProgram() {}
 #endif
 /***********************************************/
 
+
+
 ShaderProgram::ShaderProgram(ShaderProgram&& other) noexcept
 {
 #ifdef _DEBUG
@@ -43,6 +45,31 @@ ShaderProgram& ShaderProgram::operator=(ShaderProgram&& other) noexcept
 ShaderProgram::~ShaderProgram()
 {
 	clear();
+}
+
+GLint ShaderProgram::getLocation(const std::string& name)
+{
+	std::hash<std::string> hasher;
+	size_t hash = hasher(name);
+	GLint  location;
+	auto   it = m_locations.find(hash);
+
+	if (it == m_locations.end())
+	{
+		location = glGetUniformLocation(m_program_id, name.c_str());
+		checkGeneralErrorGL(m_debug_name);
+		if (location == -1)
+		{
+			LOG_ERROR_F("couldn't find uniform namely: %s", name.c_str());
+			return -1;
+		}
+		m_locations[hash] = location;
+	}
+	else
+	{
+		location = it->second;
+	}
+	return location;
 }
 
 void ShaderProgram::clear()
@@ -187,6 +214,12 @@ bool setupProgram(GLuint* shaders, uint count, GLuint& program)
 	}
 	glLinkProgram(program);
 
+	for (uint i = 0; i < count; ++i)
+	{
+		glDetachShader(program, shaders[i]);
+		glDeleteShader(shaders[i]);
+	}
+
 	GLint is_linked;
 	glGetProgramiv(program, GL_LINK_STATUS, &is_linked);
 	if (is_linked == GL_FALSE)
@@ -209,10 +242,6 @@ bool setupProgram(GLuint* shaders, uint count, GLuint& program)
 		return false;
 	}
 
-	for (uint i = 0; i < count; ++i)
-	{
-		glDetachShader(program, shaders[i]);
-		glDeleteShader(shaders[i]);
-	}
+
 	return true;
 }

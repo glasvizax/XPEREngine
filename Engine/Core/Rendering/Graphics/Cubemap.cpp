@@ -194,7 +194,7 @@ uint Cubemap::getChannelsNum() const
 	if (!m_id)
 	{
 		LOG_ERROR_F("[%s] Not initialized", m_debug_name.c_str());
-		return;
+		return 0;
 	}
 	return m_channels_num;
 }
