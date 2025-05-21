@@ -42,34 +42,40 @@ void GeometryStage::init(int width, int height, Entity* root_entity)
 	m_output_diffuse_specular_tex.setWrapS(GL_CLAMP_TO_EDGE);
 	m_output_diffuse_specular_tex.setWrapT(GL_CLAMP_TO_EDGE);
 
-	m_geometry_fb.init();
-	m_geometry_fb.attachTexture2D(m_output_position_tex.getID(), GL_COLOR_ATTACHMENT0);
-	m_geometry_fb.attachTexture2D(m_output_normal_shininess_tex.getID(), GL_COLOR_ATTACHMENT1);
-	m_geometry_fb.attachTexture2D(m_output_diffuse_specular_tex.getID(), GL_COLOR_ATTACHMENT2);
-	m_geometry_fb.createAttachRenderbuffer(width, height);
+	m_geometry_rb.init();
+	m_geometry_rb.setStorage(width, height, GL_DEPTH24_STENCIL8);
 
+	m_geometry_fb.init();
+	m_geometry_fb.attachTexture2D(m_output_position_tex, GL_COLOR_ATTACHMENT0);
+	m_geometry_fb.attachTexture2D(m_output_normal_shininess_tex, GL_COLOR_ATTACHMENT1);
+	m_geometry_fb.attachTexture2D(m_output_diffuse_specular_tex, GL_COLOR_ATTACHMENT2);
 	m_geometry_fb.drawBuffersDefault(3);
+
+	m_output_position_tex.bind(POSITION_UNIT);
+	m_output_normal_shininess_tex.bind(NORMAL_SHININESS_UNIT);
+	m_output_diffuse_specular_tex.bind(DIFFUSE_SPECULAR_UNIT);
 }
 
 void GeometryStage::run()
 {
 	m_geometry_fb.bind();
+	m_geometry_fb.attachRenderbuffer(std::move(m_geometry_rb));
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	m_root_entity->draw();
+	m_geometry_rb = std::move(m_geometry_fb.m_renderbuffer);
 }
 
-void LightingSSAOStage::init(int width, int height, VertexArray* screen_quad, ShaderProgram* ssao_base_sp, ShaderProgram* ssao_blur_sp, GeometryStage* geometry_stage, int kernel_size, int noise_size)
+void LightingSSAOStage::init(int width, int height, VertexArray* screen_quad, ShaderProgram* ssao_base_sp, ShaderProgram* ssao_blur_sp)
 {
 	m_ssao_base_sp = ssao_base_sp;
 	m_ssao_blur_sp = ssao_blur_sp;
-	m_geometry_stage = geometry_stage;
 	m_screen_quad = screen_quad;
 
 	std::uniform_real_distribution<float> random_floats(-1.0f, 1.0f);
 	std::default_random_engine			  generator;
-	std::vector<glm::vec3>				  ssao_kernel(kernel_size);
-	for (size_t i = 0; i < kernel_size; ++i)
+	std::vector<glm::vec3>				  ssao_kernel(KERNEL_SIZE);
+	for (size_t i = 0; i < KERNEL_SIZE; ++i)
 	{
 		ssao_kernel[i] = glm::vec3(
 			random_floats(generator),
@@ -79,22 +85,22 @@ void LightingSSAOStage::init(int width, int height, VertexArray* screen_quad, Sh
 		ssao_kernel[i] = glm::normalize(ssao_kernel[i]);
 		ssao_kernel[i] *= (random_floats(generator) + 1.0f) * 0.5f;
 
-		float scale = static_cast<float>(i) / kernel_size;
+		float scale = static_cast<float>(i) / KERNEL_SIZE;
 		scale = glm::lerp(0.1f, 1.0f, scale * scale * scale);
 		ssao_kernel[i] *= scale;
 	}
 
-	std::vector<glm::vec3> ssao_noise(noise_size);
-	for (size_t i = 0; i < noise_size; ++i)
+	std::vector<glm::vec3> ssao_noise(NOISE_SIZE);
+	for (size_t i = 0; i < NOISE_SIZE; ++i)
 	{
 		ssao_noise[i] = glm::vec3(
 			random_floats(generator),
 			random_floats(generator),
 			0.0f);
 	}
-	int noize_tex_size = noise_size / 4;
+	int noize_tex_size = NOISE_SIZE / 4;
 
-	m_ssao_base_sp->setVecArray("samples", ssao_kernel, kernel_size);
+	m_ssao_base_sp->setVecArray("samples", ssao_kernel, KERNEL_SIZE);
 
 	m_ssao_noise_tex.init(noize_tex_size, noize_tex_size, GL_RGBA16F, 3, false);
 	m_ssao_noise_tex.loadData(GL_FLOAT, GL_RGB, ssao_noise.data());
@@ -116,18 +122,14 @@ void LightingSSAOStage::init(int width, int height, VertexArray* screen_quad, Sh
 	m_output_ssao_blur_tex.setWrapT(GL_CLAMP_TO_EDGE);
 
 	m_ssao_base_fb.init();
-	m_ssao_base_fb.attachTexture2D(m_ssao_base_tex.getID());
+	m_ssao_base_fb.attachTexture2D(m_ssao_base_tex);
 
 	m_ssao_blur_fb.init();
-	m_ssao_blur_fb.attachTexture2D(m_output_ssao_blur_tex.getID());
+	m_ssao_blur_fb.attachTexture2D(m_output_ssao_blur_tex);
 }
 
 void LightingSSAOStage::run()
 {
-	m_geometry_stage->m_output_position_tex.bind(POSITION_UNIT);
-	m_geometry_stage->m_output_normal_shininess_tex.bind(NORMAL_SHININESS_UNIT);
-	m_geometry_stage->m_output_diffuse_specular_tex.bind(DIFFUSE_SPECULAR_UNIT);
-
 	m_ssao_noise_tex.bind(SSAO_NOISE_UNIT);
 	m_ssao_base_fb.bind();
 	glDisable(GL_DEPTH_TEST);
@@ -141,60 +143,49 @@ void LightingSSAOStage::run()
 	glClear(GL_COLOR_BUFFER_BIT);
 	m_ssao_blur_sp->use();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_output_ssao_blur_tex.bind(SSAO_BLUR_UNIT);
 }
 
 void LightingAmbientStage::init(int width, int height, VertexArray* screen_quad, ShaderProgram* ambient_sp, GeometryStage* geometry_stage, LightingSSAOStage* ssao_stage)
 {
 	m_screen_quad = screen_quad;
 	m_ambient_sp = ambient_sp;
-	m_geometry_stage = geometry_stage;
-	m_ssao_stage = ssao_stage;
 
-	m_output_lighting_tex.init(width, height, GL_RGBA16F, 4, false);
+	m_output_ambient_tex.init(width, height, GL_RGBA16F, 4, false);
 
 	m_lighting_fb.init();
-	m_lighting_fb.attachTexture2D(m_output_lighting_tex.getID());
 	m_lighting_fb.createAttachRenderbuffer(width, height);
 }
 
 void LightingAmbientStage::run()
 {
-	m_geometry_stage->m_output_position_tex.bind(POSITION_UNIT);
-	m_geometry_stage->m_output_normal_shininess_tex.bind(NORMAL_SHININESS_UNIT);
-	m_geometry_stage->m_output_diffuse_specular_tex.bind(DIFFUSE_SPECULAR_UNIT);
-
 	m_lighting_fb.bind();
-	//m_lighting_fb.attachTexture2D(m_output_lighting_tex.getID());
+	m_lighting_fb.attachTexture2D(m_output_ambient_tex);
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
-	m_ssao_stage->m_output_ssao_blur_tex.bind(SSAO_BLUR_UNIT);
 	m_screen_quad->bind();
 	m_ambient_sp->use();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	m_output_ambient_tex.bind(POSTPROCESS_INPUT_UNIT);
 }
 
-void LightingFinalStage::init(Camera* camera, ShaderProgram* diffspec_sp, GeometryStage* geometry_stage, LightingAmbientStage* ambient_stage)
+void LightingFinalStage::init(Camera* camera, ShaderProgram* diffspec_sp, LightingAmbientStage* ambient_stage)
 {
 	m_diffspec_sp = diffspec_sp;
 	m_camera = camera;
-	m_geometry_stage = geometry_stage;
-	m_ambient_stage = ambient_stage;
+	m_output_lighting_tex = &ambient_stage->m_output_ambient_tex;
 	m_light_volume = generateSphere(1.0f, 18, 9);
 }
 
 void LightingFinalStage::run()
 {
-	m_geometry_stage->m_output_position_tex.bind(POSITION_UNIT);
-	m_geometry_stage->m_output_normal_shininess_tex.bind(NORMAL_SHININESS_UNIT);
-	m_geometry_stage->m_output_diffuse_specular_tex.bind(DIFFUSE_SPECULAR_UNIT);
-	m_ambient_stage->m_lighting_fb.bind();
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE);
 	glBlendEquation(GL_FUNC_ADD);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-
+	
 	m_diffspec_sp->use();
 	m_diffspec_sp->setVec("camera_position", m_camera->getPosition());
 	for (int i = 0; i < m_point_lights.size(); ++i)
@@ -205,13 +196,41 @@ void LightingFinalStage::run()
 		m_diffspec_sp->set("current_light_index", i);
 		m_light_volume.draw();
 	}
-
-
+	
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
+}
 
-	m_ambient_stage->m_output_lighting_tex.bind(POSTPROCESS_INPUT_UNIT);
+void ForwardStage::init(ShaderProgram* forward_color_sp, GeometryStage* geometry_stage, LightingFinalStage* lighting_final_stage)
+{
+	m_forward_color_sp = forward_color_sp;
+	m_input_lighting_tex = lighting_final_stage->m_output_lighting_tex;
+	m_point_lights = &lighting_final_stage->m_point_lights;
+	m_geomentry_rb = &geometry_stage->m_geometry_rb;
+	m_light_sphere = generateSphere(1.0f, 36, 18);
+	m_forward_fb.init();
+}
+
+void ForwardStage::run()
+{
+	m_forward_fb.bind();
+	m_forward_fb.attachTexture2D(*m_input_lighting_tex);
+	m_forward_fb.attachRenderbuffer(std::move(*m_geomentry_rb));
+	glEnable(GL_DEPTH_TEST);
+	m_forward_color_sp->use();
+	for (int i = 0; i < m_point_lights->size(); ++i)
+	{
+		PointLight& current_pl = m_point_lights->at(i);
+		glm::mat4	model = glm::translate(IDENTICAL_MATRIX, current_pl.m_position);
+		model = glm::scale(model, glm::vec3(0.25f));
+		m_forward_color_sp->setMat("model", model);
+		m_forward_color_sp->setVec("material.color", current_pl.m_diffuse);
+		m_light_sphere.draw();
+	}
+
+	*m_geomentry_rb = std::move(m_forward_fb.m_renderbuffer);
+	m_input_lighting_tex->bind(POSTPROCESS_INPUT_UNIT);
 }
 
 void PostProcessStage::init(ShaderProgram* shader_program, VertexArray* screen_quad)

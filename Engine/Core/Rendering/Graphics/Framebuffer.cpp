@@ -60,34 +60,24 @@ void Framebuffer::clear()
 		m_id = 0;
 	}
 
-	if (m_owns_rbo && m_rbo_id != 0)
-	{
-		glDeleteRenderbuffers(1, &m_rbo_id);
-		m_rbo_id = 0;
-		m_owns_rbo = false;
-	}
+	m_renderbuffer.clear();
 }
 
-void Framebuffer::attachTexture2D(GLuint tex_id, GLenum attachment_type)
+void Framebuffer::attachTexture2D(Texture& texture, GLenum attachment_type)
 {
 	bind();
-	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment_type, GL_TEXTURE_2D, tex_id, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment_type, GL_TEXTURE_2D, texture.getID(), 0);
 
 	checkGeneralErrorGL(m_debug_name); 
 	checkFramebufferErrorsGL(m_debug_name);
 }
 
-void Framebuffer::attachRenderbuffer(GLuint rbo_id, GLenum attachment_type)
+void Framebuffer::attachRenderbuffer(Renderbuffer&& renderbuffer, GLenum attachment_type)
 {
 	bind();
-	if (m_owns_rbo && m_rbo_id != 0)
-	{
-		glDeleteRenderbuffers(1, &m_rbo_id);
-		m_owns_rbo = false;
-		m_rbo_id = 0;
-	}
-	m_rbo_id = rbo_id;
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment_type, GL_RENDERBUFFER, rbo_id);
+	m_renderbuffer = std::move(renderbuffer);
+	m_renderbuffer.bind();
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment_type, GL_RENDERBUFFER, m_renderbuffer.getID());
 	checkGeneralErrorGL(m_debug_name);
 	checkFramebufferErrorsGL(m_debug_name);
 }
@@ -95,17 +85,14 @@ void Framebuffer::attachRenderbuffer(GLuint rbo_id, GLenum attachment_type)
 void Framebuffer::createAttachRenderbuffer(GLsizei width, GLsizei height, GLenum internal_format, GLenum attachment_type)
 {
 	bind();
-	
-	if (m_owns_rbo && m_rbo_id != 0)
-	{
-		glDeleteRenderbuffers(1, &m_rbo_id);
-	}
+	m_renderbuffer.init();
+	m_renderbuffer.setStorage(width, height, internal_format);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment_type, GL_RENDERBUFFER, m_renderbuffer.getID());
+}
 
-	glGenRenderbuffers(1, &m_rbo_id);
-	m_owns_rbo = true; 
-	glBindRenderbuffer(GL_RENDERBUFFER, m_rbo_id);
-	glRenderbufferStorage(GL_RENDERBUFFER, internal_format, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment_type, GL_RENDERBUFFER, m_rbo_id);
+Renderbuffer& Framebuffer::getRenderbuffer()
+{
+	return m_renderbuffer;
 }
 
 void Framebuffer::bind()
@@ -147,24 +134,67 @@ void Framebuffer::drawBuffers(GLenum* buffers, GLsizei size)
 	checkFramebufferErrorsGL(m_debug_name);
 }
 
-
-
-/*
-void Framebuffer::drawBuffer(GLBuffer buffer)
+void Renderbuffer::init()
 {
-	bind();
-	glDrawBuffer(static_cast<GLenum>(buffer));
-
-	checkGeneralErrorGL(m_debug_name);
-	checkFramebufferErrorsGL(m_debug_name);
+	glCreateRenderbuffers(1, &m_id);
 }
 
-void Framebuffer::readBuffer(GLBuffer buffer)
+Renderbuffer::Renderbuffer(Renderbuffer&& other) noexcept
+	: m_id(other.m_id)
 {
-	bind();
-	glReadBuffer(static_cast<GLenum>(buffer));
-
-	checkGeneralErrorGL(m_debug_name);
-	checkFramebufferErrorsGL(m_debug_name);
+	other.m_id = 0;
 }
-*/
+
+Renderbuffer& Renderbuffer::operator=(Renderbuffer&& other) noexcept
+{
+	if (this != &other)
+	{
+		clear();
+		m_id = other.m_id;
+		other.m_id = 0;
+	}
+	return *this;
+}
+
+Renderbuffer::~Renderbuffer()
+{
+	clear();
+}
+
+void Renderbuffer::bind()
+{
+	if (s_active_id == m_id)
+	{
+		return;
+	}
+	glBindRenderbuffer(GL_RENDERBUFFER, m_id);
+	s_active_id = m_id;
+}
+
+void Renderbuffer::unbind()
+{
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
+
+void Renderbuffer::setStorage(GLsizei width, GLsizei height, GLenum internalformat)
+{
+	if (m_id == 0)
+	{
+		LOG_ERROR_S("m_id was 0");
+	}
+	bind();
+	glNamedRenderbufferStorage(m_id, internalformat, width, height);
+}
+
+GLuint Renderbuffer::getID() const
+{
+	return m_id;
+}
+
+void Renderbuffer::clear()
+{
+	if (m_id != 0)
+	{
+		glDeleteRenderbuffers(1, &m_id);
+	}
+}

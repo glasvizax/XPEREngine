@@ -43,7 +43,7 @@ void main()
 	mat3 TBN = mat3(tangent, bitangent, normal_view);
 
 	float occlusion = 0.0f;
-	float radius     = 0.2f;
+	float radius     = 0.15f;
 
 	for(int i = 0; i < KERNEL_SIZE; ++i) 
 	{

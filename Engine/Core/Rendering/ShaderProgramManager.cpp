@@ -2,13 +2,15 @@
 
 // clang-format off
 std::unordered_map<ShaderProgramType, VertexFragmentNames> DEFAULT_SHADER_NAMES = {
-	{ ShaderProgramType::GEOMETRY_COLOR,							{ "geometry_color_mat.vert",	"geometry_color_mat.frag" } },
-	{ ShaderProgramType::GEOMETRY_DIFFUSE,							{ "geometry_d_mat.vert",		"geometry_d_mat.frag" } },
-	{ ShaderProgramType::GEOMETRY_DIFFUSE_NORMAL,					{ "geometry_dn_mat.vert",		"geometry_dn_mat.frag" } },
-	{ ShaderProgramType::GEOMETRY_DIFFUSE_NORMAL_HEIGHT,			{ "geometry_dnh_mat.vert",		"geometry_dnh_mat.frag" } },
-	{ ShaderProgramType::GEOMETRY_DIFFUSE_SPECULAR,					{ "geometry_ds_mat.vert",		"geometry_ds_mat.frag" } },
-	{ ShaderProgramType::GEOMETRY_DIFFUSE_SPECULAR_NORMAL,			{ "geometry_dsn_mat.vert",		"geometry_dsn_mat.frag" } },
-	{ ShaderProgramType::GEOMETRY_DIFFUSE_SPECULAR_NORMAL_HEIGHT,	{ "geometry_dsnh_mat.vert",		"geometry_dsnh_mat.frag" } },
+	{ ShaderProgramType::DEFERED_COLOR,								{ "defered_color_mat.vert",		"defered_color_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE,							{ "defered_d_mat.vert",			"defered_d_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE_NORMAL,					{ "defered_dn_mat.vert",		"defered_dn_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE_NORMAL_HEIGHT,				{ "defered_dnh_mat.vert",		"defered_dnh_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE_SPECULAR,					{ "defered_ds_mat.vert",		"defered_ds_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL,			{ "defered_dsn_mat.vert",		"defered_dsn_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL_HEIGHT,	{ "defered_dsnh_mat.vert",		"defered_dsnh_mat.frag" } },
+
+	{ ShaderProgramType::FORWARD_COLOR,								{ "forward_color_mat.vert",		"forward_color_mat.frag" } },
 	
 	{ ShaderProgramType::LIGHTING_AMBIENT,							{ "lighting_ambient.vert",		"lighting_ambient.frag" } },
 	{ ShaderProgramType::LIGHTING_DIFFUSE_SPECULAR,					{ "lighting_diffspec.vert",		"lighting_diffspec.frag" } },
@@ -25,12 +27,13 @@ void ShaderProgramManager::init()
 	Engine&			 engine = Engine::getInstance();
 	ResourceManager& rm = engine.getResourceManager();
 
-	loadShaders(ShaderProgramType::GEOMETRY_COLOR, rm);
-	loadShaders(ShaderProgramType::GEOMETRY_DIFFUSE, rm);
-	loadShaders(ShaderProgramType::GEOMETRY_DIFFUSE_SPECULAR, rm);
-	loadShaders(ShaderProgramType::GEOMETRY_DIFFUSE_SPECULAR_NORMAL, rm);
-	loadShaders(ShaderProgramType::GEOMETRY_DIFFUSE_SPECULAR_NORMAL_HEIGHT, rm);
-	loadShaders(ShaderProgramType::POSTPROCESS, rm);
+	loadShaders(ShaderProgramType::DEFERED_COLOR, rm);
+	loadShaders(ShaderProgramType::DEFERED_DIFFUSE, rm);
+	loadShaders(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR, rm);
+	loadShaders(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL, rm);
+	loadShaders(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL_HEIGHT, rm);
+
+	loadShaders(ShaderProgramType::FORWARD_COLOR, rm);
 
 	loadShaders(ShaderProgramType::LIGHTING_SSAO_BASE, rm);
 	loadShaders(ShaderProgramType::LIGHTING_SSAO_BLUR, rm);
@@ -56,16 +59,19 @@ std::string ShaderProgramManager::shaderProgramTypeName(ShaderProgramType type)
 {
 	switch (type)
 	{
-		case ShaderProgramType::GEOMETRY_COLOR:
-			return "ShaderProgramType::GEOMETRY_COLOR";
-		case ShaderProgramType::GEOMETRY_DIFFUSE:
-			return "ShaderProgramType::GEOMETRY_DIFFUSE";
-		case ShaderProgramType::GEOMETRY_DIFFUSE_NORMAL:
-			return "ShaderProgramType::GEOMETRY_DIFFUSE_NORMAL";
-		case ShaderProgramType::GEOMETRY_DIFFUSE_NORMAL_HEIGHT:
-			return "ShaderProgramType::GEOMETRY_DIFFUSE_NORMAL_HEIGHT";
-		case ShaderProgramType::GEOMETRY_DIFFUSE_SPECULAR_NORMAL:
-			return "ShaderProgramType::GEOMETRY_DIFFUSE_SPECULAR_NORMAL";
+		case ShaderProgramType::DEFERED_COLOR:
+			return "ShaderProgramType::DEFERED_COLOR";
+		case ShaderProgramType::DEFERED_DIFFUSE:
+			return "ShaderProgramType::DEFERED_DIFFUSE";
+		case ShaderProgramType::DEFERED_DIFFUSE_NORMAL:
+			return "ShaderProgramType::DEFERED_DIFFUSE_NORMAL";
+		case ShaderProgramType::DEFERED_DIFFUSE_NORMAL_HEIGHT:
+			return "ShaderProgramType::DEFERED_DIFFUSE_NORMAL_HEIGHT";
+		case ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL:
+			return "ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL";
+
+		case ShaderProgramType::FORWARD_COLOR:
+			return "ShaderProgramType::FORWARD_COLOR";
 
 		case ShaderProgramType::LIGHTING_AMBIENT:
 			return "ShaderProgramType::LIGHTING_AMBIENT";
@@ -79,7 +85,7 @@ std::string ShaderProgramManager::shaderProgramTypeName(ShaderProgramType type)
 		case ShaderProgramType::POSTPROCESS:
 			return "ShaderProgramType::POSTPROCESS";
 	}
-	return "ShaderProgramType::COLOR";
+	return "-";
 }
 
 void ShaderProgramManager::loadShaders(ShaderProgramType type, ResourceManager& resource_manager)

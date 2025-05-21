@@ -66,5 +66,6 @@ private:
 	LightingSSAOStage	 m_ssao_stage;
 	LightingAmbientStage m_lighting_ambient_stage;
 	LightingFinalStage	 m_lighting_final_stage;
+	ForwardStage		 m_forward_stage;
 	PostProcessStage	 m_postprocess_stage;
 };
