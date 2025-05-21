@@ -39,7 +39,7 @@ public:
 
 	void setWrapT(GLint wrap_t);
 
-	void bind(GLuint i = 0);
+	void bind(GLuint unit = 0);
 
 	GLuint getID() const;
 
@@ -57,8 +57,6 @@ private:
 private:
 	void generateMipMap();
 	void clear();
-
-	inline static std::unordered_map<uint8_t, GLuint> s_bound;
 
 #ifdef _DEBUG
 	std::string m_debug_name;

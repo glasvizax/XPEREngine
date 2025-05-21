@@ -15,6 +15,8 @@ Texture::Texture(){}
 
 #endif // _DEBUG
 
+std::vector<GLuint> g_texture_units_bindings(64, 0u);
+
 Texture::~Texture()
 {
 	clear();
@@ -22,9 +24,6 @@ Texture::~Texture()
 
 Texture::Texture(Texture&& other) noexcept
 {
-	if (this != &other)
-	{
-		clear();
 		this->m_channels_num = other.m_channels_num;
 
 #ifdef _DEBUG
@@ -35,7 +34,6 @@ Texture::Texture(Texture&& other) noexcept
 		other.m_id = 0;
 		this->m_height = other.m_height;
 		this->m_width = other.m_width;
-	}
 }
 
 Texture& Texture::operator=(Texture&& other) noexcept
@@ -166,7 +164,7 @@ void Texture::setWrapT(GLint wrap_t)
 	checkGeneralErrorGL(m_debug_name);
 }
 
-void Texture::bind(GLuint i)
+void Texture::bind(GLuint unit)
 {
 	if (!m_id)
 	{
@@ -174,17 +172,13 @@ void Texture::bind(GLuint i)
 		return;
 	}
 
-	auto at_unit = s_bound.find(i);
-	if (at_unit != s_bound.end())
+	if (g_texture_units_bindings[unit] == m_id)
 	{
-		if (at_unit->second == m_id)
-		{
-			return;
-		}
+		return;
 	}
 
-	s_bound[i] = m_id;
-	glActiveTexture(GL_TEXTURE0 + i);
+	g_texture_units_bindings[unit] = m_id;
+	glActiveTexture(GL_TEXTURE0 + unit);
 	glBindTexture(GL_TEXTURE_2D, m_id);
 	checkGeneralErrorGL(m_debug_name);
 }
@@ -219,3 +213,4 @@ void Texture::clear()
 		glDeleteTextures(1, &m_id);
 	}
 }
+

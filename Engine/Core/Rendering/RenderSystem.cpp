@@ -143,7 +143,6 @@ void RenderSystem::render()
 	m_lighting_ambient_stage.run();
 	m_lighting_final_stage.run();
 	m_forward_stage.run();
-	
 	m_postprocess_stage.run();
 }
 

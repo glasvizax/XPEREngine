@@ -66,10 +66,30 @@ void Framebuffer::clear()
 void Framebuffer::attachTexture2D(Texture& texture, GLenum attachment_type)
 {
 	bind();
+
+	GLuint tex_id = texture.getID();
+	if (!tex_id)
+	{
+		LOG_ERROR_F("received texture invalid | BY [%s]", m_debug_name.c_str());
+		return;
+	}
 	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment_type, GL_TEXTURE_2D, texture.getID(), 0);
 
 	checkGeneralErrorGL(m_debug_name); 
 	checkFramebufferErrorsGL(m_debug_name);
+}
+
+void Framebuffer::attachCubemap(Cubemap& cubemap, GLenum attachment_type)
+{
+	bind();
+
+	GLuint cm_id = cubemap.getID();
+	if (!cm_id)
+	{
+		LOG_ERROR_F("received cubemap invalid | BY [%s]", m_debug_name.c_str());
+		return;
+	}
+	glFramebufferTexture(GL_FRAMEBUFFER, attachment_type, cm_id, 0);
 }
 
 void Framebuffer::attachRenderbuffer(Renderbuffer&& renderbuffer, GLenum attachment_type)
@@ -97,6 +117,11 @@ Renderbuffer& Framebuffer::getRenderbuffer()
 
 void Framebuffer::bind()
 {
+	if (!m_id)
+	{
+		LOG_ERROR_F("[%s] : Framebuffer not initialized", m_debug_name.c_str());	
+		return;
+	}
 	if (s_active_id == m_id)
 	{
 		return;
@@ -129,9 +154,22 @@ void Framebuffer::drawBuffersDefault(GLsizei size)
 }
 void Framebuffer::drawBuffers(GLenum* buffers, GLsizei size)
 {
+	bind();
 	glDrawBuffers(size, buffers);
 	checkGeneralErrorGL(m_debug_name);
 	checkFramebufferErrorsGL(m_debug_name);
+}
+
+void Framebuffer::drawBuffer(GLenum buffer)
+{
+	bind();
+	glDrawBuffer(buffer);
+}
+
+void Framebuffer::readBuffer(GLenum buffer)
+{
+	bind();
+	glReadBuffer(buffer);
 }
 
 void Renderbuffer::init()

@@ -6,6 +6,7 @@
 
 #include "Defines.h"
 #include "Texture.h"
+#include "Cubemap.h"
 
 class Renderbuffer
 {
@@ -58,6 +59,7 @@ public:
 	void clear();
 
 	void attachTexture2D(Texture& texture, GLenum attachment_type = GL_COLOR_ATTACHMENT0);
+	void attachCubemap(Cubemap& cubemap, GLenum attachment_type = GL_COLOR_ATTACHMENT0);
 	void attachRenderbuffer(Renderbuffer&& renderbuffer, GLenum attachment_type = GL_DEPTH_STENCIL_ATTACHMENT);
 	void createAttachRenderbuffer(GLsizei width, GLsizei height, GLenum internal_format = GL_DEPTH24_STENCIL8, GLenum attachment_type = GL_DEPTH_STENCIL_ATTACHMENT);
 	Renderbuffer& getRenderbuffer();
@@ -67,14 +69,14 @@ public:
 
 	void drawBuffersDefault(GLsizei size);
 	void drawBuffers(GLenum* buffers, GLsizei size);
+	void drawBuffer(GLenum buffer);
+	void readBuffer(GLenum buffer);
 
 	Renderbuffer m_renderbuffer;
 
 private:
 	GLuint				 m_id = 0u;
 	inline static GLuint s_active_id = 0;
-
-	
 
 	static GLenum s_default_draw_buffers[16];
 };
