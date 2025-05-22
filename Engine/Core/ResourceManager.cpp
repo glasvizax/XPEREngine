@@ -222,8 +222,8 @@ bool ResourceManager::loadModel(const std::string path, Entity& root_entity, boo
 
 	std::filesystem::path current_path = m_current_path;
 	current_path.append(path);
-	;
-	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | (flip_uv ? aiProcess_FlipUVs : 0) /* | aiProcess_CalcTangentSpace */);
+
+	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | (flip_uv ? aiProcess_FlipUVs : 0) | aiProcess_CalcTangentSpace);
 	if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
 	{
 		LOG_ERROR_F("couldn't load file [%s] : assimp info : [%s]", path.c_str(), importer.GetErrorString());
@@ -264,14 +264,6 @@ void ResourceManager::processNode(aiNode* node, const aiScene* scene, Entity* pa
 				processMesh(mesh, scene, model);
 			});
 
-		/*
-		for (uint i = 0; i < node->mNumMeshes; ++i)
-		{
-			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			processMesh(mesh, scene, model);
-		}
-		*/
-
 		next_parent = &parent->addChild(model, transform);
 	}
 
@@ -283,52 +275,12 @@ void ResourceManager::processNode(aiNode* node, const aiScene* scene, Entity* pa
 
 void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& model)
 {
-	std::vector<Vertex> vertices;
-	std::vector<uint>	indices;
-	uint				num_vertices = mesh->mNumVertices;
-	uint				num_faces = mesh->mNumFaces;
-	vertices.resize(num_vertices);
+	std::vector<uint> indices;
 	indices.resize(mesh->mNumFaces * 3);
-	if (mesh->HasTextureCoords(0))
-	{
-		if (mesh->HasNormals())
-		{
-			for (uint i = 0; i < num_vertices; ++i)
-			{
-				vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
-				vertices[i].m_uv.x = mesh->mTextureCoords[0][i].x;
-				vertices[i].m_uv.y = mesh->mTextureCoords[0][i].y;
-				vertices[i].m_normal = assimpToGLMVec3(mesh->mNormals[i]);
-			}
-		}
-		else
-		{
-			for (uint i = 0; i < num_vertices; ++i)
-			{
-				vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
-				vertices[i].m_uv.x = mesh->mTextureCoords[0][i].x;
-				vertices[i].m_uv.y = mesh->mTextureCoords[0][i].y;
-			}
-		}
-	}
-	else
-	{
-		if (mesh->HasNormals())
-		{
-			for (uint i = 0; i < num_vertices; ++i)
-			{
-				vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
-				vertices[i].m_normal = assimpToGLMVec3(mesh->mNormals[i]);
-			}
-		}
-		else
-		{
-			for (uint i = 0; i < num_vertices; ++i)
-			{
-				vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
-			}
-		}
-	}
+
+	uint  num_vertices = mesh->mNumVertices;
+	uint  num_faces = mesh->mNumFaces;
+	Mesh* final_mesh;
 
 	uint counter = 0;
 	for (uint i = 0; i < num_faces; ++i)
@@ -340,14 +292,58 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 			counter++;
 		}
 	}
-	Mesh*		my_mesh = syncEmplaceModelMesh(vertices, indices);
-	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-	processMaterial(my_mesh, material, model);
+
+	aiMaterial*			  material = scene->mMaterials[mesh->mMaterialIndex];
+	std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
+	if (normal.size() > 0)
+	{
+		LOG_INFO_S("TEST1");
+		std::vector<VertexTB> vertices;
+		vertices.resize(num_vertices);
+
+		for (uint i = 0; i < num_vertices; ++i)
+		{
+			vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
+			vertices[i].m_uv.x = mesh->mTextureCoords[0][i].x;
+			vertices[i].m_uv.y = mesh->mTextureCoords[0][i].y;
+			vertices[i].m_normal = assimpToGLMVec3(mesh->mNormals[i]);
+			vertices[i].m_tangent = assimpToGLMVec3(mesh->mTangents[i]);
+			vertices[i].m_bitangent = assimpToGLMVec3(mesh->mBitangents[i]);
+		}
+
+		final_mesh = syncEmplaceModelMesh(vertices, indices);
+	}
+	else
+	{
+		std::vector<Vertex> vertices;
+		vertices.resize(num_vertices);
+		if (mesh->HasTextureCoords(0))
+		{
+			for (uint i = 0; i < num_vertices; ++i)
+			{
+				vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
+				vertices[i].m_uv.x = mesh->mTextureCoords[0][i].x;
+				vertices[i].m_uv.y = mesh->mTextureCoords[0][i].y;
+				vertices[i].m_normal = assimpToGLMVec3(mesh->mNormals[i]);
+			}
+		}
+		else
+		{
+			for (uint i = 0; i < num_vertices; ++i)
+			{
+				vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
+				vertices[i].m_normal = assimpToGLMVec3(mesh->mNormals[i]);
+			}
+		}
+
+		final_mesh = syncEmplaceModelMesh(vertices, indices);
+	}
+
+	processMaterial(final_mesh, material, model);
 }
 
 void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& model)
 {
-
 	float shininess;
 	if ((material->Get(AI_MATKEY_SHININESS, shininess) != AI_SUCCESS) || shininess < 1.0f)
 	{
@@ -395,7 +391,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 	std::vector<Texture*> specular = loadMaterialTexture(material, aiTextureType::aiTextureType_SPECULAR, 1);
 	if (specular.size() == 0)
 	{
-		std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_NORMALS, 1);
+		std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
 		if (normal.size() == 0)
 		{
 			// MaterialD
@@ -409,7 +405,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 			model.syncPushMeshD(entry);
 			return;
 		}
-		std::vector<Texture*> height = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1);
+		std::vector<Texture*> height; // loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); TODO - REAL HEIGHT
 		if (height.size() == 0)
 		{
 			// MaterialDN
@@ -439,7 +435,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 	}
 	else
 	{
-		std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_NORMALS, 1);
+		std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1);
 		if (normal.size() == 0)
 		{
 			// MaterialDS
@@ -454,7 +450,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 			model.syncPushMeshDS(entry);
 			return;
 		}
-		std::vector<Texture*> height = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1);
+		std::vector<Texture*> height; // loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); TODO
 		if (height.size() == 0)
 		{
 			// MaterialDSN
@@ -487,6 +483,8 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material, aiTextureType type, uint max_count)
 {
 	uint count = material->GetTextureCount(type);
+
+	LOG_INFO_F("material->GetTextureCount(type) = [%d]", material->GetTextureCount(aiTextureType_NORMALS));
 
 	if (count == 0)
 	{
@@ -540,6 +538,12 @@ std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material,
 }
 
 Mesh* ResourceManager::syncEmplaceModelMesh(std::vector<Vertex>& vertices, std::vector<uint>& indices)
+{
+	std::lock_guard lk(m_meshes_mtx);
+	return &m_model_meshes.emplace_back(std::move(vertices), std::move(indices));
+}
+
+Mesh* ResourceManager::syncEmplaceModelMesh(std::vector<VertexTB>& vertices, std::vector<uint>& indices)
 {
 	std::lock_guard lk(m_meshes_mtx);
 	return &m_model_meshes.emplace_back(std::move(vertices), std::move(indices));

@@ -42,7 +42,7 @@ void main()
 
     vec3 color = diffuse_specular.rgb;
 
-    vec3 normal = normalize(normal_shininess.rgb);
+    vec3 normal = normalize(normal_shininess.xyz);
     vec3 to_camera = normalize(camera_position - fragment_position);
     
     // Diffuse

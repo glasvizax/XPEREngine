@@ -18,42 +18,49 @@ struct Vertex
 	glm::vec2 m_uv;
 };
 
+
+struct VertexTB
+{
+	glm::vec3 m_position;
+	glm::vec3 m_normal;
+	glm::vec2 m_uv;
+	glm::vec3 m_tangent;
+	glm::vec3 m_bitangent;
+};
+
+
 struct Mesh
 {
 	friend class RenderSystem;
 
 	Mesh() = default;
+	~Mesh();
 
 public:
-	Mesh(std::vector<Vertex>&& vertices);
-	Mesh(std::vector<Vertex>&& vertices, std::vector<uint>&& indices);
+	template <typename VertexType> 
+	Mesh(const std::vector<VertexType>& vertices);
 
-	Mesh(const std::vector<Vertex>& vertices);
-	Mesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices);
+	template <typename VertexType> 
+	Mesh(const std::vector<VertexType>& vertices, const std::vector<uint>& indices);
 
 	Mesh(const Mesh&) = delete;
 	Mesh& operator=(const Mesh&) = delete;
 
-	Mesh(Mesh&&) noexcept = default;
-	Mesh& operator=(Mesh&&) noexcept = default;
+	Mesh(Mesh&& other) noexcept;
+	Mesh& operator=(Mesh&& other) noexcept;
 
 	void draw();
 
-private:
-	std::vector<Vertex> m_vertices;
-	std::vector<uint>	m_indices;
+	void clear();
 
-	GLsizei m_vertices_count;
-	GLsizei m_indices_count;
+private:
+
+	GLsizei m_vertices_count = 0;
+	GLsizei m_indices_count = 0;
 
 	bool m_draw_element = true;
 
 	VertexArray vertex_array; // TODO : improve allocation
-
-	void setupVertexArray();
-	void setupElementsArray();
-
-	void clearRAM();
 };
 
 Mesh generateIdenticalCube();
@@ -65,4 +72,46 @@ inline void VertexArray::autoEnableAttributes<Vertex>()
 	enableAttribute(0, 3, 8, 0);
 	enableAttribute(1, 3, 8, 3);
 	enableAttribute(2, 2, 8, 6);
+}
+
+template <>
+inline void VertexArray::autoEnableAttributes<VertexTB>()
+{
+	enableAttribute(0, 3, 14, 0);
+	enableAttribute(1, 3, 14, 3);
+	enableAttribute(2, 2, 14, 6);
+	enableAttribute(3, 3, 14, 8);
+	enableAttribute(4, 3, 14, 11);
+}
+
+template <typename VertexType>
+inline Mesh::Mesh(const std::vector<VertexType>& vertices)
+{
+	m_vertices_count = vertices.size();
+	m_draw_element = false;
+
+	vertex_array.init();
+	vertex_array.bind();
+	checkGeneralErrorGL("mesh");
+	vertex_array.attachArrayBuffer(vertices.size() * sizeof(VertexType), vertices.data());
+	vertex_array.autoEnableAttributes<VertexType>();
+	checkGeneralErrorGL("mesh");
+}
+
+template <typename VertexType>
+inline Mesh::Mesh(const std::vector<VertexType>& vertices, const std::vector<uint>& indices)
+{
+	m_vertices_count = vertices.size();
+	m_indices_count = indices.size();
+	m_draw_element = true;
+
+	vertex_array.init();
+	vertex_array.bind();
+	checkGeneralErrorGL("mesh");
+	vertex_array.attachArrayBuffer(vertices.size() * sizeof(VertexType), vertices.data());
+	vertex_array.autoEnableAttributes<VertexType>();
+	checkGeneralErrorGL("mesh");
+
+	vertex_array.attachElementBuffer(indices.size() * sizeof(uint), indices.data());
+	checkGeneralErrorGL("mesh");
 }

@@ -70,6 +70,8 @@ private:
 
 	Mesh* syncEmplaceModelMesh(std::vector<Vertex>& vertices, std::vector<uint>& indices);
 
+	Mesh* syncEmplaceModelMesh(std::vector<VertexTB>& vertices, std::vector<uint>& indices);
+
 	Texture* syncGetCachedModelTexture(size_t hash);
 
 	Texture* syncPushModelTexture(Texture& texture);

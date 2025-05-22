@@ -50,52 +50,29 @@ std::vector<Vertex> cube_vertices = {
 	{ glm::vec3(-1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f) }   // bottom-left
 };
 
-Mesh::Mesh(std::vector<Vertex>&& vertices)
+Mesh::Mesh(Mesh&& other) noexcept
 {
-	m_vertices = std::move(vertices);
-	m_vertices_count = m_vertices.size();
-	m_indices_count = 0;
-	m_draw_element = false;
-
-	setupVertexArray();
-	clearRAM();
+	m_vertices_count = other.m_vertices_count;
+	m_indices_count = other.m_indices_count;
+	m_draw_element = other.m_draw_element;
+	vertex_array = std::move(other.vertex_array);
 }
 
-Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<uint>&& indices)
+Mesh& Mesh::operator=(Mesh&& other) noexcept
 {
-	m_vertices = std::move(vertices);
-	m_indices = std::move(indices);
-	m_vertices_count = m_vertices.size();
-	m_indices_count = m_indices.size();
-	m_draw_element = true;
-
-	setupVertexArray();
-	setupElementsArray();
-	clearRAM();
+	if (&other != this)
+	{
+		m_vertices_count = other.m_vertices_count;
+		m_indices_count = other.m_indices_count;
+		m_draw_element = other.m_draw_element;
+		vertex_array = std::move(other.vertex_array);
+	}
+	return *this;
 }
 
-Mesh::Mesh(const std::vector<Vertex>& vertices)
+Mesh::~Mesh()
 {
-	m_vertices = vertices;
-	m_vertices_count = m_vertices.size();
-	m_indices_count = 0;
-	m_draw_element = false;
-
-	setupVertexArray();
-	clearRAM();
-}
-
-Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint>& indices)
-{
-	m_vertices = vertices;
-	m_indices = indices;
-	m_vertices_count = m_vertices.size();
-	m_indices_count = m_indices.size();
-	m_draw_element = true;
-
-	setupVertexArray();
-	setupElementsArray();
-	clearRAM();
+	clear();
 }
 
 void Mesh::draw()
@@ -113,26 +90,9 @@ void Mesh::draw()
 	checkGeneralErrorGL("mesh");
 }
 
-void Mesh::setupVertexArray()
+void Mesh::clear()
 {
-	vertex_array.init();
-	vertex_array.bind();
-	checkGeneralErrorGL("mesh");
-	vertex_array.attachArrayBuffer(m_vertices.size() * sizeof(Vertex), m_vertices.data());
-	vertex_array.autoEnableAttributes<Vertex>();
-	checkGeneralErrorGL("mesh");
-}
-
-void Mesh::setupElementsArray()
-{
-	vertex_array.attachElementBuffer(m_indices.size() * sizeof(uint), m_indices.data());
-	checkGeneralErrorGL("mesh");
-}
-
-void Mesh::clearRAM()
-{
-	m_vertices.clear();
-	m_indices.clear();
+	vertex_array.clear();
 }
 
 Mesh generateIdenticalCube()

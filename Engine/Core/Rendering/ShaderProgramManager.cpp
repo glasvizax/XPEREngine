@@ -30,6 +30,10 @@ void ShaderProgramManager::init()
 
 	loadShaders(ShaderProgramType::DEFERED_COLOR, rm);
 	loadShaders(ShaderProgramType::DEFERED_DIFFUSE, rm);
+
+	loadShaders(ShaderProgramType::DEFERED_DIFFUSE_NORMAL, rm);
+	loadShaders(ShaderProgramType::DEFERED_DIFFUSE_NORMAL_HEIGHT, rm);
+
 	loadShaders(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR, rm);
 	loadShaders(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL, rm);
 	loadShaders(ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL_HEIGHT, rm);

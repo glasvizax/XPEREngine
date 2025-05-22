@@ -37,10 +37,10 @@ public:
 	void enableAttribute(GLuint index, GLint components_num, GLuint stride_count, GLsizei offset);
 
 	GLuint getID();
-
-private:
+	
 	void clear();
 
+private:
 	GLuint				m_id = 0;
 	std::vector<GLuint> m_buffers;
 
