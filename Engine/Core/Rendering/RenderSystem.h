@@ -70,5 +70,6 @@ private:
 	LightingShadowMappingStage m_shadow_mapping_stage;
 	LightingFinalStage		   m_final_stage;
 	ForwardStage			   m_forward_stage;
+	SkyboxStage				   m_skybox_stage;
 	PostProcessStage		   m_postprocess_stage;
 };

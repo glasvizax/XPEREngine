@@ -93,6 +93,18 @@ bool RenderSystem::init()
 	initScene();
 	initScreenQuad();
 
+	std::vector<std::string> skybox_files = {
+		"content/textures/Daylight Box_Right.bmp",
+		"content/textures/Daylight Box_Left.bmp",
+		"content/textures/Daylight Box_Top.bmp",
+		"content/textures/Daylight Box_Bottom.bmp",
+		"content/textures/Daylight Box_Front.bmp",
+		"content/textures/Daylight Box_Back.bmp"
+	};
+	Cubemap skybox_cm;
+	m_resource_manager->initLoadCubemap(skybox_files, skybox_cm, false);
+
+
 	ShaderProgram* ssao_base = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_SSAO_BASE);
 	ShaderProgram* ssao_blur = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_SSAO_BLUR);
 	ShaderProgram* ambient = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_AMBIENT);
@@ -100,6 +112,9 @@ bool RenderSystem::init()
 	ShaderProgram* depthmap = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_DEPTHMAP);
 	ShaderProgram* forward_color = m_shader_program_manager.getShaderProgram(ShaderProgramType::FORWARD_COLOR);
 	ShaderProgram* postprocess = m_shader_program_manager.getShaderProgram(ShaderProgramType::POSTPROCESS);
+	ShaderProgram* skybox = m_shader_program_manager.getShaderProgram(ShaderProgramType::SKYBOX);
+
+	
 
 	m_geometry_stage.init(window_size.x, window_size.y, &m_root_entity);
 	m_ssao_stage.init(ssao_base, ssao_blur, window_size.x, window_size.y, &m_screen_quad);
@@ -107,6 +122,7 @@ bool RenderSystem::init()
 	m_shadow_mapping_stage.init(depthmap, window_size.x, window_size.y, 2048, 1.0f, 100.0f, &m_root_entity, &m_point_lights);
 	m_final_stage.init(diffspec, &m_ambient_stage, &m_shadow_mapping_stage, &m_point_lights, &m_camera);
 	m_forward_stage.init(forward_color, &m_geometry_stage, &m_final_stage);
+	m_skybox_stage.init(skybox, &m_forward_stage, &m_geometry_stage, std::move(skybox_cm), &m_camera);
 	m_postprocess_stage.init(postprocess, &m_screen_quad);
 
 	PointLight pl1;
@@ -146,6 +162,7 @@ void RenderSystem::render()
 	m_shadow_mapping_stage.run();
 	m_final_stage.run();
 	m_forward_stage.run();
+	m_skybox_stage.run();
 	m_postprocess_stage.run();
 }
 

@@ -24,6 +24,8 @@ enum class ShaderProgramType : uint8_t
 	LIGHTING_AMBIENT,
 	LIGHTING_DIFFUSE_SPECULAR,
 
+	SKYBOX,
+
 	POSTPROCESS
 };
 

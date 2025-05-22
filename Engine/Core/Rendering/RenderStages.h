@@ -99,10 +99,10 @@ public:
 	void run();
 
 	Framebuffer* m_lighting_final_fb;
-	Texture* m_output_lighting_tex;
+	Texture*	 m_output_lighting_tex;
 
 	std::vector<PointLight>* m_point_lights;
-	std::vector<Cubemap>* m_input_depthmaps;
+	std::vector<Cubemap>*	 m_input_depthmaps;
 
 	// std::optional<DirLight> m_dir_light = std::nullopt;
 
@@ -119,12 +119,31 @@ public:
 	void run();
 
 	Renderbuffer*			 m_geomentry_rb;
-	Texture*				 m_input_lighting_tex;
+	Texture*				 m_output_tex;
 	std::vector<PointLight>* m_point_lights;
 
 	Framebuffer	   m_forward_fb;
 	Mesh		   m_light_sphere;
 	ShaderProgram* m_forward_color_sp;
+};
+
+
+class SkyboxStage
+{
+public:
+	void init(ShaderProgram* skybox_sp, ForwardStage* forward_stage, GeometryStage* geometry_stage, Cubemap&& skybox_cm, Camera* camera);
+
+	void run();
+
+	Renderbuffer*  m_input_rb;
+	Texture*	   m_output_tex;
+
+	Framebuffer	   m_skybox_fb;
+	ShaderProgram* m_skybox_sp;
+	Cubemap		   m_skybox_cm;
+	VertexArray	   m_skybox_va;
+	Camera*		   m_camera;
+
 };
 
 class PostProcessStage

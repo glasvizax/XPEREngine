@@ -12,6 +12,7 @@
 #include "Texture.h"
 #include "Camera.h"
 
+const GLuint SKYBOX_UNIT = 5;
 const GLuint DEPTHMAP_UNIT = 6;
 const GLuint POSITION_UNIT = 7;
 const GLuint NORMAL_SHININESS_UNIT = 8;
@@ -22,6 +23,52 @@ const GLuint SSAO_BLUR_UNIT = 12;
 const GLuint POSTPROCESS_INPUT_UNIT = 13;
 
 const glm::mat4 IDENTICAL_MATRIX = glm::mat4(1.0f);
+
+
+float g_skybox_vertices[] = {
+	-1.0f, 1.0f, -1.0f,
+	-1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+	1.0f, 1.0f, -1.0f,
+	-1.0f, 1.0f, -1.0f,
+
+	-1.0f, -1.0f, 1.0f,
+	-1.0f, -1.0f, -1.0f,
+	-1.0f, 1.0f, -1.0f,
+	-1.0f, 1.0f, -1.0f,
+	-1.0f, 1.0f, 1.0f,
+	-1.0f, -1.0f, 1.0f,
+
+	1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+
+	-1.0f, -1.0f, 1.0f,
+	-1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f,
+	1.0f, -1.0f, 1.0f,
+	-1.0f, -1.0f, 1.0f,
+
+	-1.0f, 1.0f, -1.0f,
+	1.0f, 1.0f, -1.0f,
+	1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f,
+	-1.0f, 1.0f, 1.0f,
+	-1.0f, 1.0f, -1.0f,
+
+	-1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f, 1.0f,
+	1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f, 1.0f,
+	1.0f, -1.0f, 1.0f
+};
+
 
 void GeometryStage::init(int width, int height, Entity* root_entity)
 {
@@ -287,7 +334,7 @@ void LightingFinalStage::run()
 void ForwardStage::init(ShaderProgram* forward_color_sp, GeometryStage* geometry_stage, LightingFinalStage* lighting_final_stage)
 {
 	m_forward_color_sp = forward_color_sp;
-	m_input_lighting_tex = lighting_final_stage->m_output_lighting_tex;
+	m_output_tex = lighting_final_stage->m_output_lighting_tex;
 	m_point_lights = lighting_final_stage->m_point_lights;
 	m_geomentry_rb = &geometry_stage->m_geometry_rb;
 	m_light_sphere = generateSphere(1.0f, 36, 18);
@@ -297,7 +344,7 @@ void ForwardStage::init(ShaderProgram* forward_color_sp, GeometryStage* geometry
 void ForwardStage::run()
 {
 	m_forward_fb.bind();
-	m_forward_fb.attachTexture2D(*m_input_lighting_tex);
+	m_forward_fb.attachTexture2D(*m_output_tex);
 	m_forward_fb.attachRenderbuffer(std::move(*m_geomentry_rb));
 	glEnable(GL_DEPTH_TEST);
 	m_forward_color_sp->use();
@@ -312,7 +359,48 @@ void ForwardStage::run()
 	}
 
 	*m_geomentry_rb = std::move(m_forward_fb.m_renderbuffer);
-	m_input_lighting_tex->bind(POSTPROCESS_INPUT_UNIT);
+	m_output_tex->bind(POSTPROCESS_INPUT_UNIT);
+}
+
+void SkyboxStage::init(ShaderProgram* skybox_sp, ForwardStage* forward_stage, GeometryStage* geometry_stage, Cubemap&& skybox_cm, Camera* camera)
+{
+	m_skybox_sp = skybox_sp;
+	m_camera = camera;
+	m_output_tex = forward_stage->m_output_tex;
+	m_input_rb = &geometry_stage->m_geometry_rb;
+
+	m_skybox_fb.init();
+
+	m_skybox_va.init();
+	m_skybox_va.attachArrayBuffer(sizeof(g_skybox_vertices), g_skybox_vertices);
+	m_skybox_va.enableAttribute(0, 3, 3, 0);
+	
+	m_skybox_cm = std::move(skybox_cm);
+}
+
+void SkyboxStage::run()
+{
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	m_skybox_fb.bind();
+
+	m_skybox_fb.attachRenderbuffer(std::move(*m_input_rb));
+	m_skybox_fb.attachTexture2D(*m_output_tex);
+
+	m_skybox_sp->use();
+	m_skybox_sp->setMat("skybox_view", glm::mat4(glm::mat3(m_camera->getViewMatrix())));
+
+	m_skybox_cm.bind(SKYBOX_UNIT);
+	m_skybox_va.bind();
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	*m_input_rb = std::move(m_skybox_fb.m_renderbuffer);
+
+	m_output_tex->bind(POSTPROCESS_INPUT_UNIT);
+
+	glDepthFunc(GL_LESS);
+	glDisable(GL_DEPTH_TEST);
 }
 
 void PostProcessStage::init(ShaderProgram* shader_program, VertexArray* screen_quad)
@@ -324,10 +412,10 @@ void PostProcessStage::init(ShaderProgram* shader_program, VertexArray* screen_q
 void PostProcessStage::run()
 {
 	Framebuffer::bindDefault();
-	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	m_screen_quad->bind();
 	m_postprocess_shader->use();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
+

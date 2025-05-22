@@ -82,6 +82,11 @@ void Cubemap::init(int size, GLint internal_format, uint channels_num, bool gene
 void Cubemap::loadFaceData(uint face_index, GLenum type, GLenum format, const void* data,
 	glm::vec2 start_factors, glm::vec2 end_factors)
 {
+	if (!data)
+	{
+		LOG_ERROR_F("[%s] Null data pointer for face %d", m_debug_name.c_str(), face_index);
+		return;
+	}
 	if (!m_id)
 	{
 		LOG_ERROR_F("[%s] Not initialized", m_debug_name.c_str());
@@ -116,6 +121,7 @@ void Cubemap::loadFaceData(uint face_index, GLenum type, GLenum format, const vo
 		generateMipMap();
 	}
 }
+
 void Cubemap::setMinFilter(GLint min_filter)
 {
 	if (!m_id)

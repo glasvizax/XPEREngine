@@ -18,9 +18,9 @@ std::unordered_map<ShaderProgramType, ShadersNames> DEFAULT_SHADER_NAMES = {
 	{ ShaderProgramType::LIGHTING_DEPTHMAP,							{ "depthmap.vert",				"depthmap.frag",				"depthmap.geom"	} },
 	{ ShaderProgramType::LIGHTING_DIFFUSE_SPECULAR,					{ "lighting_diffspec.vert",		"lighting_diffspec.frag" } },
 
+	{ ShaderProgramType::SKYBOX,									{ "skybox.vert",				"skybox.frag" } },
 	{ ShaderProgramType::POSTPROCESS,								{ "postprocess.vert",			"postprocess.frag" } }
 };
-
 // clang-forat on
 
 void ShaderProgramManager::init()
@@ -39,9 +39,10 @@ void ShaderProgramManager::init()
 	loadShaders(ShaderProgramType::LIGHTING_SSAO_BASE, rm);
 	loadShaders(ShaderProgramType::LIGHTING_SSAO_BLUR, rm);
 	loadShaders(ShaderProgramType::LIGHTING_AMBIENT, rm);
-
 	loadShaders(ShaderProgramType::LIGHTING_DEPTHMAP, rm);
 	loadShaders(ShaderProgramType::LIGHTING_DIFFUSE_SPECULAR, rm);
+
+	loadShaders(ShaderProgramType::SKYBOX, rm);
 	loadShaders(ShaderProgramType::POSTPROCESS, rm);
 }
 

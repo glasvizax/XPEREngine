@@ -122,6 +122,73 @@ bool ResourceManager::initLoadTexture(const std::string& name, Texture& texture,
 	return true;
 }
 
+bool ResourceManager::initLoadCubemap(const std::vector<std::string>& face_files, Cubemap& cubemap, bool generate_mipmap)
+{
+	if (face_files.size() != 6)
+	{
+		LOG_ERROR_F("initLoadCubemap: expected 6 faces, got %zu", face_files.size());
+		return false;
+	}
+
+	int width = 0, height = 0, channels = 0;
+
+	std::vector<uchar*> face_data(6);
+
+	for (size_t i = 0; i < 6; ++i)
+	{
+		face_data[i] = stbi_load(face_files[i].c_str(), &width, &height, &channels, 0);
+		if (!face_data[i])
+		{
+			LOG_ERROR_F("couldn't load cubemap face [%s] reason [%s]", face_files[i].c_str(), stbi_failure_reason());
+			for (size_t j = 0; j < i; ++j)
+			{
+				stbi_image_free(face_data[j]);
+			}
+			return false;
+		}
+	}
+
+	GLenum format = GL_RGB;
+	GLint  internal_format = GL_RGB8;
+	switch (channels)
+	{
+		case 1:
+			format = GL_RED;
+			internal_format = GL_R8;
+			break;
+		case 2:
+			format = GL_RG;
+			internal_format = GL_RG8;
+			break;
+		case 3:
+			format = GL_RGB;
+			internal_format = GL_RGB8;
+			break;
+		case 4:
+			format = GL_RGBA;
+			internal_format = GL_RGBA8;
+			break;
+		default:
+			break;
+	}
+
+	cubemap.init(width, internal_format, channels, generate_mipmap);
+
+	glm::vec2 sf(0.0f, 0.0f), ef(1.0f, 1.0f);
+	for (GLuint face = 0; face < 6; ++face)
+	{
+		cubemap.loadFaceData(face, GL_UNSIGNED_BYTE, format, face_data[face], sf, ef);
+	}
+
+	for (auto ptr : face_data)
+	{
+		stbi_image_free(ptr);
+	}
+
+	LOG_INFO_F("loaded cubemap [%zu faces]", face_files.size());
+	return true;
+}
+
 bool ResourceManager::readFile(const std::filesystem::path& path, std::string& content)
 {
 	std::ifstream file(path);
@@ -155,7 +222,7 @@ bool ResourceManager::loadModel(const std::string path, Entity& root_entity, boo
 
 	std::filesystem::path current_path = m_current_path;
 	current_path.append(path);
-;
+	;
 	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | (flip_uv ? aiProcess_FlipUVs : 0) /* | aiProcess_CalcTangentSpace */);
 	if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
 	{
@@ -196,7 +263,7 @@ void ResourceManager::processNode(aiNode* node, const aiScene* scene, Entity* pa
 				aiMesh* mesh = scene->mMeshes[mesh_index];
 				processMesh(mesh, scene, model);
 			});
-		
+
 		/*
 		for (uint i = 0; i < node->mNumMeshes; ++i)
 		{
@@ -273,7 +340,7 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 			counter++;
 		}
 	}
-	Mesh* my_mesh = syncEmplaceModelMesh(vertices, indices);
+	Mesh*		my_mesh = syncEmplaceModelMesh(vertices, indices);
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	processMaterial(my_mesh, material, model);
 }

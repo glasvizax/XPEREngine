@@ -17,6 +17,7 @@ struct aiScene;
 class ShaderProgram;
 class Texture;
 class Entity;
+class Cubemap;
 struct Model;
 
 namespace fs = std::filesystem;
@@ -40,6 +41,8 @@ public:
 	bool initLoadShaderProgram(const std::string& vertex_name, const std::string& fragment_name, const std::string& geometry_name, ShaderProgram& shader_program);
 
 	bool initLoadTexture(const std::string& path, Texture& texture, bool generate_mipmap);
+
+	bool initLoadCubemap(const std::vector<std::string>& face_files, Cubemap& cubemap, bool generate_mipmap);
 
 	bool loadModel(const std::string path, Entity& root_entity, bool flip_uv = true);
 
