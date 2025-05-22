@@ -186,6 +186,12 @@ bool ResourceManager::initLoadCubemap(const std::vector<std::string>& face_files
 	}
 
 	LOG_INFO_F("loaded cubemap [%zu faces]", face_files.size());
+
+	for (auto& n : face_files)
+	{
+		LOG_INFO_F("loaded cubemap face texture [%s]", n.c_str());
+	}
+
 	return true;
 }
 
@@ -216,14 +222,17 @@ std::vector<fs::path> ResourceManager::findFiles(const std::string& filename)
 	return res;
 }
 
-bool ResourceManager::loadModel(const std::string path, Entity& root_entity, bool flip_uv)
+bool _normalmap; // EVIL CRUTCH
+
+bool ResourceManager::loadModel(const std::string path, Entity& root_entity, bool normalmap, bool flip_uv)
 {
 	Assimp::Importer importer;
 
+	_normalmap = normalmap;
 	std::filesystem::path current_path = m_current_path;
 	current_path.append(path);
 
-	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | (flip_uv ? aiProcess_FlipUVs : 0) | aiProcess_CalcTangentSpace);
+	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | (flip_uv ? aiProcess_FlipUVs : 0) | (_normalmap ? aiProcess_CalcTangentSpace : 0));
 	if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
 	{
 		LOG_ERROR_F("couldn't load file [%s] : assimp info : [%s]", path.c_str(), importer.GetErrorString());
@@ -294,10 +303,14 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 	}
 
 	aiMaterial*			  material = scene->mMaterials[mesh->mMaterialIndex];
-	std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
+	std::vector<Texture*> normal;
+	if (_normalmap)
+	{
+		 normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
+	}
+	
 	if (normal.size() > 0)
 	{
-		LOG_INFO_S("TEST1");
 		std::vector<VertexTB> vertices;
 		vertices.resize(num_vertices);
 
@@ -310,7 +323,6 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 			vertices[i].m_tangent = assimpToGLMVec3(mesh->mTangents[i]);
 			vertices[i].m_bitangent = assimpToGLMVec3(mesh->mBitangents[i]);
 		}
-
 		final_mesh = syncEmplaceModelMesh(vertices, indices);
 	}
 	else
@@ -335,7 +347,6 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 				vertices[i].m_normal = assimpToGLMVec3(mesh->mNormals[i]);
 			}
 		}
-
 		final_mesh = syncEmplaceModelMesh(vertices, indices);
 	}
 
@@ -368,7 +379,6 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 	if (diffuse.size() == 0)
 	{
 		// MaterialColor
-
 		glm::vec4 color;
 		aiColor4D _aicolor;
 
@@ -391,7 +401,13 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 	std::vector<Texture*> specular = loadMaterialTexture(material, aiTextureType::aiTextureType_SPECULAR, 1);
 	if (specular.size() == 0)
 	{
-		std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
+		std::vector<Texture*> normal;
+		
+		if (_normalmap)
+		{
+			normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
+		}
+		
 		if (normal.size() == 0)
 		{
 			// MaterialD
@@ -435,7 +451,13 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 	}
 	else
 	{
-		std::vector<Texture*> normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1);
+		std::vector<Texture*> normal;
+
+		if (_normalmap)
+		{
+			normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
+		}
+		
 		if (normal.size() == 0)
 		{
 			// MaterialDS
@@ -483,8 +505,6 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 std::vector<Texture*> ResourceManager::loadMaterialTexture(aiMaterial* material, aiTextureType type, uint max_count)
 {
 	uint count = material->GetTextureCount(type);
-
-	LOG_INFO_F("material->GetTextureCount(type) = [%d]", material->GetTextureCount(aiTextureType_NORMALS));
 
 	if (count == 0)
 	{

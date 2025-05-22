@@ -86,7 +86,7 @@ bool RenderSystem::init()
 
 	m_camera.setAspectRatio(scast<float>(window_size.x) / window_size.y);
 	m_camera.setPosition(glm::vec3(7.8f, 1.0f, -8.5f));
-	m_camera.rotateYaw(-120);
+	m_camera.rotateYaw(-160);
 
 	initMatricesBuffer();
 	initLightsBuffer();
@@ -112,9 +112,11 @@ bool RenderSystem::init()
 	ShaderProgram* depthmap = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_DEPTHMAP);
 	ShaderProgram* forward_color = m_shader_program_manager.getShaderProgram(ShaderProgramType::FORWARD_COLOR);
 	ShaderProgram* postprocess = m_shader_program_manager.getShaderProgram(ShaderProgramType::POSTPROCESS);
-	ShaderProgram* skybox = m_shader_program_manager.getShaderProgram(ShaderProgramType::SKYBOX);
 
-	
+	ShaderProgram* bloom_brightness_extraction = m_shader_program_manager.getShaderProgram(ShaderProgramType::BLOOM_BRIGHTNESS_EXTRACTION);
+	ShaderProgram* bloom_blur = m_shader_program_manager.getShaderProgram(ShaderProgramType::BLOOM_BLUR);
+
+	ShaderProgram* skybox = m_shader_program_manager.getShaderProgram(ShaderProgramType::SKYBOX);
 
 	m_geometry_stage.init(window_size.x, window_size.y, &m_root_entity);
 	m_ssao_stage.init(ssao_base, ssao_blur, window_size.x, window_size.y, &m_screen_quad);
@@ -123,6 +125,7 @@ bool RenderSystem::init()
 	m_final_stage.init(diffspec, &m_ambient_stage, &m_shadow_mapping_stage, &m_point_lights, &m_camera);
 	m_forward_stage.init(forward_color, &m_geometry_stage, &m_final_stage);
 	m_skybox_stage.init(skybox, &m_forward_stage, &m_geometry_stage, std::move(skybox_cm), &m_camera);
+	m_bloom_stage.init(bloom_brightness_extraction, bloom_blur, &m_skybox_stage, &m_screen_quad);
 	m_postprocess_stage.init(postprocess, &m_screen_quad);
 
 	PointLight pl1;
@@ -132,15 +135,15 @@ bool RenderSystem::init()
 	pl1.m_specular = glm::vec3(0.6f);
 	pl1.m_linear = 0.027f;
 	pl1.m_quadratic = 0.0028f;
-
+	
 	PointLight pl2;
-	pl2.m_position = glm::vec3(7.0f, 3.0f, 2.0f);
+	pl2.m_position = glm::vec3(7.0f, 10.0f, 2.0f);
 	pl2.m_ambient = glm::vec3(0.1f);
-	pl2.m_diffuse = glm::vec3(0.5f, 0.2f, 0.3f);
-	pl2.m_specular = glm::vec3(0.1f);
+	pl2.m_diffuse = glm::vec3(1.0f);
+	pl2.m_specular = glm::vec3(0.3f);
 	pl2.m_linear = 0.027f;
 	pl2.m_quadratic = 0.0028f;
-
+	
 	addPointLight(pl1);
 	addPointLight(pl2);
 
@@ -163,6 +166,7 @@ void RenderSystem::render()
 	m_final_stage.run();
 	m_forward_stage.run();
 	m_skybox_stage.run();
+	m_bloom_stage.run();
 	m_postprocess_stage.run();
 }
 
@@ -197,19 +201,19 @@ void RenderSystem::initLightsBuffer()
 void RenderSystem::initScene()
 {
 	m_root_entity.addChild();
-	m_resource_manager->loadModel("content/Lowpoly_tree_sample.obj", m_root_entity.m_children.back(), false);
+	m_resource_manager->loadModel("content/Lowpoly_tree_sample.obj", m_root_entity.m_children.back());
 	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(0.4f)).setPosition(glm::vec3(10.0f, 0.0f, 10.0f));
 
 	m_root_entity.addChild();
-	m_resource_manager->loadModel("content/Cottage_FREE.obj", m_root_entity.m_children.back());
+	m_resource_manager->loadModel("content/Cottage_FREE.obj", m_root_entity.m_children.back(), true);
 
 	m_root_entity.addChild();
 	m_resource_manager->loadModel("content/osaka.obj", m_root_entity.m_children.back());
-	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(1.0f / 25.0f)).setPosition(glm::vec3(10.0f, 0.0f, 7.0f));
+	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(1.0f / 30.0f)).setPosition(glm::vec3(10.0f, 0.0f, 7.0f));
 
 	m_root_entity.addChild();
 	m_resource_manager->loadModel("content/chiyo.obj", m_root_entity.m_children.back());
-	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(1.0f / 35.0f)).setPosition(glm::vec3(7.0f, 0.0f, 10.0f)).setRotationEuler(glm::vec3(0.0f, -90.0f, 0.0f));
+	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(1.0f / 40.0f)).setPosition(glm::vec3(7.0f, 0.0f, 10.0f)).setRotationEuler(glm::vec3(0.0f, -90.0f, 0.0f));
 
 	m_root_entity.addChild();
 	Mesh& cube = m_resource_manager->storeMesh(generateIdenticalCube());
@@ -284,6 +288,27 @@ void RenderSystem::addPointLight(PointLight& point_light)
 	size++;
 	m_lights_buffer.fill(MAX_POINT_LIGHTS * sizeof(PointLight), sizeof(int), &size);
 	m_point_lights.push_back(point_light);
+}
+
+void RenderSystem::setPointLightPosition(uint light_index, glm::vec3 new_position)
+{
+	if (light_index + 1 > m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return;
+	}
+	m_point_lights[light_index].m_position = new_position;
+	m_lights_buffer.fill(light_index * sizeof(PointLight), sizeof(glm::vec3), &new_position.x);
+}
+
+glm::vec3 RenderSystem::getPointLightPosition(uint light_index)
+{
+	if (light_index + 1 > m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return glm::vec3(0.0f);
+	}
+	return m_point_lights[light_index].m_position;
 }
 
 int getUniformBlockSize(ShaderProgram& shader, const std::string& name)

@@ -37,7 +37,9 @@ public:
 	void testInputH();
 	void testInputK();
 
-	void addPointLight(PointLight& point_light);
+	void	  addPointLight(PointLight& point_light);
+	void	  setPointLightPosition(uint light_index, glm::vec3 new_position);
+	glm::vec3 getPointLightPosition(uint light_index);
 
 private:
 	void updateMatrices();
@@ -71,5 +73,6 @@ private:
 	LightingFinalStage		   m_final_stage;
 	ForwardStage			   m_forward_stage;
 	SkyboxStage				   m_skybox_stage;
+	BloomStage				   m_bloom_stage;
 	PostProcessStage		   m_postprocess_stage;
 };

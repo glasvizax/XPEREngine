@@ -26,6 +26,9 @@ enum class ShaderProgramType : uint8_t
 
 	SKYBOX,
 
+	BLOOM_BRIGHTNESS_EXTRACTION,
+	BLOOM_BLUR,
+
 	POSTPROCESS
 };
 

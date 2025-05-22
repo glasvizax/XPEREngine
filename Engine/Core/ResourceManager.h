@@ -44,7 +44,7 @@ public:
 
 	bool initLoadCubemap(const std::vector<std::string>& face_files, Cubemap& cubemap, bool generate_mipmap);
 
-	bool loadModel(const std::string path, Entity& root_entity, bool flip_uv = true);
+	bool loadModel(const std::string path, Entity& root_entity, bool normalmap = false, bool flip_uv = true);
 
 	bool readFile(const std::filesystem::path& path, std::string& content);
 

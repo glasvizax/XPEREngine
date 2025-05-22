@@ -21,6 +21,7 @@ const GLuint SSAO_NOISE_UNIT = 10;
 const GLuint SSAO_BASE_UNIT = 11;
 const GLuint SSAO_BLUR_UNIT = 12;
 const GLuint POSTPROCESS_INPUT_UNIT = 13;
+const GLuint POSTPROCESS_BLOOM_INPUT_UNIT = 14;
 
 const glm::mat4 IDENTICAL_MATRIX = glm::mat4(1.0f);
 
@@ -359,7 +360,6 @@ void ForwardStage::run()
 	}
 
 	*m_geomentry_rb = std::move(m_forward_fb.m_renderbuffer);
-	m_output_tex->bind(POSTPROCESS_INPUT_UNIT);
 }
 
 void SkyboxStage::init(ShaderProgram* skybox_sp, ForwardStage* forward_stage, GeometryStage* geometry_stage, Cubemap&& skybox_cm, Camera* camera)
@@ -397,10 +397,68 @@ void SkyboxStage::run()
 
 	*m_input_rb = std::move(m_skybox_fb.m_renderbuffer);
 
-	m_output_tex->bind(POSTPROCESS_INPUT_UNIT);
-
 	glDepthFunc(GL_LESS);
 	glDisable(GL_DEPTH_TEST);
+
+	m_output_tex->bind(POSTPROCESS_INPUT_UNIT);
+}
+
+void BloomStage::init(ShaderProgram* brightness_extraction, ShaderProgram* blur, SkyboxStage* skybox_stage, VertexArray* screen_quad)
+{
+	m_brightness_extraction_sp = brightness_extraction;
+	m_blur_sp = blur;
+	m_input_tex = skybox_stage->m_output_tex;
+	m_screen_quad = screen_quad;
+
+	m_brightness_extraction_sp->set("threshold", 1.0f);
+
+	glm::ivec2 size = m_input_tex->getSize();
+	m_brightness_extraction_tex.init(size.x, size.y, GL_RGBA16F, 4, false);
+
+	m_brightness_extraction_fb.init();
+
+	for (int i = 0; i < 2; ++i)
+	{
+		m_blur_pingpong_fbs[i].init();
+		m_blur_pingpong_texs[i].init(size.x, size.y, GL_RGBA16F, 4, false);
+		m_blur_pingpong_texs[i].setWrapS(GL_CLAMP_TO_EDGE);
+		m_blur_pingpong_texs[i].setWrapT(GL_CLAMP_TO_EDGE);
+		m_blur_pingpong_fbs[i].attachTexture2D(m_blur_pingpong_texs[i]);
+	}
+}
+
+void BloomStage::run()
+{
+	m_brightness_extraction_fb.bind();
+	glDisable(GL_DEPTH_TEST);
+	m_brightness_extraction_fb.attachTexture2D(m_brightness_extraction_tex);
+	glClear(GL_COLOR_BUFFER_BIT);
+	m_brightness_extraction_sp->use();
+	m_screen_quad->bind();
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	m_blur_sp->use();
+	bool horizontal = true;
+	uint amount = 27u;
+
+	m_blur_pingpong_fbs[horizontal].bind();
+	glClear(GL_COLOR_BUFFER_BIT); 
+	m_blur_sp->set("horizontal", horizontal);
+	m_brightness_extraction_tex.bind(POSTPROCESS_BLOOM_INPUT_UNIT);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	horizontal = !horizontal;
+
+	for (uint i = 1u; i < amount; ++i)
+	{
+		m_blur_pingpong_fbs[horizontal].bind();
+		glClear(GL_COLOR_BUFFER_BIT);
+		m_blur_sp->set("horizontal", horizontal);
+		m_blur_pingpong_texs[!horizontal].bind(POSTPROCESS_BLOOM_INPUT_UNIT);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		horizontal = !horizontal;
+	}
+
+	m_blur_pingpong_texs[!horizontal].bind(POSTPROCESS_BLOOM_INPUT_UNIT);
 }
 
 void PostProcessStage::init(ShaderProgram* shader_program, VertexArray* screen_quad)
@@ -418,4 +476,3 @@ void PostProcessStage::run()
 	m_postprocess_shader->use();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
-

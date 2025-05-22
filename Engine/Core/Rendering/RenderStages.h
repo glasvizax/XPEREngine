@@ -127,7 +127,6 @@ public:
 	ShaderProgram* m_forward_color_sp;
 };
 
-
 class SkyboxStage
 {
 public:
@@ -135,15 +134,33 @@ public:
 
 	void run();
 
-	Renderbuffer*  m_input_rb;
-	Texture*	   m_output_tex;
+	Renderbuffer* m_input_rb;
+	Texture*	  m_output_tex;
 
 	Framebuffer	   m_skybox_fb;
 	ShaderProgram* m_skybox_sp;
 	Cubemap		   m_skybox_cm;
 	VertexArray	   m_skybox_va;
 	Camera*		   m_camera;
+};
 
+class BloomStage
+{
+public:
+	void init(ShaderProgram* brightness_extraction, ShaderProgram* blur, SkyboxStage* skybox_stage, VertexArray* screen_quad);
+
+	void run();
+
+	VertexArray*   m_screen_quad;
+	ShaderProgram* m_brightness_extraction_sp;
+	ShaderProgram* m_blur_sp;
+	Texture*	   m_input_tex;
+
+	Texture		   m_brightness_extraction_tex;
+	Framebuffer	   m_brightness_extraction_fb;
+
+	Framebuffer	   m_blur_pingpong_fbs[2];
+	Texture		   m_blur_pingpong_texs[2];
 };
 
 class PostProcessStage

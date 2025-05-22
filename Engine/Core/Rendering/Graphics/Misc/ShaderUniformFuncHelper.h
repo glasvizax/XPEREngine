@@ -159,17 +159,12 @@ inline void uniformValueFunc(GLint location, T val)
 		glUniform1d(location, val);
 	}
 
-	if constexpr (std::is_same_v<T, int>)
+	if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 	{
 		glUniform1i(location, val);
 	}
 
-	if constexpr (std::is_same_v<T, uint>)
-	{
-		glUniform1ui(location, val);
-	}
-
-	if constexpr (std::is_same_v<T, size_t>)
+	if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
 	{
 		glUniform1ui(location, val);
 	}

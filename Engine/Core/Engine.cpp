@@ -99,6 +99,10 @@ int Engine::runStandalone()
 
 		g_player_input_manager.update(g_game_timer.dt);
 
+		glm::vec3 light_pos = g_render_system.getPointLightPosition(0);
+		light_pos.x = 5 + 5.0f * glm::sin(g_game_timer.current_time);
+		g_render_system.setPointLightPosition(0, light_pos);
+
 		g_render_system.render();
 
 		g_window_manager.swapBuffers();

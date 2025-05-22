@@ -2,24 +2,29 @@
 
 // clang-format off
 std::unordered_map<ShaderProgramType, ShadersNames> DEFAULT_SHADER_NAMES = {
-	{ ShaderProgramType::DEFERED_COLOR,								{ "defered_color_mat.vert",		"defered_color_mat.frag" } },
-	{ ShaderProgramType::DEFERED_DIFFUSE,							{ "defered_d_mat.vert",			"defered_d_mat.frag" } },
-	{ ShaderProgramType::DEFERED_DIFFUSE_NORMAL,					{ "defered_dn_mat.vert",		"defered_dn_mat.frag" } },
-	{ ShaderProgramType::DEFERED_DIFFUSE_NORMAL_HEIGHT,				{ "defered_dnh_mat.vert",		"defered_dnh_mat.frag" } },
-	{ ShaderProgramType::DEFERED_DIFFUSE_SPECULAR,					{ "defered_ds_mat.vert",		"defered_ds_mat.frag" } },
-	{ ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL,			{ "defered_dsn_mat.vert",		"defered_dsn_mat.frag" } },
-	{ ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL_HEIGHT,	{ "defered_dsnh_mat.vert",		"defered_dsnh_mat.frag" } },
+	{ ShaderProgramType::DEFERED_COLOR,								{ "defered_color_mat.vert",				"defered_color_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE,							{ "defered_d_mat.vert",					"defered_d_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE_NORMAL,					{ "defered_dn_mat.vert",				"defered_dn_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE_NORMAL_HEIGHT,				{ "defered_dnh_mat.vert",				"defered_dnh_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE_SPECULAR,					{ "defered_ds_mat.vert",				"defered_ds_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL,			{ "defered_dsn_mat.vert",				"defered_dsn_mat.frag" } },
+	{ ShaderProgramType::DEFERED_DIFFUSE_SPECULAR_NORMAL_HEIGHT,	{ "defered_dsnh_mat.vert",				"defered_dsnh_mat.frag" } },
 
-	{ ShaderProgramType::FORWARD_COLOR,								{ "forward_color_mat.vert",		"forward_color_mat.frag" } },
+	{ ShaderProgramType::FORWARD_COLOR,								{ "forward_color_mat.vert",				"forward_color_mat.frag" } },
 	
-	{ ShaderProgramType::LIGHTING_SSAO_BASE,						{ "lighting_ssao_base.vert",	"lighting_ssao_base.frag" } },
-	{ ShaderProgramType::LIGHTING_SSAO_BLUR,						{ "lighting_ssao_blur.vert",	"lighting_ssao_blur.frag" } },
-	{ ShaderProgramType::LIGHTING_AMBIENT,							{ "lighting_ambient.vert",		"lighting_ambient.frag" } },
-	{ ShaderProgramType::LIGHTING_DEPTHMAP,							{ "depthmap.vert",				"depthmap.frag",				"depthmap.geom"	} },
-	{ ShaderProgramType::LIGHTING_DIFFUSE_SPECULAR,					{ "lighting_diffspec.vert",		"lighting_diffspec.frag" } },
+	{ ShaderProgramType::LIGHTING_SSAO_BASE,						{ "lighting_ssao_base.vert",			"lighting_ssao_base.frag" } },
+	{ ShaderProgramType::LIGHTING_SSAO_BLUR,						{ "lighting_ssao_blur.vert",			"lighting_ssao_blur.frag" } },
+	{ ShaderProgramType::LIGHTING_AMBIENT,							{ "lighting_ambient.vert",				"lighting_ambient.frag" } },
+	{ ShaderProgramType::LIGHTING_DEPTHMAP,							{ "depthmap.vert",						"depthmap.frag",				"depthmap.geom"	} },
+	{ ShaderProgramType::LIGHTING_DIFFUSE_SPECULAR,					{ "lighting_diffspec.vert",				"lighting_diffspec.frag" } },
 
-	{ ShaderProgramType::SKYBOX,									{ "skybox.vert",				"skybox.frag" } },
-	{ ShaderProgramType::POSTPROCESS,								{ "postprocess.vert",			"postprocess.frag" } }
+	{ ShaderProgramType::SKYBOX,									{ "skybox.vert",						"skybox.frag" } },
+
+	{ ShaderProgramType::BLOOM_BRIGHTNESS_EXTRACTION,				{ "bloom_brightness_extraction.vert",	"bloom_brightness_extraction.frag" } },
+	{ ShaderProgramType::BLOOM_BLUR,								{ "bloom_blur.vert",					"bloom_blur.frag" } },
+
+	{ ShaderProgramType::POSTPROCESS,								{ "postprocess.vert",					"postprocess.frag" } },
+
 };
 // clang-forat on
 
@@ -47,6 +52,10 @@ void ShaderProgramManager::init()
 	loadShaders(ShaderProgramType::LIGHTING_DIFFUSE_SPECULAR, rm);
 
 	loadShaders(ShaderProgramType::SKYBOX, rm);
+
+	loadShaders(ShaderProgramType::BLOOM_BRIGHTNESS_EXTRACTION, rm);
+	loadShaders(ShaderProgramType::BLOOM_BLUR, rm);
+
 	loadShaders(ShaderProgramType::POSTPROCESS, rm);
 }
 
