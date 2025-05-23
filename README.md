@@ -9,6 +9,14 @@ my own "game engine" on OpenGL
 
 ## Features
 - OpenGL-based graphics rendering
+- SSAO
+- Blinn-phong lighting model
+- Deferred shading 
+- Normal mapping
+- Shadow mapping
+- Bloom and HDR
+- Scene Graph
+- Model loading
 
 ## Prerequisites
 - CMake 
