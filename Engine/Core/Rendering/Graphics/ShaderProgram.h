@@ -58,7 +58,6 @@ public:
 	GLuint getID() const { return m_program_id; }
 
 private:
-
 	GLint getLocation(const std::string& name);
 
 	void clear();

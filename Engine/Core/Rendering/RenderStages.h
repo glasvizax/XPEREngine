@@ -104,7 +104,7 @@ public:
 	std::vector<PointLight>* m_point_lights;
 	std::vector<Cubemap>*	 m_input_depthmaps;
 
-	// std::optional<DirLight> m_dir_light = std::nullopt;
+	//std::optional<DirLight> m_dir_light = std::nullopt;
 
 	Camera*		   m_camera;
 	ShaderProgram* m_diffspec_sp;

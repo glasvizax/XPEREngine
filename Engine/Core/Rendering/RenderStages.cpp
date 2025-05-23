@@ -327,6 +327,7 @@ void LightingFinalStage::run()
 		m_light_volume.draw();
 	}
 
+
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
@@ -414,6 +415,9 @@ void BloomStage::init(ShaderProgram* brightness_extraction, ShaderProgram* blur,
 
 	glm::ivec2 size = m_input_tex->getSize();
 	m_brightness_extraction_tex.init(size.x, size.y, GL_RGBA16F, 4, false);
+	m_brightness_extraction_tex.setWrapS(GL_CLAMP_TO_EDGE);
+	m_brightness_extraction_tex.setWrapT(GL_CLAMP_TO_EDGE);
+
 
 	m_brightness_extraction_fb.init();
 

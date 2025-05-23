@@ -15,12 +15,12 @@ inline void uniformVecArrayFunc(GLint location, const glm::vec<N, T>* const data
 			glUniform2dv(location, count, glm::value_ptr(*data));
 		}
 
-		if constexpr (std::is_same_v<T, int>)
+		if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 		{
 			glUniform2iv(location, count, glm::value_ptr(*data));
 		}
 
-		if constexpr (std::is_same_v<T, uint>)
+		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
 		{
 			glUniform2uiv(location, count, glm::value_ptr(*data));
 		}
@@ -38,12 +38,12 @@ inline void uniformVecArrayFunc(GLint location, const glm::vec<N, T>* const data
 			glUniform3dv(location, count, glm::value_ptr(*data));
 		}
 
-		if constexpr (std::is_same_v<T, int>)
+		if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 		{
 			glUniform3iv(location, count, glm::value_ptr(*data));
 		}
 
-		if constexpr (std::is_same_v<T, uint>)
+		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
 		{
 			glUniform3uiv(location, count, glm::value_ptr(*data));
 		}
@@ -61,12 +61,12 @@ inline void uniformVecArrayFunc(GLint location, const glm::vec<N, T>* const data
 			glUniform4dv(location, count, glm::value_ptr(*data));
 		}
 
-		if constexpr (std::is_same_v<T, int>)
+		if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 		{
 			glUniform4iv(location, count, glm::value_ptr(*data));
 		}
 
-		if constexpr (std::is_same_v<T, uint>)
+		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
 		{
 			glUniform4uiv(location, count, glm::value_ptr(*data));
 		}
@@ -88,12 +88,12 @@ inline void uniformVecFunc(GLint location, glm::vec<N, T> vec)
 			glUniform2d(location, vec.x, vec.y);
 		}
 
-		if constexpr (std::is_same_v<T, int>)
+		if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 		{
 			glUniform2i(location, vec.x, vec.y);
 		}
 
-		if constexpr (std::is_same_v<T, uint>)
+		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
 		{
 			glUniform2ui(location, vec.x, vec.y);
 		}
@@ -111,12 +111,12 @@ inline void uniformVecFunc(GLint location, glm::vec<N, T> vec)
 			glUniform3d(location, vec.x, vec.y, vec.z);
 		}
 
-		if constexpr (std::is_same_v<T, int>)
+		if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 		{
 			glUniform3i(location, vec.x, vec.y, vec.z);
 		}
 
-		if constexpr (std::is_same_v<T, uint>)
+		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
 		{
 			glUniform3ui(location, vec.x, vec.y, vec.z);
 		}
@@ -134,12 +134,12 @@ inline void uniformVecFunc(GLint location, glm::vec<N, T> vec)
 			glUniform4d(location, vec.x, vec.y, vec.z, vec.w);
 		}
 
-		if constexpr (std::is_same_v<T, int>)
+		if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 		{
 			glUniform4i(location, vec.x, vec.y, vec.z, vec.w);
 		}
 
-		if constexpr (std::is_same_v<T, uint>)
+		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
 		{
 			glUniform4ui(location, vec.x, vec.y, vec.z, vec.w);
 		}
@@ -183,12 +183,12 @@ inline void uniformValueArrayFunc(GLint location, T* vals, GLsizei count)
 		glUniform1dv(location, count, vals);
 	}
 
-	if constexpr (std::is_same_v<T, int>)
+	if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 	{
 		glUniform1iv(location, count, vals);
 	}
 
-	if constexpr (std::is_same_v<T, uint>)
+	if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
 	{
 		glUniform1uiv(location, count, vals);
 	}
