@@ -15,10 +15,8 @@ struct MaterialDN
 in VS_OUT
 {
     vec3 position;
-    vec3 normal;
     vec2 uv;
-    vec3 tangent;
-    vec3 bitangent;
+	flat mat3 TBN;
 } fs_in;
 
 uniform MaterialDN material;
@@ -27,13 +25,8 @@ void main()
 {
 	vec3 color = texture(material.diffuse, fs_in.uv).rgb;
 
-	vec3 tangent_normal = texture(material.normal, fs_in.uv).xyz * 2.0 - 1.0;
-	vec3 T = normalize(fs_in.tangent);
-    vec3 B = normalize(fs_in.bitangent);
-    vec3 N = normalize(fs_in.normal);
-    mat3 TBN = mat3(T, B, N);
-
-	vec3 final_normal = normalize(TBN * tangent_normal);
+	vec3 sampled_normal = texture(material.normal, fs_in.uv).xyz * 2.0 - 1.0;
+	vec3 final_normal = normalize(fs_in.TBN * sampled_normal);
 
 	a_postition = vec4(fs_in.position.xyz, 0.0f);
 	a_diffuse_specular.rgb = color;

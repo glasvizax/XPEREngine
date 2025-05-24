@@ -10,8 +10,9 @@ my own "game engine" on OpenGL
 ## Features
 - OpenGL-based graphics rendering
 - SSAO
-- Blinn-phong lighting model
+- Blinn-phong lighting model 
 - Deferred shading 
+- Light volumes 
 - Normal mapping
 - Shadow mapping
 - Bloom and HDR
@@ -22,9 +23,10 @@ my own "game engine" on OpenGL
 - CMake 
 - C++17 compatible compiler
 - Dependencies:
-  - GLFW
+  - GLFW3
   - GLAD
   - GLM
-  - Assimp
+  - Assimp (compatible with 5.4) 
+  - stb_image
   - OpenGL 4.6
   - Gtest

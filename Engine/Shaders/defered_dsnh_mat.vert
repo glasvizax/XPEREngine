@@ -15,10 +15,8 @@ layout (std140, binding = 0) uniform Matrices
 out VS_OUT
 {
 	vec3 position;
-	vec3 normal;
 	vec2 uv;
-	vec3 tangent;
-    vec3 bitangent;
+	flat mat3 TBN;
 } vs_out;
 
 uniform mat4 model;
@@ -32,8 +30,9 @@ void main()
 	vs_out.position = _position.xyz;
 
 	mat3 normal_matrix = mat3(transpose(inverse(model)));
-	vs_out.normal = normalize(normal_matrix * a_normal);
-    vs_out.tangent = normalize(normal_matrix * a_tangent);
-    vs_out.bitangent = normalize(normal_matrix * a_bitangent);
+	vec3 N = normalize(normal_matrix * a_normal);
+    vec3 T = normalize(normal_matrix * a_tangent);
+    vec3 B = normalize(normal_matrix * a_bitangent);
+	vs_out.TBN = mat3(T, B, N);
 }
 
