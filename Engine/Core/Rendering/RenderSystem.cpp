@@ -93,17 +93,25 @@ bool RenderSystem::init()
 	initScene();
 	initScreenQuad();
 
-	std::vector<std::string> skybox_files = {
-		"content/textures/Daylight Box_Right.bmp",
-		"content/textures/Daylight Box_Left.bmp",
-		"content/textures/Daylight Box_Top.bmp",
-		"content/textures/Daylight Box_Bottom.bmp",
-		"content/textures/Daylight Box_Front.bmp",
-		"content/textures/Daylight Box_Back.bmp"
+	std::vector<std::string> skybox_daylight_files = {
+		"content/textures/skybox_daylight/skybox_daylight1.bmp",
+		"content/textures/skybox_daylight/skybox_daylight2.bmp",
+		"content/textures/skybox_daylight/skybox_daylight3.bmp",
+		"content/textures/skybox_daylight/skybox_daylight4.bmp",
+		"content/textures/skybox_daylight/skybox_daylight5.bmp",
+		"content/textures/skybox_daylight/skybox_daylight6.bmp"
 	};
-	Cubemap skybox_cm;
-	m_resource_manager->initLoadCubemap(skybox_files, skybox_cm, false);
+	m_resource_manager->initLoadCubemap(skybox_daylight_files, m_daylight, false);
 
+	std::vector<std::string> skybox_night_files = {
+		"content/textures/skybox_night/skybox_night1.png",
+		"content/textures/skybox_night/skybox_night2.png",
+		"content/textures/skybox_night/skybox_night3.png",
+		"content/textures/skybox_night/skybox_night4.png",
+		"content/textures/skybox_night/skybox_night5.png",
+		"content/textures/skybox_night/skybox_night6.png"
+	};
+	m_resource_manager->initLoadCubemap(skybox_night_files, m_night, false);
 
 	ShaderProgram* ssao_base = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_SSAO_BASE);
 	ShaderProgram* ssao_blur = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_SSAO_BLUR);
@@ -112,22 +120,21 @@ bool RenderSystem::init()
 	ShaderProgram* depthmap = m_shader_program_manager.getShaderProgram(ShaderProgramType::LIGHTING_DEPTHMAP);
 	ShaderProgram* forward_color = m_shader_program_manager.getShaderProgram(ShaderProgramType::FORWARD_COLOR);
 	ShaderProgram* postprocess = m_shader_program_manager.getShaderProgram(ShaderProgramType::POSTPROCESS);
-
 	ShaderProgram* bloom_brightness_extraction = m_shader_program_manager.getShaderProgram(ShaderProgramType::BLOOM_BRIGHTNESS_EXTRACTION);
 	ShaderProgram* bloom_blur = m_shader_program_manager.getShaderProgram(ShaderProgramType::BLOOM_BLUR);
-
 	ShaderProgram* skybox = m_shader_program_manager.getShaderProgram(ShaderProgramType::SKYBOX);
 
 	m_geometry_stage.init(window_size.x, window_size.y, &m_root_entity);
-	m_ssao_stage.init(ssao_base, ssao_blur, window_size.x, window_size.y, &m_screen_quad);
-	m_ambient_stage.init(ambient, &m_geometry_stage, &m_ssao_stage, window_size.x, window_size.y, &m_screen_quad);
-	m_shadow_mapping_stage.init(depthmap, window_size.x, window_size.y, 2048, 1.0f, 100.0f, &m_root_entity, &m_point_lights);
+	m_ssao_stage.init(ssao_base, ssao_blur, &m_geometry_stage, &m_screen_quad);
+	m_ambient_stage.init(ambient, &m_geometry_stage, &m_ssao_stage, &m_screen_quad);
+	m_shadow_mapping_stage.init(depthmap, &m_geometry_stage, 2048, 1.0f, 100.0f, &m_point_lights);
 	m_final_stage.init(diffspec, &m_ambient_stage, &m_shadow_mapping_stage, &m_point_lights, &m_camera);
 	m_forward_stage.init(forward_color, &m_geometry_stage, &m_final_stage);
-	m_skybox_stage.init(skybox, &m_forward_stage, &m_geometry_stage, std::move(skybox_cm), &m_camera);
+	m_skybox_stage.init(skybox, &m_forward_stage, &m_geometry_stage, &m_night, &m_camera);
 	m_bloom_stage.init(bloom_brightness_extraction, bloom_blur, &m_skybox_stage, &m_screen_quad);
 	m_postprocess_stage.init(postprocess, &m_screen_quad);
 
+	m_point_lights.reserve(MAX_POINT_LIGHTS);
 	PointLight pl1;
 	pl1.m_position = glm::vec3(10.0f, 3.0f, 5.0f);
 	pl1.m_ambient = glm::vec3(0.2f);
@@ -264,21 +271,36 @@ Camera& RenderSystem::getCamera()
 
 void RenderSystem::testInputH()
 {
-	Transform& tranform = m_root_entity.m_children.front().getTransform();
-	tranform.setPosition(tranform.getPosition() + glm::vec3(0.5f, 0.0f, 0.0f));
+	int random_x = rand() % 20 - 10;
+	int random_z = rand() % 20 - 10;
+
+	PointLight pl;
+
+	pl.m_position = glm::vec3(random_x, 5.0f, random_z);
+	pl.m_ambient = glm::vec3(0.1f);
+	pl.m_diffuse = glm::vec3(0.2f);
+	pl.m_specular = glm::vec3(0.01f);
+	pl.m_linear = 0.027f;
+	pl.m_quadratic = 0.0028f;
+
+	addPointLight(pl);
 }
 
 void RenderSystem::testInputK()
 {
+	uint last = m_point_lights.size() - 1;
+	glm::vec3 diff = getPointLightDiffuse(last);
+	diff.x += 1.0f;
+	setPointLightDiffuse(last, diff);
 }
 
-void RenderSystem::addPointLight(PointLight& point_light)
+uint RenderSystem::addPointLight(PointLight& point_light)
 {
 	int size = m_point_lights.size();
 	if (size > MAX_POINT_LIGHTS)
 	{
 		LOG_WARNING_S("size > MAX_POINT_LIGHTS");
-		return;
+		return 0u;
 	}
 
 	float light_max = std::fmaxf(std::fmaxf(point_light.m_diffuse.r, point_light.m_diffuse.g), point_light.m_diffuse.b);
@@ -288,27 +310,183 @@ void RenderSystem::addPointLight(PointLight& point_light)
 	size++;
 	m_lights_buffer.fill(MAX_POINT_LIGHTS * sizeof(PointLight), sizeof(int), &size);
 	m_point_lights.push_back(point_light);
+	return m_point_lights.size() - 1;
+}
+
+void RenderSystem::deletePointLight(uint light_index)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_WARNING_S("light_index should be less than size");
+	}
+
+	int last_index = m_point_lights.size() - 1;
+
+	if (light_index == last_index)
+	{
+		m_point_lights.pop_back();
+		m_lights_buffer.fill(MAX_POINT_LIGHTS * sizeof(PointLight), sizeof(int), &last_index);
+	}
+	else
+	{
+		m_point_lights[light_index] = m_point_lights.back();
+		m_point_lights.pop_back();
+		m_lights_buffer.fill(MAX_POINT_LIGHTS * sizeof(PointLight), sizeof(int), &last_index);
+	}
 }
 
 void RenderSystem::setPointLightPosition(uint light_index, glm::vec3 new_position)
 {
-	if (light_index + 1 > m_point_lights.size())
+	if (light_index >= m_point_lights.size())
 	{
 		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
 		return;
 	}
+
 	m_point_lights[light_index].m_position = new_position;
-	m_lights_buffer.fill(light_index * sizeof(PointLight), sizeof(glm::vec3), &new_position.x);
+	m_lights_buffer.fill(
+		light_index * sizeof(PointLight) + offsetof(PointLight, m_position),
+		member_size(PointLight, m_position),
+		&new_position
+	);
 }
 
 glm::vec3 RenderSystem::getPointLightPosition(uint light_index)
 {
-	if (light_index + 1 > m_point_lights.size())
+	if (light_index >= m_point_lights.size())
 	{
 		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
 		return glm::vec3(0.0f);
 	}
 	return m_point_lights[light_index].m_position;
+}
+
+void RenderSystem::setPointLightDiffuse(uint light_index, glm::vec3 new_diffuse)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return;
+	}
+
+	m_point_lights[light_index].m_diffuse = new_diffuse;
+	m_lights_buffer.fill(
+		light_index * sizeof(PointLight) + offsetof(PointLight, m_diffuse),
+		member_size(PointLight, m_diffuse),
+		&new_diffuse
+	);
+}
+
+glm::vec3 RenderSystem::getPointLightDiffuse(uint light_index)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return glm::vec3(0.0f);
+	}
+	return m_point_lights[light_index].m_diffuse;
+}
+
+void RenderSystem::setPointLightSpecular(uint light_index, glm::vec3 new_specular)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return;
+	}
+
+	m_point_lights[light_index].m_specular = new_specular;
+	m_lights_buffer.fill(
+		light_index * sizeof(PointLight) + offsetof(PointLight, m_specular), 
+		member_size(PointLight, m_specular), 
+		&new_specular.r
+	);
+}
+
+glm::vec3 RenderSystem::getPointLightSpecular(uint light_index)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return glm::vec3(0.0f);
+	}
+	return m_point_lights[light_index].m_specular;
+}
+
+void RenderSystem::setPointLightAmbient(uint light_index, glm::vec3 new_ambient)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return;
+	}
+
+	m_point_lights[light_index].m_ambient = new_ambient;
+	m_lights_buffer.fill(
+		light_index * sizeof(PointLight) + offsetof(PointLight, m_ambient),
+		member_size(PointLight, m_ambient),
+		&new_ambient
+	);
+}
+
+glm::vec3 RenderSystem::getPointLightAmbient(uint light_index)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return glm::vec3(0.0f);
+	}
+	return m_point_lights[light_index].m_ambient;
+}
+
+void RenderSystem::setPointLightLinear(uint light_index, float new_linear)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return;
+	}
+
+	m_point_lights[light_index].m_linear = new_linear;
+	m_lights_buffer.fill(
+		light_index * sizeof(PointLight) + offsetof(PointLight, m_linear),
+		member_size(PointLight, m_linear),
+		&new_linear);
+}
+
+float RenderSystem::getPointLightLinear(uint light_index)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return 0.0f;
+	}
+	return m_point_lights[light_index].m_linear;
+}
+
+void RenderSystem::setPointLightQuadratic(uint light_index, float new_quadratic)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return;
+	}
+
+	m_point_lights[light_index].m_quadratic = new_quadratic;
+	m_lights_buffer.fill(
+		light_index * sizeof(PointLight) + offsetof(PointLight, m_quadratic),
+		member_size(PointLight, m_quadratic),
+		&new_quadratic);
+}
+
+float RenderSystem::getPointLightQuadratic(uint light_index)
+{
+	if (light_index >= m_point_lights.size())
+	{
+		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return 0.0f;
+	}
+	return m_point_lights[light_index].m_quadratic;
 }
 
 int getUniformBlockSize(ShaderProgram& shader, const std::string& name)

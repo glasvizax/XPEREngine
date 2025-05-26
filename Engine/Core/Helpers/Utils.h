@@ -3,6 +3,8 @@
 #include <assimp/vector3.h>
 #include <glm/gtc/matrix_transform.hpp>
 
+#define member_size(type, member) sizeof(decltype(type :: member))
+
 template <typename T> 
 inline bool isInRange(T a, T b, T value)
 {

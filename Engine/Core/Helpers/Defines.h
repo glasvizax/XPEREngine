@@ -8,4 +8,3 @@ using uchar = unsigned char;
 
 #define rcast reinterpret_cast
 #define scast static_cast
-

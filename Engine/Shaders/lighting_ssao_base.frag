@@ -14,6 +14,9 @@ layout (std140, binding = 0) uniform Matrices
 	mat4 view;
 };
 
+uniform float radius_factor;
+uniform int power;
+
 out float FragColor;
 
 void main()
@@ -41,10 +44,10 @@ void main()
 	vec3 tangent = normalize(random_vec - normal_view * dot(normal_view, random_vec));
 	vec3 bitangent = cross(normal_view, tangent);
 	mat3 TBN = mat3(tangent, bitangent, normal_view);
-
+	float radius = radius_factor;
+	
 	float occlusion = 0.0f;
-	float radius     = 0.15f;
-
+	int beyond_count = 0;
 	for(int i = 0; i < KERNEL_SIZE; ++i) 
 	{
 		vec3 sample_view = frag_pos_view + TBN * samples[i] * radius;
@@ -55,6 +58,7 @@ void main()
 
 		if(actual_depth_world.x == 0.0f && actual_depth_world.y == 0.0f && actual_depth_world.z == 0.0f)
 		{
+			beyond_count++;
 			continue;
 		}
 
@@ -71,8 +75,8 @@ void main()
 		occlusion += (actual_depth_view >= sample_view.z + bias ? 1.0 : 0.0) * range_check;  
 	}
 
-	float final = 1.0f - (occlusion / KERNEL_SIZE);  
+	float final = 1.0f - (beyond_count * occlusion / KERNEL_SIZE);  
 
-	FragColor = pow(final, 8);
+	FragColor = pow(final, power);
 
 }

@@ -170,7 +170,7 @@ void PlayerInputManager::testK(void* ptr)
 void PlayerInputManager::testH(void* ptr)
 {
 	PlayerInputManager* self = static_cast<PlayerInputManager*>(ptr);
-	self->m_render_system->testInputK();
+	self->m_render_system->testInputH();
 }
 
 void PlayerInputManager::cursorMoving(void* ptr, double xpos, double ypos)

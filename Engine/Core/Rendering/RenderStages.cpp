@@ -25,7 +25,6 @@ const GLuint POSTPROCESS_BLOOM_INPUT_UNIT = 14;
 
 const glm::mat4 IDENTICAL_MATRIX = glm::mat4(1.0f);
 
-
 float g_skybox_vertices[] = {
 	-1.0f, 1.0f, -1.0f,
 	-1.0f, -1.0f, -1.0f,
@@ -69,7 +68,6 @@ float g_skybox_vertices[] = {
 	-1.0f, -1.0f, 1.0f,
 	1.0f, -1.0f, 1.0f
 };
-
 
 void GeometryStage::init(int width, int height, Entity* root_entity)
 {
@@ -116,7 +114,15 @@ void GeometryStage::run()
 	m_geometry_rb = std::move(m_geometry_fb.m_renderbuffer);
 }
 
-void LightingSSAOStage::init(ShaderProgram* ssao_base_sp, ShaderProgram* ssao_blur_sp, int width, int height, VertexArray* screen_quad)
+void LightingSSAOStage::init(
+	ShaderProgram* ssao_base_sp, 
+	ShaderProgram* ssao_blur_sp, 
+	GeometryStage* geometry_stage, 
+	VertexArray* screen_quad, 
+	int power, 
+	float radius_factor, 
+	int blur_iterations
+)
 {
 	m_ssao_base_sp = ssao_base_sp;
 	m_ssao_blur_sp = ssao_blur_sp;
@@ -151,6 +157,15 @@ void LightingSSAOStage::init(ShaderProgram* ssao_base_sp, ShaderProgram* ssao_bl
 	int noize_tex_size = NOISE_SIZE / 4;
 
 	m_ssao_base_sp->setVecArray("samples", ssao_kernel.data(), KERNEL_SIZE);
+	m_ssao_base_sp->set("power", power);
+	m_ssao_base_sp->set("radius_factor", radius_factor);
+	m_ssao_blur_sp->set("blur_iterations", blur_iterations);
+
+	m_blur_iterations = blur_iterations;
+	m_radius_factor = radius_factor;
+	m_power = power;
+
+	glm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
 
 	m_ssao_noise_tex.init(noize_tex_size, noize_tex_size, GL_RGBA16F, 3, false);
 	m_ssao_noise_tex.loadData(GL_FLOAT, GL_RGB, ssao_noise.data());
@@ -159,13 +174,13 @@ void LightingSSAOStage::init(ShaderProgram* ssao_base_sp, ShaderProgram* ssao_bl
 	m_ssao_noise_tex.setWrapS(GL_REPEAT);
 	m_ssao_noise_tex.setWrapT(GL_REPEAT);
 
-	m_ssao_base_tex.init(width, height, GL_R8, 1, false);
+	m_ssao_base_tex.init(size.x, size.y, GL_R8, 1, false);
 	m_ssao_base_tex.setMinFilter(GL_NEAREST);
 	m_ssao_base_tex.setMagFilter(GL_NEAREST);
 	m_ssao_base_tex.setWrapS(GL_CLAMP_TO_EDGE);
 	m_ssao_base_tex.setWrapT(GL_CLAMP_TO_EDGE);
 
-	m_output_ssao_blur_tex.init(width, height, GL_R8, 1, false);
+	m_output_ssao_blur_tex.init(size.x, size.y, GL_R8, 1, false);
 	m_output_ssao_blur_tex.setMinFilter(GL_NEAREST);
 	m_output_ssao_blur_tex.setMagFilter(GL_NEAREST);
 	m_output_ssao_blur_tex.setWrapS(GL_CLAMP_TO_EDGE);
@@ -196,15 +211,38 @@ void LightingSSAOStage::run()
 	m_output_ssao_blur_tex.bind(SSAO_BLUR_UNIT);
 }
 
-void LightingAmbientStage::init(ShaderProgram* ambient_sp, GeometryStage* geometry_stage, LightingSSAOStage* ssao_stage, int width, int height, VertexArray* screen_quad)
+void LightingSSAOStage::setPower(int power)
+{
+	m_ssao_base_sp->set("power", power);
+	m_power = power;
+}
+
+void LightingSSAOStage::setRadiusFactor(float radius_factor)
+{
+	m_ssao_base_sp->set("radius_factor", radius_factor);
+	m_radius_factor = radius_factor;
+}
+
+void LightingSSAOStage::setBlurIterations(int blur_iterations)
+{
+	m_ssao_blur_sp->set("blur_iterations", blur_iterations);
+	m_blur_iterations = blur_iterations;
+}
+
+void LightingAmbientStage::init(ShaderProgram* ambient_sp, GeometryStage* geometry_stage, LightingSSAOStage* ssao_stage, VertexArray* screen_quad, float ambient_factor)
 {
 	m_screen_quad = screen_quad;
 	m_ambient_sp = ambient_sp;
 
-	m_output_ambient_tex.init(width, height, GL_RGBA16F, 4, false);
+	glm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
+
+	m_output_ambient_tex.init(size.x, size.y, GL_RGBA16F, 4, false);
 
 	m_lighting_ambient_fb.init();
-	m_lighting_ambient_fb.createAttachRenderbuffer(width, height);
+	m_lighting_ambient_fb.createAttachRenderbuffer(size.x, size.y);
+
+	m_ambient_factor = ambient_factor;
+	m_ambient_sp->set("ambient_factor", ambient_factor);
 }
 
 void LightingAmbientStage::run()
@@ -220,12 +258,20 @@ void LightingAmbientStage::run()
 	m_output_ambient_tex.bind(POSTPROCESS_INPUT_UNIT);
 }
 
-void LightingShadowMappingStage::init(ShaderProgram* depthmap_sp, int width, int height, int depthmap_size, float depthmap_near, float depthmap_far, Entity* root_entity, std::vector<PointLight>* point_lights)
+void LightingAmbientStage::setAmbientFactor(float ambient_factor)
 {
+	m_ambient_factor = ambient_factor;
+	m_ambient_sp->set("ambient_factor", ambient_factor);
+}
+
+void LightingShadowMappingStage::init(ShaderProgram* depthmap_sp, GeometryStage* geometry_stage, int depthmap_size, float depthmap_near, float depthmap_far, std::vector<PointLight>* point_lights)
+{
+	glm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
+
 	m_depthmap_sp = depthmap_sp;
-	m_main_height = height;
-	m_main_width = width;
-	m_root_entity = root_entity;
+	m_main_height = size.x;
+	m_main_width = size.y;
+	m_root_entity = geometry_stage->m_root_entity;
 	m_depthmap_far = depthmap_far;
 	m_depthmap_near = depthmap_near;
 	m_point_lights = point_lights;
@@ -250,9 +296,8 @@ void LightingShadowMappingStage::run()
 		{
 			Cubemap& new_cubemap = m_output_depthmaps.emplace_back();
 			new_cubemap.init(m_depthmap_size, GL_DEPTH_COMPONENT24, 1, false);
-
-			//new_cubemap.setMagFilter(GL_NEAREST);
-			//new_cubemap.setMinFilter(GL_NEAREST);
+			new_cubemap.setMagFilter(GL_NEAREST);
+			new_cubemap.setMinFilter(GL_NEAREST);
 		}
 	}
 
@@ -363,7 +408,7 @@ void ForwardStage::run()
 	*m_geomentry_rb = std::move(m_forward_fb.m_renderbuffer);
 }
 
-void SkyboxStage::init(ShaderProgram* skybox_sp, ForwardStage* forward_stage, GeometryStage* geometry_stage, Cubemap&& skybox_cm, Camera* camera)
+void SkyboxStage::init(ShaderProgram* skybox_sp, ForwardStage* forward_stage, GeometryStage* geometry_stage, Cubemap* skybox_cm, Camera* camera)
 {
 	m_skybox_sp = skybox_sp;
 	m_camera = camera;
@@ -376,7 +421,7 @@ void SkyboxStage::init(ShaderProgram* skybox_sp, ForwardStage* forward_stage, Ge
 	m_skybox_va.attachArrayBuffer(sizeof(g_skybox_vertices), g_skybox_vertices);
 	m_skybox_va.enableAttribute(0, 3, 3, 0);
 	
-	m_skybox_cm = std::move(skybox_cm);
+	m_skybox_cm = skybox_cm;
 }
 
 void SkyboxStage::run()
@@ -392,7 +437,7 @@ void SkyboxStage::run()
 	m_skybox_sp->use();
 	m_skybox_sp->setMat("skybox_view", glm::mat4(glm::mat3(m_camera->getViewMatrix())));
 
-	m_skybox_cm.bind(SKYBOX_UNIT);
+	m_skybox_cm->bind(SKYBOX_UNIT);
 	m_skybox_va.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -404,20 +449,24 @@ void SkyboxStage::run()
 	m_output_tex->bind(POSTPROCESS_INPUT_UNIT);
 }
 
-void BloomStage::init(ShaderProgram* brightness_extraction, ShaderProgram* blur, SkyboxStage* skybox_stage, VertexArray* screen_quad)
+void SkyboxStage::setSkyboxCubemap(Cubemap* skybox_cm)
+{
+	m_skybox_cm = skybox_cm;
+}
+
+void BloomStage::init(ShaderProgram* brightness_extraction, ShaderProgram* blur, SkyboxStage* skybox_stage, VertexArray* screen_quad, float threshold)
 {
 	m_brightness_extraction_sp = brightness_extraction;
 	m_blur_sp = blur;
 	m_input_tex = skybox_stage->m_output_tex;
 	m_screen_quad = screen_quad;
 
-	m_brightness_extraction_sp->set("threshold", 1.0f);
+	m_brightness_extraction_sp->set("threshold", threshold);
 
 	glm::ivec2 size = m_input_tex->getSize();
 	m_brightness_extraction_tex.init(size.x, size.y, GL_RGBA16F, 4, false);
 	m_brightness_extraction_tex.setWrapS(GL_CLAMP_TO_EDGE);
 	m_brightness_extraction_tex.setWrapT(GL_CLAMP_TO_EDGE);
-
 
 	m_brightness_extraction_fb.init();
 
@@ -463,6 +512,12 @@ void BloomStage::run()
 	}
 
 	m_blur_pingpong_texs[!horizontal].bind(POSTPROCESS_BLOOM_INPUT_UNIT);
+}
+
+void BloomStage::setThreshold(float threshold)
+{
+	m_threshold = threshold;
+	m_brightness_extraction_sp->set("threshold", threshold);
 }
 
 void PostProcessStage::init(ShaderProgram* shader_program, VertexArray* screen_quad)

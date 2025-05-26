@@ -37,9 +37,26 @@ public:
 	void testInputH();
 	void testInputK();
 
-	void	  addPointLight(PointLight& point_light);
+	uint addPointLight(PointLight& point_light);
+	void deletePointLight(uint light_index);
+
 	void	  setPointLightPosition(uint light_index, glm::vec3 new_position);
 	glm::vec3 getPointLightPosition(uint light_index);
+
+	void	  setPointLightDiffuse(uint light_index, glm::vec3 new_diffuse);
+	glm::vec3 getPointLightDiffuse(uint light_index);
+
+	void	  setPointLightSpecular(uint light_index, glm::vec3 new_specular);
+	glm::vec3 getPointLightSpecular(uint light_index);
+
+	void	  setPointLightAmbient(uint light_index, glm::vec3 new_ambient);
+	glm::vec3 getPointLightAmbient(uint light_index);
+
+	void  setPointLightLinear(uint light_index, float new_linear);
+	float getPointLightLinear(uint light_index);
+
+	void  setPointLightQuadratic(uint light_index, float new_quadratic);
+	float getPointLightQuadratic(uint light_index);
 
 private:
 	void updateMatrices();
@@ -49,15 +66,17 @@ private:
 	void initScreenQuad();
 
 private:
-	const uint MAX_POINT_LIGHTS = 100;
+	const uint MAX_POINT_LIGHTS = 32;
 
 	ResourceManager* m_resource_manager;
 
 	Entity m_root_entity;
 
 	ShaderProgramManager m_shader_program_manager;
-
 	Camera m_camera;
+
+	Cubemap m_daylight;
+	Cubemap m_night;
 
 	UniformBuffer m_matrices_buffer;
 	UniformBuffer m_lights_buffer;

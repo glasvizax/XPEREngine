@@ -28,6 +28,8 @@ layout(binding = 8) uniform sampler2D normal_shininess;
 layout(binding = 9) uniform sampler2D diffuse_specular;
 layout(binding = 12) uniform sampler2D ssao_blur;
 
+uniform float ambient_factor; 
+
 out vec4 FragColor;
 
 void main()
@@ -42,8 +44,9 @@ void main()
     for (int i = 0; i < count; ++i)
     {
         // Ambient
-        vec3 ambient = point_lights[i].ambient * ambient_occlusion;
+        vec3 ambient = point_lights[i].ambient * ambient_occlusion * ambient_factor;
         result += ambient * color;
     }
+
     FragColor = vec4(result, 1.0f);
 }

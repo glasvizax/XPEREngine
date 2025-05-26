@@ -36,9 +36,20 @@ public:
 class LightingSSAOStage
 {
 public:
-	void init(ShaderProgram* ssao_base_sp, ShaderProgram* ssao_blur_sp, int width, int height, VertexArray* screen_quad);
+	void init(
+		ShaderProgram* ssao_base_sp, 
+		ShaderProgram* ssao_blur_sp, 
+		GeometryStage* geometry_stage, 
+		VertexArray* screen_quad, 
+		int power = 8, 
+		float radius_factor = 0.15f, 
+		int blur_iterations = 4);
 
 	void run();
+
+	void setPower(int power);
+	void setRadiusFactor(float radius_factor);
+	void setBlurIterations(int blur_iterations);
 
 	ShaderProgram* m_ssao_base_sp;
 	ShaderProgram* m_ssao_blur_sp;
@@ -52,6 +63,10 @@ public:
 
 	VertexArray* m_screen_quad;
 
+	float m_radius_factor = 0.15f;
+	int	  m_power = 8;
+	int	  m_blur_iterations = 4;
+
 	const int KERNEL_SIZE = 64;
 	const int NOISE_SIZE = 16;
 };
@@ -59,20 +74,24 @@ public:
 class LightingAmbientStage
 {
 public:
-	void init(ShaderProgram* ambient_sp, GeometryStage* geometry_stage, LightingSSAOStage* ssao_stage, int width, int height, VertexArray* screen_quad);
+	void init(ShaderProgram* ambient_sp, GeometryStage* geometry_stage, LightingSSAOStage* ssao_stage, VertexArray* screen_quad, float ambient_factor = 0.3f);
 
 	void run();
+
+	void setAmbientFactor(float ambient_factor);
 
 	VertexArray*   m_screen_quad;
 	Framebuffer	   m_lighting_ambient_fb;
 	Texture		   m_output_ambient_tex;
 	ShaderProgram* m_ambient_sp;
+
+	float m_ambient_factor;
 };
 
 class LightingShadowMappingStage
 {
 public:
-	void init(ShaderProgram* depthmap_sp, int width, int height, int depthmap_size, float depthmap_near, float depthmap_far, Entity* root_entity, std::vector<PointLight>* point_lights);
+	void init(ShaderProgram* depthmap_sp, GeometryStage* geometry_stage, int depthmap_size, float depthmap_near, float depthmap_far, std::vector<PointLight>* point_lights);
 
 	void run();
 
@@ -104,7 +123,7 @@ public:
 	std::vector<PointLight>* m_point_lights;
 	std::vector<Cubemap>*	 m_input_depthmaps;
 
-	//std::optional<DirLight> m_dir_light = std::nullopt;
+	// std::optional<DirLight> m_dir_light = std::nullopt;
 
 	Camera*		   m_camera;
 	ShaderProgram* m_diffspec_sp;
@@ -130,16 +149,18 @@ public:
 class SkyboxStage
 {
 public:
-	void init(ShaderProgram* skybox_sp, ForwardStage* forward_stage, GeometryStage* geometry_stage, Cubemap&& skybox_cm, Camera* camera);
+	void init(ShaderProgram* skybox_sp, ForwardStage* forward_stage, GeometryStage* geometry_stage, Cubemap* skybox_cm, Camera* camera);
 
 	void run();
+	
+	void setSkyboxCubemap(Cubemap* skybox_cm);
 
 	Renderbuffer* m_input_rb;
 	Texture*	  m_output_tex;
 
 	Framebuffer	   m_skybox_fb;
 	ShaderProgram* m_skybox_sp;
-	Cubemap		   m_skybox_cm;
+	Cubemap*	   m_skybox_cm;
 	VertexArray	   m_skybox_va;
 	Camera*		   m_camera;
 };
@@ -147,20 +168,24 @@ public:
 class BloomStage
 {
 public:
-	void init(ShaderProgram* brightness_extraction, ShaderProgram* blur, SkyboxStage* skybox_stage, VertexArray* screen_quad);
+	void init(ShaderProgram* brightness_extraction, ShaderProgram* blur, SkyboxStage* skybox_stage, VertexArray* screen_quad, float threshold = 1.2f);
 
 	void run();
+
+	void setThreshold(float threshold);
 
 	VertexArray*   m_screen_quad;
 	ShaderProgram* m_brightness_extraction_sp;
 	ShaderProgram* m_blur_sp;
 	Texture*	   m_input_tex;
 
-	Texture		   m_brightness_extraction_tex;
-	Framebuffer	   m_brightness_extraction_fb;
+	Texture		m_brightness_extraction_tex;
+	Framebuffer m_brightness_extraction_fb;
 
-	Framebuffer	   m_blur_pingpong_fbs[2];
-	Texture		   m_blur_pingpong_texs[2];
+	Framebuffer m_blur_pingpong_fbs[2];
+	Texture		m_blur_pingpong_texs[2];
+
+	float m_threshold;
 };
 
 class PostProcessStage
