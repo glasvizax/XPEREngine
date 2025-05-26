@@ -14,7 +14,7 @@ struct PointLight // 64
 
 layout (std140, binding = 1) uniform Lights
 {
-	PointLight point_lights[100]; // 64 * 100
+	PointLight point_lights[32]; // 64 * 100
     int count;
 };
 
@@ -36,7 +36,7 @@ void main()
 {
     vec4 diffuse_specular = texture(diffuse_specular, fs_in.uv);
 
-    vec3 color = diffuse_specular.rgb;
+    vec3 color = diffuse_specular.rgb * ambient_factor;
 
     float ambient_occlusion = texture(ssao_blur, fs_in.uv).r;
     
@@ -44,7 +44,7 @@ void main()
     for (int i = 0; i < count; ++i)
     {
         // Ambient
-        vec3 ambient = point_lights[i].ambient * ambient_occlusion * ambient_factor;
+        vec3 ambient = point_lights[i].ambient * ambient_occlusion;
         result += ambient * color;
     }
 

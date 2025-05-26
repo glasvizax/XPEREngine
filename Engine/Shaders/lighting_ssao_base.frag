@@ -36,7 +36,7 @@ void main()
 	} 
 
 	vec3 frag_pos_view = (view * vec4(frag_pos_world, 1.0f)).xyz;
-	vec3 normal_view = (view * vec4(texture(normal_shininess_tex, uv).xyz, 0.0f)).xyz;
+	vec3 normal_view = (inverse(transpose(view)) * vec4(texture(normal_shininess_tex, uv).xyz, 0.0f)).xyz;
 
 	vec2 noise_uv = gl_FragCoord.xy / noise_size;
 	vec3 random_vec = texture(ssao_noise_tex, noise_uv).xyz;
@@ -75,7 +75,7 @@ void main()
 		occlusion += (actual_depth_view >= sample_view.z + bias ? 1.0 : 0.0) * range_check;  
 	}
 
-	float final = 1.0f - (beyond_count * occlusion / KERNEL_SIZE);  
+	float final = 1.0f - (occlusion / KERNEL_SIZE);  
 
 	FragColor = pow(final, power);
 

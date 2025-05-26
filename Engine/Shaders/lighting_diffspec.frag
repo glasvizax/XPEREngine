@@ -14,7 +14,7 @@ struct PointLight // 64
 
 layout (std140, binding = 1) uniform Lights
 {
-	PointLight point_lights[100]; // 64 * 100
+	PointLight point_lights[32]; // 64 * 100
     int count;
 };
 

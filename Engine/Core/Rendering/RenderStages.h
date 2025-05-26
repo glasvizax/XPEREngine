@@ -74,7 +74,7 @@ public:
 class LightingAmbientStage
 {
 public:
-	void init(ShaderProgram* ambient_sp, GeometryStage* geometry_stage, LightingSSAOStage* ssao_stage, VertexArray* screen_quad, float ambient_factor = 0.3f);
+	void init(ShaderProgram* ambient_sp, GeometryStage* geometry_stage, LightingSSAOStage* ssao_stage, VertexArray* screen_quad, float ambient_factor = 1.0f);
 
 	void run();
 
