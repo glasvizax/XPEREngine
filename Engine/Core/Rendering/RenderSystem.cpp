@@ -128,8 +128,8 @@ bool RenderSystem::init()
 	m_ssao_stage.init(ssao_base, ssao_blur, &m_geometry_stage, &m_screen_quad);
 	m_ambient_stage.init(ambient, &m_geometry_stage, &m_ssao_stage, &m_screen_quad);
 	m_shadow_mapping_stage.init(depthmap, &m_geometry_stage, 2048, 1.0f, 100.0f, &m_point_lights);
-	m_final_stage.init(diffspec, &m_ambient_stage, &m_shadow_mapping_stage, &m_point_lights, &m_camera);
-	m_forward_stage.init(forward_color, &m_geometry_stage, &m_final_stage);
+	m_lighting_final_stage.init(diffspec, &m_ambient_stage, &m_shadow_mapping_stage, &m_point_lights, &m_camera);
+	m_forward_stage.init(forward_color, &m_geometry_stage, &m_lighting_final_stage);
 	m_skybox_stage.init(skybox, &m_forward_stage, &m_geometry_stage, &m_night, &m_camera);
 	m_bloom_stage.init(bloom_brightness_extraction, bloom_blur, &m_skybox_stage, &m_screen_quad);
 	m_postprocess_stage.init(postprocess, &m_screen_quad);
@@ -170,7 +170,7 @@ void RenderSystem::render()
 	m_ssao_stage.run();
 	m_ambient_stage.run();
 	m_shadow_mapping_stage.run();
-	m_final_stage.run();
+	m_lighting_final_stage.run();
 	m_forward_stage.run();
 	m_skybox_stage.run();
 	m_bloom_stage.run();

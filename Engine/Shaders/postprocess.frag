@@ -10,10 +10,10 @@ in VS_OUT
 
 out vec4 FragColor;
 
+uniform float exposure;
+
 void main()
 {
-	float exposure = 1.0f;
-	
 	vec3 base_color = texture(input_texture, fs_in.uv).rgb;
 	vec3 bloom_color = texture(input_bloom_texture, fs_in.uv).rgb;
 

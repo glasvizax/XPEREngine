@@ -43,7 +43,8 @@ public:
 		VertexArray* screen_quad, 
 		int power = 8, 
 		float radius_factor = 0.15f, 
-		int blur_iterations = 4);
+		int blur_iterations = 4
+	);
 
 	void run();
 
@@ -74,7 +75,13 @@ public:
 class LightingAmbientStage
 {
 public:
-	void init(ShaderProgram* ambient_sp, GeometryStage* geometry_stage, LightingSSAOStage* ssao_stage, VertexArray* screen_quad, float ambient_factor = 1.0f);
+	void init(
+		ShaderProgram* ambient_sp, 
+		GeometryStage* geometry_stage,
+		LightingSSAOStage* ssao_stage, 
+		VertexArray* screen_quad, 
+		float ambient_factor = 1.0f
+	);
 
 	void run();
 
@@ -91,7 +98,13 @@ public:
 class LightingShadowMappingStage
 {
 public:
-	void init(ShaderProgram* depthmap_sp, GeometryStage* geometry_stage, int depthmap_size, float depthmap_near, float depthmap_far, std::vector<PointLight>* point_lights);
+	void init(
+		ShaderProgram* depthmap_sp, 
+		GeometryStage* geometry_stage, 
+		int depthmap_size, float depthmap_near, 
+		float depthmap_far, 
+		std::vector<PointLight>* point_lights
+	);
 
 	void run();
 
@@ -113,7 +126,12 @@ public:
 class LightingFinalStage
 {
 public:
-	void init(ShaderProgram* diffspec_sp, LightingAmbientStage* ambient_stage, LightingShadowMappingStage* shadow_mapping_stage, std::vector<PointLight>* point_lights, Camera* camera);
+	void init(
+		ShaderProgram* diffspec_sp, 
+		LightingAmbientStage* ambient_stage, 
+		LightingShadowMappingStage* shadow_mapping_stage, 
+		std::vector<PointLight>* point_lights, 
+		Camera* camera);
 
 	void run();
 
@@ -123,8 +141,6 @@ public:
 	std::vector<PointLight>* m_point_lights;
 	std::vector<Cubemap>*	 m_input_depthmaps;
 
-	// std::optional<DirLight> m_dir_light = std::nullopt;
-
 	Camera*		   m_camera;
 	ShaderProgram* m_diffspec_sp;
 	Mesh		   m_light_volume;
@@ -133,7 +149,11 @@ public:
 class ForwardStage
 {
 public:
-	void init(ShaderProgram* forward_color_sp, GeometryStage* geometry_stage, LightingFinalStage* lighting_final_stage);
+	void init(
+		ShaderProgram* forward_color_sp, 
+		GeometryStage* geometry_stage, 
+		LightingFinalStage* lighting_final_stage
+	);
 
 	void run();
 
@@ -145,6 +165,7 @@ public:
 	Mesh		   m_light_sphere;
 	ShaderProgram* m_forward_color_sp;
 };
+
 
 class SkyboxStage
 {
@@ -191,10 +212,14 @@ public:
 class PostProcessStage
 {
 public:
-	void init(ShaderProgram* postprocess_sp, VertexArray* screen_quad);
+	void init(ShaderProgram* postprocess_sp, VertexArray* screen_quad, float exposure = 1.0f);
 
 	void run();
 
+	void setExposure(float new_exposure);
+
 	VertexArray*   m_screen_quad;
 	ShaderProgram* m_postprocess_shader;
+	
+	float		   m_exposure;
 };

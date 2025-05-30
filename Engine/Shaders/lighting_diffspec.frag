@@ -58,7 +58,9 @@ void main()
         
     // Attenuation 
     float d = dot(to_light, to_light_norm);
-	float attenuation = 1.0 / (1.0f + point_lights[current_light_index].linear * d + point_lights[current_light_index].quadratic * (d * d));   
+	float attenuation = 1.0 / (1.0f 
+    + point_lights[current_light_index].linear * d 
+    + point_lights[current_light_index].quadratic * (d * d));   
         
     float reverse_shadow = 1.0f - calculateShadow(fragment_position, point_lights[current_light_index].position);
 

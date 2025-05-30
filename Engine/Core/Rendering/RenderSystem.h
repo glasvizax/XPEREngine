@@ -89,7 +89,7 @@ private:
 	LightingSSAOStage		   m_ssao_stage;
 	LightingAmbientStage	   m_ambient_stage;
 	LightingShadowMappingStage m_shadow_mapping_stage;
-	LightingFinalStage		   m_final_stage;
+	LightingFinalStage		   m_lighting_final_stage;
 	ForwardStage			   m_forward_stage;
 	SkyboxStage				   m_skybox_stage;
 	BloomStage				   m_bloom_stage;

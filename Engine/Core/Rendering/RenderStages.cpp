@@ -520,10 +520,11 @@ void BloomStage::setThreshold(float threshold)
 	m_brightness_extraction_sp->set("threshold", threshold);
 }
 
-void PostProcessStage::init(ShaderProgram* shader_program, VertexArray* screen_quad)
+void PostProcessStage::init(ShaderProgram* shader_program, VertexArray* screen_quad, float exposure)
 {
 	m_screen_quad = screen_quad;
 	m_postprocess_shader = shader_program;
+	m_postprocess_shader->set("exposure", exposure);
 }
 
 void PostProcessStage::run()
@@ -534,4 +535,10 @@ void PostProcessStage::run()
 	m_screen_quad->bind();
 	m_postprocess_shader->use();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void PostProcessStage::setExposure(float new_exposure)
+{
+	m_exposure = new_exposure;
+	m_postprocess_shader->set("exposure", new_exposure);
 }

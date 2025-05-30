@@ -36,17 +36,17 @@ void main()
 {
     vec4 diffuse_specular = texture(diffuse_specular, fs_in.uv);
 
-    vec3 color = diffuse_specular.rgb * ambient_factor;
-
     float ambient_occlusion = texture(ssao_blur, fs_in.uv).r;
-    
-    vec3 result = vec3(0.0); 
+
+    vec3 color = diffuse_specular.rgb * ambient_factor;
+    vec3 frag_ambient = vec3(0.0); 
     for (int i = 0; i < count; ++i)
     {
         // Ambient
         vec3 ambient = point_lights[i].ambient * ambient_occlusion;
-        result += ambient * color;
+        frag_ambient += ambient * color;
     }
 
-    FragColor = vec4(result, 1.0f);
+    FragColor = vec4(frag_ambient, 1.0f);
 }
+
