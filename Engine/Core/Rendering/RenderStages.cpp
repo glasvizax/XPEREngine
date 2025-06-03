@@ -165,14 +165,17 @@ void LightingSSAOStage::init(
 	m_radius_factor = radius_factor;
 	m_power = power;
 
-	glm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
-
 	m_ssao_noise_tex.init(noize_tex_size, noize_tex_size, GL_RGBA16F, 3, false);
 	m_ssao_noise_tex.loadData(GL_FLOAT, GL_RGB, ssao_noise.data());
+
+
+	
 	m_ssao_noise_tex.setMinFilter(GL_NEAREST);
 	m_ssao_noise_tex.setMagFilter(GL_NEAREST);
 	m_ssao_noise_tex.setWrapS(GL_REPEAT);
 	m_ssao_noise_tex.setWrapT(GL_REPEAT);
+	
+	glm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
 
 	m_ssao_base_tex.init(size.x, size.y, GL_R8, 1, false);
 	m_ssao_base_tex.setMinFilter(GL_NEAREST);

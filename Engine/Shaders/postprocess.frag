@@ -16,7 +16,7 @@ void main()
 {
 	vec3 base_color = texture(input_texture, fs_in.uv).rgb;
 	vec3 bloom_color = texture(input_bloom_texture, fs_in.uv).rgb;
-
+	
 	base_color += bloom_color;
 	
 	vec3 mapped = vec3(1.0f) - exp(-base_color * exposure);

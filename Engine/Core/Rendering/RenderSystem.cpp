@@ -16,42 +16,6 @@
 
 int getUniformBlockSize(ShaderProgram& shader, const std::string& name);
 
-void PrintTextureRGBA16F(GLuint textureID, int width, int height)
-{
-	// Привязать текстуру
-	glBindTexture(GL_TEXTURE_2D, textureID);
-
-	// Выделить память под данные (4 float на пиксель)
-	std::vector<float> pixels(width * height * 4); // RGBA
-
-	// Считать данные из текстуры
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, pixels.data());
-
-	// Вывод в консоль
-	for (int y = 0; y < height; ++y)
-	{
-		for (int x = 0; x < width; ++x)
-		{
-			int	  i = (y * width + x) * 4;
-			float r = pixels[i + 0];
-			float g = pixels[i + 1];
-			float b = pixels[i + 2];
-			float a = pixels[i + 3];
-
-			// Отформатированный вывод
-			std::cout << "("
-					  << r << ", "
-					  << g << ", "
-					  << b << ", "
-					  << a << ") ";
-		}
-		std::cout << std::endl;
-	}
-
-	// Отключить текстуру (по желанию)
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
 bool RenderSystem::init()
 {
 	if (!gladLoadGLLoader(rcast<GLADloadproc>(glfwGetProcAddress)))

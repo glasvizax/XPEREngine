@@ -75,7 +75,8 @@ void main()
 		occlusion += (actual_depth_view >= sample_view.z + bias ? 1.0 : 0.0) * range_check;  
 	}
 
-	float final = 1.0f - (occlusion / KERNEL_SIZE);  
+	float oc = (occlusion / KERNEL_SIZE);
+	float final = 1.0f - oc + beyond_count * oc;  
 
 	FragColor = pow(final, power);
 

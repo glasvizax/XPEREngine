@@ -62,9 +62,9 @@ void main()
     + point_lights[current_light_index].linear * d 
     + point_lights[current_light_index].quadratic * (d * d));   
         
-    float reverse_shadow = 1.0f - calculateShadow(fragment_position, point_lights[current_light_index].position);
+    float shadow = 1.0f - calculateShadow(fragment_position, point_lights[current_light_index].position);
 
-    vec3 result = (diffuse + specular) * reverse_shadow * color * attenuation;
+    vec3 result = (diffuse + specular) * shadow * color * attenuation;
 
     FragColor = vec4(result, 1.0f);
 }
@@ -102,3 +102,6 @@ float calculateShadow(vec3 fragment_position, vec3 point_light_position)
 
 	return shadow / float(samples);
 }
+
+
+
