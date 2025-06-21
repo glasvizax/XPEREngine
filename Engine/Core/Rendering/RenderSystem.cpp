@@ -40,7 +40,7 @@ bool RenderSystem::init()
 
 	m_shader_program_manager.init();
 
-	Engine& engine = Engine::getInstance();
+	Engine&		   engine = Engine::getInstance();
 	WindowManager& wm = engine.getWindowManager();
 	m_resource_manager = &engine.getResourceManager();
 
@@ -49,8 +49,8 @@ bool RenderSystem::init()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	m_camera.setAspectRatio(scast<float>(window_size.x) / window_size.y);
-	m_camera.setPosition(glm::vec3(7.8f, 1.0f, -8.5f));
-	m_camera.rotateYaw(-160);
+	m_camera.setPosition(xm::vec3(7.8f, 1.0f, -8.5f));
+	m_camera.rotateY(-160);
 
 	initMatricesBuffer();
 	initLightsBuffer();
@@ -106,7 +106,7 @@ bool RenderSystem::init()
 	pl1.m_specular = glm::vec3(0.6f);
 	pl1.m_linear = 0.027f;
 	pl1.m_quadratic = 0.0028f;
-	
+
 	PointLight pl2;
 	pl2.m_position = glm::vec3(7.0f, 10.0f, 2.0f);
 	pl2.m_ambient = glm::vec3(0.1f);
@@ -114,7 +114,7 @@ bool RenderSystem::init()
 	pl2.m_specular = glm::vec3(0.3f);
 	pl2.m_linear = 0.027f;
 	pl2.m_quadratic = 0.0028f;
-	
+
 	addPointLight(pl1);
 	addPointLight(pl2);
 
@@ -149,19 +149,19 @@ void RenderSystem::updateMatrices()
 {
 	if (m_camera.isProjectionDirty())
 	{
-		m_matrices_buffer.fill(0, sizeof(glm::mat4), glm::value_ptr(m_camera.getProjectionMatrix()));
+		m_matrices_buffer.fill(0, sizeof(glm::mat4), xm::value_ptr(m_camera.getProjectionMatrix()));
 	}
 	if (m_camera.isViewDirty())
 	{
-		m_matrices_buffer.fill(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(m_camera.getViewMatrix()));
+		m_matrices_buffer.fill(sizeof(glm::mat4), sizeof(glm::mat4), xm::value_ptr(m_camera.getViewMatrix()));
 	}
 }
 
 void RenderSystem::initMatricesBuffer()
 {
 	m_matrices_buffer.init(sizeof(glm::mat4) * 2, 0);
-	m_matrices_buffer.fill(0, sizeof(glm::mat4), glm::value_ptr(m_camera.getProjectionMatrix()));
-	m_matrices_buffer.fill(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(m_camera.getViewMatrix()));
+	m_matrices_buffer.fill(0, sizeof(glm::mat4), xm::value_ptr(m_camera.getProjectionMatrix()));
+	m_matrices_buffer.fill(sizeof(glm::mat4), sizeof(glm::mat4), xm::value_ptr(m_camera.getViewMatrix()));
 }
 
 void RenderSystem::initLightsBuffer()
@@ -252,7 +252,7 @@ void RenderSystem::testInputH()
 
 void RenderSystem::testInputK()
 {
-	uint last = m_point_lights.size() - 1;
+	uint	  last = m_point_lights.size() - 1;
 	glm::vec3 diff = getPointLightDiffuse(last);
 	diff.x += 1.0f;
 	setPointLightDiffuse(last, diff);
@@ -311,8 +311,7 @@ void RenderSystem::setPointLightPosition(uint light_index, glm::vec3 new_positio
 	m_lights_buffer.fill(
 		light_index * sizeof(PointLight) + offsetof(PointLight, m_position),
 		member_size(PointLight, m_position),
-		&new_position
-	);
+		&new_position);
 }
 
 glm::vec3 RenderSystem::getPointLightPosition(uint light_index)
@@ -337,8 +336,7 @@ void RenderSystem::setPointLightDiffuse(uint light_index, glm::vec3 new_diffuse)
 	m_lights_buffer.fill(
 		light_index * sizeof(PointLight) + offsetof(PointLight, m_diffuse),
 		member_size(PointLight, m_diffuse),
-		&new_diffuse
-	);
+		&new_diffuse);
 }
 
 glm::vec3 RenderSystem::getPointLightDiffuse(uint light_index)
@@ -361,10 +359,9 @@ void RenderSystem::setPointLightSpecular(uint light_index, glm::vec3 new_specula
 
 	m_point_lights[light_index].m_specular = new_specular;
 	m_lights_buffer.fill(
-		light_index * sizeof(PointLight) + offsetof(PointLight, m_specular), 
-		member_size(PointLight, m_specular), 
-		&new_specular.r
-	);
+		light_index * sizeof(PointLight) + offsetof(PointLight, m_specular),
+		member_size(PointLight, m_specular),
+		&new_specular.r);
 }
 
 glm::vec3 RenderSystem::getPointLightSpecular(uint light_index)
@@ -389,8 +386,7 @@ void RenderSystem::setPointLightAmbient(uint light_index, glm::vec3 new_ambient)
 	m_lights_buffer.fill(
 		light_index * sizeof(PointLight) + offsetof(PointLight, m_ambient),
 		member_size(PointLight, m_ambient),
-		&new_ambient
-	);
+		&new_ambient);
 }
 
 glm::vec3 RenderSystem::getPointLightAmbient(uint light_index)

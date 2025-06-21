@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
+#include "xm/xm.h"
+
 class Camera
 {
 public:
@@ -11,11 +13,11 @@ public:
 	Camera(Camera&&) noexcept = delete;
 	Camera& operator=(Camera&&) noexcept = delete;
 
-	void rotatePitch(float degrees);
-	void rotateYaw(float degrees);
+	void rotateX(float degrees);
+	void rotateY(float degrees);
 
-	void move(glm::vec3 where);
-	void setPosition(glm::vec3 new_position);
+	void move(xm::vec3 where);
+	void setPosition(xm::vec3 new_position);
 
 	void setFovVertical(float fov);
 	void setAspectRatio(float aspect_ratio);
@@ -27,45 +29,39 @@ public:
 	float getNearPlane();
 	float getFarPlane();
 
-	glm::vec3 getLookVector();
-	glm::vec3 getRightVector();
-	glm::vec3 getUpVector();
+	xm::vec3 getLookVector();
+	xm::vec3 getRightVector();
+	xm::vec3 getUpVector();
 
-	glm::vec3 getPosition();
-		
-	glm::mat4 getViewMatrix();
-	glm::mat4 getProjectionMatrix();
+	xm::vec3 getPosition();
 
-	bool isViewDirty() 
-	{
-		return m_view_dirty;
-	}
+	xm::mat4			 getViewMatrix();
+	xm::matrix<4, float> getProjectionMatrix();
 
-	bool isProjectionDirty()
-	{
-		return m_proj_dirty;
-	}
+	bool isViewDirty();
+
+	bool isProjectionDirty();
 
 private:
-	float m_yaw = -90.0f;
-	float m_pitch = 0.0f;
-
 	float m_aspect_ratio = 1.77f;
 	float m_fov = 60.0f;
 
 	float m_near = 0.1f;
 	float m_far = 2200.0f;
 
-	glm::vec3 m_position{ 0.0f, 0.0f, 0.0f };
+	xm::vec3 m_position{ 0.0f, 0.0f, 0.0f };
 
-	glm::vec3 m_look_dir{ 0.0f, 0.0f, -1.0f };
-	glm::vec3 m_right{ 1.0f, 0.0f, 0.0f };
-	glm::vec3 m_up{ 0.0f, 1.0f, 0.0f };
+	xm::vec3 m_look_dir{ 0.0f, 0.0f, -1.0f };
+	xm::vec3 m_right{ 1.0f, 0.0f, 0.0f };
+	xm::vec3 m_up{ 0.0f, 1.0f, 0.0f };
 
-	glm::vec3 m_world_up{ 0.0f, 1.0f, 0.0f };
+	xm::vec3 m_world_up{ 0.0f, 1.0f, 0.0f };
 
-	glm::mat4 view;
-	glm::mat4 projection;
+	xm::mat4 m_view;
+	xm::mat4 m_projection;
+
+	xm::vec3 m_rotation{ 0.0f, 0.0f, 0.0f };
+	xm::quat m_quat_rotatiom;
 
 	bool m_view_dirty = true;
 	bool m_proj_dirty = true;

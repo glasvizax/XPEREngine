@@ -55,6 +55,7 @@ target_include_directories(Engine
 	PUBLIC "${GLAD_SOURCE_DIR}/include"
 	PUBLIC ${STB_IMAGE_SOURCE_DIR}
 	PUBLIC ${GLM_SOURCE_DIR}
+	PUBLIC ${XM_SOURCE_DIR}
 	PUBLIC "${ASSIMP_INSTALL_DIR}/include"
 )
 

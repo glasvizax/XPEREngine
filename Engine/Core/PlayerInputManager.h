@@ -22,12 +22,12 @@ private:
 
 	void destroy();
 
-	Camera* m_camera = nullptr;
+	Camera*		  m_camera = nullptr;
 	RenderSystem* m_render_system = nullptr;
 
 	float m_speed = 5.0f;
-	float m_sensitivity_vertical = 3.0f;
-	float m_sensitivity_horizontal = 3.0f;
+	float m_sensitivity_vertical = 4.0f;
+	float m_sensitivity_horizontal = 4.0f;
 
 	bool m_forward;
 	bool m_backward;
@@ -51,6 +51,6 @@ private:
 	bool		m_fisrt_cursor_moving;
 	float		m_xpos_last;
 	float		m_ypos_last;
-	float		m_xoffset;
-	float		m_yoffset;
+	float		m_xoffset = 0.0;
+	float		m_yoffset = 0.0;
 };

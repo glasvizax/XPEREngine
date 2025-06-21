@@ -7,6 +7,8 @@
 #include "InputManager.h"
 #include "Camera.h"
 
+#include "xm/xm.h"
+
 bool PlayerInputManager::init()
 {
 	Engine& engine = Engine::getInstance();
@@ -26,7 +28,7 @@ bool PlayerInputManager::init()
 	input_manager.regKeyCallback(PlayerInputManager::moveBackwardStop, GLFW_KEY_S, NULL, GLFW_RELEASE);
 	input_manager.regKeyCallback(PlayerInputManager::moveRightStop, GLFW_KEY_D, NULL, GLFW_RELEASE);
 	input_manager.regKeyCallback(PlayerInputManager::moveLeftStop, GLFW_KEY_A, NULL, GLFW_RELEASE);
-	
+
 	input_manager.regCursorPosCallback(PlayerInputManager::cursorMoving);
 
 	input_manager.regKeyCallback(PlayerInputManager::testK, GLFW_KEY_K, NULL, GLFW_PRESS);
@@ -41,46 +43,45 @@ void PlayerInputManager::update(float dt)
 {
 	if (m_forward)
 	{
-		glm::vec3 move_dir = m_camera->getLookVector();
-		glm::vec3 move = move_dir * m_speed * dt;
+		xm::vec3 move_dir = m_camera->getLookVector();
+		xm::vec3 move = move_dir * m_speed * dt;
 		m_camera->move(move);
 	}
 
 	if (m_backward)
 	{
-		glm::vec3 move_dir = -m_camera->getLookVector();
-		glm::vec3 move = move_dir * m_speed * dt;
+		xm::vec3 move_dir = -m_camera->getLookVector();
+		xm::vec3 move = move_dir * m_speed * dt;
 		m_camera->move(move);
 	}
 
 	if (m_right)
 	{
-		glm::vec3 move_dir = m_camera->getRightVector();
-		glm::vec3 move = move_dir * m_speed * dt;
+		xm::vec3 move_dir = m_camera->getRightVector();
+		xm::vec3 move = move_dir * m_speed * dt;
 		m_camera->move(move);
 	}
 
 	if (m_left)
 	{
-		glm::vec3 move_dir = -m_camera->getRightVector();
-		glm::vec3 move = move_dir * m_speed * dt;
+		xm::vec3 move_dir = -m_camera->getRightVector();
+		xm::vec3 move = move_dir * m_speed * dt;
 		m_camera->move(move);
 	}
 
 	if (m_xoffset)
 	{
 		float yaw = m_xoffset * m_sensitivity_vertical * dt;
-		m_camera->rotateYaw(yaw);
+		m_camera->rotateY(yaw);
 		m_xoffset = 0.0f;
 	}
 
 	if (m_yoffset)
 	{
 		float pitch = m_yoffset * m_sensitivity_horizontal * dt;
-		m_camera->rotatePitch(pitch);
+		m_camera->rotateX(pitch);
 		m_yoffset = 0.0f;
 	}
-
 }
 
 void PlayerInputManager::destroy()
@@ -98,7 +99,7 @@ void PlayerInputManager::destroy()
 	input_manager.unregKeyCallback(GLFW_KEY_S, NULL, GLFW_RELEASE);
 	input_manager.unregKeyCallback(GLFW_KEY_D, NULL, GLFW_RELEASE);
 	input_manager.unregKeyCallback(GLFW_KEY_A, NULL, GLFW_RELEASE);
-	
+
 	input_manager.unregKeyCallback(GLFW_KEY_K, NULL, GLFW_PRESS);
 	input_manager.unregKeyCallback(GLFW_KEY_H, NULL, GLFW_PRESS);
 
@@ -185,7 +186,7 @@ void PlayerInputManager::cursorMoving(void* ptr, double xpos, double ypos)
 	}
 	else
 	{
-		self->m_xoffset = xpos - self->m_xpos_last;
+		self->m_xoffset = self->m_xpos_last - xpos;
 		self->m_yoffset = self->m_ypos_last - ypos;
 	}
 	self->m_xpos_last = xpos;

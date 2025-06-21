@@ -14,6 +14,7 @@
 #include "UniformBuffer.h"
 #include "RenderStages.h"
 #include "Defines.h"
+#include "xm/misc_helpers.h"
 
 class ResourceManager;
 
@@ -73,7 +74,7 @@ private:
 	Entity m_root_entity;
 
 	ShaderProgramManager m_shader_program_manager;
-	Camera m_camera;
+	Camera				 m_camera;
 
 	Cubemap m_daylight;
 	Cubemap m_night;

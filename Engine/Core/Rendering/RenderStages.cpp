@@ -115,14 +115,13 @@ void GeometryStage::run()
 }
 
 void LightingSSAOStage::init(
-	ShaderProgram* ssao_base_sp, 
-	ShaderProgram* ssao_blur_sp, 
-	GeometryStage* geometry_stage, 
-	VertexArray* screen_quad, 
-	int power, 
-	float radius_factor, 
-	int blur_iterations
-)
+	ShaderProgram* ssao_base_sp,
+	ShaderProgram* ssao_blur_sp,
+	GeometryStage* geometry_stage,
+	VertexArray*   screen_quad,
+	int			   power,
+	float		   radius_factor,
+	int			   blur_iterations)
 {
 	m_ssao_base_sp = ssao_base_sp;
 	m_ssao_blur_sp = ssao_blur_sp;
@@ -168,13 +167,11 @@ void LightingSSAOStage::init(
 	m_ssao_noise_tex.init(noize_tex_size, noize_tex_size, GL_RGBA16F, 3, false);
 	m_ssao_noise_tex.loadData(GL_FLOAT, GL_RGB, ssao_noise.data());
 
-
-	
 	m_ssao_noise_tex.setMinFilter(GL_NEAREST);
 	m_ssao_noise_tex.setMagFilter(GL_NEAREST);
 	m_ssao_noise_tex.setWrapS(GL_REPEAT);
 	m_ssao_noise_tex.setWrapT(GL_REPEAT);
-	
+
 	glm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
 
 	m_ssao_base_tex.init(size.x, size.y, GL_R8, 1, false);
@@ -324,7 +321,7 @@ void LightingShadowMappingStage::run()
 		shadow_tranforms[3] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 		shadow_tranforms[4] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 		shadow_tranforms[5] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-		
+
 		m_depthmap_fb.attachCubemap(m_output_depthmaps[i], GL_DEPTH_ATTACHMENT);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -336,7 +333,7 @@ void LightingShadowMappingStage::run()
 	glDisable(GL_CULL_FACE);
 	glDepthFunc(GL_LESS);
 	glDisable(GL_DEPTH_TEST);
-	
+
 	glViewport(0u, 0u, m_main_width, m_main_height);
 }
 
@@ -349,7 +346,7 @@ void LightingFinalStage::init(ShaderProgram* diffspec_sp, LightingAmbientStage* 
 	m_input_depthmaps = &shadow_mapping_stage->m_output_depthmaps;
 	m_point_lights = point_lights;
 	m_diffspec_sp->set("depthmap_far", shadow_mapping_stage->m_depthmap_far);
-	
+
 	m_light_volume = generateSphere(1.0f, 18, 9);
 }
 
@@ -363,7 +360,7 @@ void LightingFinalStage::run()
 	glCullFace(GL_FRONT);
 
 	m_diffspec_sp->use();
-	m_diffspec_sp->setVec("camera_position", m_camera->getPosition());
+	m_diffspec_sp->setVec("camera_position", *reinterpret_cast<glm::vec3*>(&m_camera->getPosition()));
 	for (int i = 0; i < m_point_lights->size(); ++i)
 	{
 		PointLight& current_pl = m_point_lights->at(i);
@@ -374,7 +371,6 @@ void LightingFinalStage::run()
 		m_input_depthmaps->at(i).bind(DEPTHMAP_UNIT);
 		m_light_volume.draw();
 	}
-
 
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
@@ -423,7 +419,7 @@ void SkyboxStage::init(ShaderProgram* skybox_sp, ForwardStage* forward_stage, Ge
 	m_skybox_va.init();
 	m_skybox_va.attachArrayBuffer(sizeof(g_skybox_vertices), g_skybox_vertices);
 	m_skybox_va.enableAttribute(0, 3, 3, 0);
-	
+
 	m_skybox_cm = skybox_cm;
 }
 
@@ -438,7 +434,7 @@ void SkyboxStage::run()
 	m_skybox_fb.attachTexture2D(*m_output_tex);
 
 	m_skybox_sp->use();
-	m_skybox_sp->setMat("skybox_view", glm::mat4(glm::mat3(m_camera->getViewMatrix())));
+	m_skybox_sp->setMat("skybox_view", glm::mat4(glm::mat3(*reinterpret_cast<glm::mat4*>(&m_camera->getViewMatrix()))));
 
 	m_skybox_cm->bind(SKYBOX_UNIT);
 	m_skybox_va.bind();
@@ -498,7 +494,7 @@ void BloomStage::run()
 	uint amount = 27u;
 
 	m_blur_pingpong_fbs[horizontal].bind();
-	glClear(GL_COLOR_BUFFER_BIT); 
+	glClear(GL_COLOR_BUFFER_BIT);
 	m_blur_sp->set("horizontal", horizontal);
 	m_brightness_extraction_tex.bind(POSTPROCESS_BLOOM_INPUT_UNIT);
 	glDrawArrays(GL_TRIANGLES, 0, 6);

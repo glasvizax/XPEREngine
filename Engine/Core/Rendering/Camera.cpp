@@ -5,38 +5,40 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "Debug.h"
+#include "xm/math_helpers.h"
+#include "xm/quaternion.h"
 
-void Camera::rotatePitch(float degrees)
+void Camera::rotateX(float degrees)
 {
-	m_pitch += degrees;
+	m_rotation.x += degrees;
 
-	if (m_pitch > 89.0f)
+	if (m_rotation.x > 89.0f)
 	{
-		m_pitch = 89.0f;
+		m_rotation.x = 89.0f;
 	}
-	if (m_pitch < -89.0f)
+	if (m_rotation.x < -89.0f)
 	{
-		m_pitch = -89.0f;
+		m_rotation.x = -89.0f;
 	}
 
 	updateVectors();
 	m_view_dirty = true;
 }
 
-void Camera::rotateYaw(float degrees)
+void Camera::rotateY(float degrees)
 {
-	m_yaw += degrees;
+	m_rotation.y += degrees;
 	updateVectors();
 	m_view_dirty = true;
 }
 
-void Camera::move(glm::vec3 where)
+void Camera::move(xm::vec3 where)
 {
 	m_position += where;
 	m_view_dirty = true;
 }
 
-void Camera::setPosition(glm::vec3 new_position)
+void Camera::setPosition(xm::vec3 new_position)
 {
 	m_position = new_position;
 	m_view_dirty = true;
@@ -86,68 +88,66 @@ float Camera::getFarPlane()
 	return m_far;
 }
 
-glm::vec3 Camera::getLookVector()
+xm::vec3 Camera::getLookVector()
 {
 	return m_look_dir;
 }
 
-glm::vec3 Camera::getRightVector()
+xm::vec3 Camera::getRightVector()
 {
 	return m_right;
 }
 
-glm::vec3 Camera::getUpVector()
+xm::vec3 Camera::getUpVector()
 {
 	return m_up;
 }
 
-glm::vec3 Camera::getPosition()
+xm::vec3 Camera::getPosition()
 {
 	return m_position;
 }
 
-glm::mat4 Camera::getViewMatrix()
+xm::mat4 Camera::getViewMatrix()
 {
 	if (m_view_dirty)
 	{
-		view = glm::lookAt(m_position, m_position + m_look_dir, m_up);
+		std::tie(m_view, std::ignore, std::ignore) = xm::lookAt(m_position, m_look_dir, m_up);
 		m_view_dirty = false;
 	}
-	
-	return view;
+
+	return m_view;
 }
 
-glm::mat4 Camera::getProjectionMatrix()
+xm::matrix<4, float> Camera::getProjectionMatrix()
 {
 	if (m_proj_dirty)
 	{
-		projection = glm::perspective(glm::radians(m_fov), m_aspect_ratio, m_near, m_far);
+		m_projection = xm::perspective(xm::to_radians(m_fov), m_aspect_ratio, m_near, m_far);
 		m_proj_dirty = false;
 	}
 
-	return projection;
+	return m_projection;
+}
+
+bool Camera::isViewDirty()
+{
+	return m_view_dirty;
+}
+
+bool Camera::isProjectionDirty()
+{
+	return m_proj_dirty;
 }
 
 void Camera::updateVectors()
 {
-	float cos_yaw = glm::cos(glm::radians(m_yaw));
-	float cos_pitch = glm::cos(glm::radians(m_pitch));
+	xm::quat quat_x = xm::quat_from_euler_x(xm::to_radians(m_rotation.x));
+	xm::quat quat_y = xm::quat_from_euler_y(xm::to_radians(m_rotation.y));
+	xm::quat res_quat = quat_y * quat_x;
+	xm::mat3 res_coords = xm::mat3_cast(res_quat);
 
-	//float sin_yaw = glm::sqrt((1 - glm::pow(cos_yaw, 2)));
-	//float sin_pitch = glm::sqrt((1 - glm::pow(cos_pitch, 2)));
-
-
-
-
-	float sin_yaw = glm::sin(glm::radians(m_yaw));
-	float sin_pitch = glm::sin(glm::radians(m_pitch));
-
-	m_look_dir.x = cos_yaw * cos_pitch;
-	m_look_dir.y = sin_pitch;
-	m_look_dir.z = sin_yaw * cos_pitch;
-
-	m_look_dir = glm::normalize(m_look_dir);
-
-	m_right = glm::normalize(glm::cross(m_look_dir, m_world_up));
-	m_up = glm::normalize(glm::cross(m_right, m_look_dir));
+	m_right = res_coords.a;
+	// m_up = res_coords.b;
+	m_look_dir = -res_coords.c;
 }
