@@ -71,15 +71,15 @@ void PlayerInputManager::update(float dt)
 
 	if (m_xoffset)
 	{
-		float yaw = m_xoffset * m_sensitivity_vertical * dt;
-		m_camera->rotateY(yaw);
+		float y = m_xoffset * m_sensitivity_vertical * dt;
+		m_camera->rotateY(y);
 		m_xoffset = 0.0f;
 	}
 
 	if (m_yoffset)
 	{
-		float pitch = m_yoffset * m_sensitivity_horizontal * dt;
-		m_camera->rotateX(pitch);
+		float x = m_yoffset * m_sensitivity_horizontal * dt;
+		m_camera->rotateX(-x);
 		m_yoffset = 0.0f;
 	}
 }
@@ -187,7 +187,7 @@ void PlayerInputManager::cursorMoving(void* ptr, double xpos, double ypos)
 	else
 	{
 		self->m_xoffset = self->m_xpos_last - xpos;
-		self->m_yoffset = self->m_ypos_last - ypos;
+		self->m_yoffset = ypos - self->m_ypos_last;
 	}
 	self->m_xpos_last = xpos;
 	self->m_ypos_last = ypos;

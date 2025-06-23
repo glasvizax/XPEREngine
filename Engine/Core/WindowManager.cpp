@@ -23,10 +23,9 @@ bool WindowManager::init(const std::string& title, uint width, uint height, bool
 
 	LOG_INFO_F("GLFW Version: %s", glfwGetVersionString());
 
-	glfwSetErrorCallback([](int error_code, const char* description)
-		{ 
-			LOG_ERROR_F("GLFW Error: Error Code: %d, Description: %s", error_code, description);
-		});
+	glfwSetErrorCallback([](int error_code, const char* description) {
+		LOG_ERROR_F("GLFW Error: Error Code: %d, Description: %s", error_code, description);
+	});
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_CONTEXT_VERSION_MAJOR);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_CONTEXT_VERSION_MINOR);
@@ -88,7 +87,7 @@ bool WindowManager::initAsChild(const std::string& title, void* parent_handle)
 	glfwSetErrorCallback([](int error_code, const char* description) {
 		LOG_ERROR_F("GLFW Error: Error Code: %d, Description: %s", error_code, description);
 	});
-	
+
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_CONTEXT_VERSION_MAJOR);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_CONTEXT_VERSION_MINOR);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -137,7 +136,7 @@ bool WindowManager::initAsChild(const std::string& title, void* parent_handle)
 		int w = rect.right - rect.left;
 		int h = rect.bottom - rect.top;
 
-		//MoveWindow(current_hwnd, 0, 0, w, h, TRUE);
+		// MoveWindow(current_hwnd, 0, 0, w, h, TRUE);
 		glfwSetWindowSize(m_window, w, h);
 	}
 
@@ -167,7 +166,7 @@ void WindowManager::disableCursor()
 	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
-void WindowManager::setVsync(bool vsync) 
+void WindowManager::setVsync(bool vsync)
 {
 	m_vsync = vsync;
 	glfwSwapInterval(static_cast<int>(vsync));
@@ -183,14 +182,14 @@ bool WindowManager::isShouldClose() const
 	return glfwWindowShouldClose(m_window);
 }
 
-glm::ivec2 WindowManager::getWindowSize() const
+xm::ivec2 WindowManager::getWindowSize() const
 {
-	glm::ivec2 size;
+	xm::ivec2 size;
 	glfwGetWindowSize(m_window, &size.x, &size.y);
 	return size;
 }
 
-glm::uvec2 WindowManager::getFramebufferSize() const
+xm::ivec2 WindowManager::getFramebufferSize() const
 {
 	int width, height;
 	glfwGetFramebufferSize(m_window, &width, &height);
@@ -198,9 +197,9 @@ glm::uvec2 WindowManager::getFramebufferSize() const
 	return { width, height };
 }
 
-glm::dvec2 WindowManager::getCursorPos()
+xm::dvec2 WindowManager::getCursorPos()
 {
-	glm::dvec2 pos;
+	xm::dvec2 pos;
 	glfwGetCursorPos(m_window, &pos.x, &pos.y);
 	return pos;
 }

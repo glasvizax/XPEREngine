@@ -3,10 +3,10 @@
 #include <mutex>
 #include <thread>
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "Mesh.h"
 #include "Material.h"
+
+#include "xm/xm.h"
 
 template <typename MaterialClass>
 struct ModelEntry
@@ -42,9 +42,9 @@ struct Model
 
 	void syncPushMeshDSNH(ModelEntry<MaterialDSNH>& entry);
 
-	void draw(const glm::mat4& model);
+	void draw(const xm::mat4& model);
 
-	void drawCustom(const glm::mat4 model, ShaderProgram* custom_sp);
+	void drawCustom(const xm::mat4 model, ShaderProgram* custom_sp);
 
 	std::vector<ModelEntry<MaterialColor>> m_meshes_color;
 	std::vector<ModelEntry<MaterialD>>	   m_meshes_d;
@@ -55,7 +55,6 @@ struct Model
 	std::vector<ModelEntry<MaterialDSNH>>  m_meshes_dsnh;
 
 private:
-
 	std::mutex m_color_mtx;
 	std::mutex m_d_mtx;
 	std::mutex m_dn_mtx;

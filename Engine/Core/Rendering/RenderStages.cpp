@@ -2,15 +2,13 @@
 
 #include <random>
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/compatibility.hpp>
-#include <glm/gtc/constants.hpp>
-
 #include "ResourceManager.h"
 #include "Entity.h"
 #include "Mesh.h"
 #include "Texture.h"
 #include "Camera.h"
+
+#include "xm/math_helpers.h"
 
 const GLuint SKYBOX_UNIT = 5;
 const GLuint DEPTHMAP_UNIT = 6;
@@ -23,7 +21,7 @@ const GLuint SSAO_BLUR_UNIT = 12;
 const GLuint POSTPROCESS_INPUT_UNIT = 13;
 const GLuint POSTPROCESS_BLOOM_INPUT_UNIT = 14;
 
-const glm::mat4 IDENTICAL_MATRIX = glm::mat4(1.0f);
+const xm::mat4 IDENTICAL_MATRIX = xm::mat4(1.0f);
 
 float g_skybox_vertices[] = {
 	-1.0f, 1.0f, -1.0f,
@@ -129,26 +127,26 @@ void LightingSSAOStage::init(
 
 	std::uniform_real_distribution<float> random_floats(-1.0f, 1.0f);
 	std::default_random_engine			  generator;
-	std::vector<glm::vec3>				  ssao_kernel(KERNEL_SIZE);
+	std::vector<xm::vec3>				  ssao_kernel(KERNEL_SIZE);
 	for (size_t i = 0; i < KERNEL_SIZE; ++i)
 	{
-		ssao_kernel[i] = glm::vec3(
+		ssao_kernel[i] = xm::vec3(
 			random_floats(generator),
 			random_floats(generator),
 			(random_floats(generator) + 1.0f) * 0.5f);
 
-		ssao_kernel[i] = glm::normalize(ssao_kernel[i]);
+		ssao_kernel[i] = xm::normalize(ssao_kernel[i]);
 		ssao_kernel[i] *= (random_floats(generator) + 1.0f) * 0.5f;
 
 		float scale = static_cast<float>(i) / KERNEL_SIZE;
-		scale = glm::lerp(0.1f, 1.0f, scale * scale * scale);
+		scale = xm::lerp(0.1f, 1.0f, scale * scale * scale);
 		ssao_kernel[i] *= scale;
 	}
 
-	std::vector<glm::vec3> ssao_noise(NOISE_SIZE);
+	std::vector<xm::vec3> ssao_noise(NOISE_SIZE);
 	for (size_t i = 0; i < NOISE_SIZE; ++i)
 	{
-		ssao_noise[i] = glm::vec3(
+		ssao_noise[i] = xm::vec3(
 			random_floats(generator),
 			random_floats(generator),
 			0.0f);
@@ -172,7 +170,7 @@ void LightingSSAOStage::init(
 	m_ssao_noise_tex.setWrapS(GL_REPEAT);
 	m_ssao_noise_tex.setWrapT(GL_REPEAT);
 
-	glm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
+	xm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
 
 	m_ssao_base_tex.init(size.x, size.y, GL_R8, 1, false);
 	m_ssao_base_tex.setMinFilter(GL_NEAREST);
@@ -234,7 +232,7 @@ void LightingAmbientStage::init(ShaderProgram* ambient_sp, GeometryStage* geomet
 	m_screen_quad = screen_quad;
 	m_ambient_sp = ambient_sp;
 
-	glm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
+	glm::ivec2 size = *reinterpret_cast<glm::ivec2*>(&geometry_stage->m_output_diffuse_specular_tex.getSize());
 
 	m_output_ambient_tex.init(size.x, size.y, GL_RGBA16F, 4, false);
 
@@ -266,7 +264,7 @@ void LightingAmbientStage::setAmbientFactor(float ambient_factor)
 
 void LightingShadowMappingStage::init(ShaderProgram* depthmap_sp, GeometryStage* geometry_stage, int depthmap_size, float depthmap_near, float depthmap_far, std::vector<PointLight>* point_lights)
 {
-	glm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
+	xm::ivec2 size = geometry_stage->m_output_diffuse_specular_tex.getSize();
 
 	m_depthmap_sp = depthmap_sp;
 	m_main_height = size.x;
@@ -281,7 +279,7 @@ void LightingShadowMappingStage::init(ShaderProgram* depthmap_sp, GeometryStage*
 
 	m_depthmap_fb.init();
 
-	m_light_projection = glm::perspective(glm::half_pi<float>(), 1.0f, depthmap_near, depthmap_far);
+	m_light_projection = xm::perspective(static_cast<float>(xm::HALF_PI), 1.0f, depthmap_near, depthmap_far);
 }
 
 void LightingShadowMappingStage::run()
@@ -313,14 +311,14 @@ void LightingShadowMappingStage::run()
 	{
 		PointLight& current_pl = m_point_lights->at(i);
 
-		glm::mat4 shadow_tranforms[6];
-		glm::vec3 pl_position = current_pl.m_position;
-		shadow_tranforms[0] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-		shadow_tranforms[1] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-		shadow_tranforms[2] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		shadow_tranforms[3] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
-		shadow_tranforms[4] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-		shadow_tranforms[5] = m_light_projection * glm::lookAt(pl_position, pl_position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+		xm::mat4 shadow_tranforms[6];
+		xm::vec3 pl_position = current_pl.m_position;
+		shadow_tranforms[0] = m_light_projection * std::get<0>(xm::lookAt(pl_position, pl_position + xm::vec3(1.0f, 0.0f, 0.0f), xm::vec3(0.0f, -1.0f, 0.0f)));
+		shadow_tranforms[1] = m_light_projection * std::get<0>(xm::lookAt(pl_position, pl_position + xm::vec3(-1.0f, 0.0f, 0.0f), xm::vec3(0.0f, -1.0f, 0.0f)));
+		shadow_tranforms[2] = m_light_projection * std::get<0>(xm::lookAt(pl_position, pl_position + xm::vec3(0.0f, 1.0f, 0.0f), xm::vec3(0.0f, 0.0f, 1.0f)));
+		shadow_tranforms[3] = m_light_projection * std::get<0>(xm::lookAt(pl_position, pl_position + xm::vec3(0.0f, -1.0f, 0.0f), xm::vec3(0.0f, 0.0f, -1.0f)));
+		shadow_tranforms[4] = m_light_projection * std::get<0>(xm::lookAt(pl_position, pl_position + xm::vec3(0.0f, 0.0f, 1.0f), xm::vec3(0.0f, -1.0f, 0.0f)));
+		shadow_tranforms[5] = m_light_projection * std::get<0>(xm::lookAt(pl_position, pl_position + xm::vec3(0.0f, 0.0f, -1.0f), xm::vec3(0.0f, -1.0f, 0.0f)));
 
 		m_depthmap_fb.attachCubemap(m_output_depthmaps[i], GL_DEPTH_ATTACHMENT);
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -360,15 +358,15 @@ void LightingFinalStage::run()
 	glCullFace(GL_FRONT);
 
 	m_diffspec_sp->use();
-	m_diffspec_sp->setVec("camera_position", *reinterpret_cast<glm::vec3*>(&m_camera->getPosition()));
+	m_diffspec_sp->setVec("camera_position", m_camera->getPosition());
 	for (int i = 0; i < m_point_lights->size(); ++i)
 	{
-		PointLight& current_pl = m_point_lights->at(i);
-		glm::mat4	light_volume_model = glm::translate(IDENTICAL_MATRIX, current_pl.m_position);
-		light_volume_model = glm::scale(light_volume_model, glm::vec3(current_pl.m_radius));
+		PointLight& current_pl = (*m_point_lights)[i];
+		xm::mat4	light_volume_model = xm::translate(IDENTICAL_MATRIX, current_pl.m_position);
+		light_volume_model = xm::scale(light_volume_model, xm::vec3(current_pl.m_radius));
 		m_diffspec_sp->setMat("light_volume_model", light_volume_model);
 		m_diffspec_sp->set("current_light_index", i);
-		m_input_depthmaps->at(i).bind(DEPTHMAP_UNIT);
+		(*m_input_depthmaps)[i].bind(DEPTHMAP_UNIT);
 		m_light_volume.draw();
 	}
 
@@ -397,8 +395,8 @@ void ForwardStage::run()
 	for (int i = 0; i < m_point_lights->size(); ++i)
 	{
 		PointLight& current_pl = m_point_lights->at(i);
-		glm::mat4	model = glm::translate(IDENTICAL_MATRIX, current_pl.m_position);
-		model = glm::scale(model, glm::vec3(0.25f));
+		xm::mat4	model = xm::translate(xm::mat4(1.0f), current_pl.m_position);
+		model = xm::scale(model, xm::vec3(0.25f));
 		m_forward_color_sp->setMat("model", model);
 		m_forward_color_sp->setVec("material.color", current_pl.m_diffuse);
 		m_light_sphere.draw();
@@ -434,7 +432,10 @@ void SkyboxStage::run()
 	m_skybox_fb.attachTexture2D(*m_output_tex);
 
 	m_skybox_sp->use();
-	m_skybox_sp->setMat("skybox_view", glm::mat4(glm::mat3(*reinterpret_cast<glm::mat4*>(&m_camera->getViewMatrix()))));
+
+	xm::mat4 skybox_view = m_camera->getViewMatrix();
+	skybox_view.d = xm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	m_skybox_sp->setMat("skybox_view", skybox_view);
 
 	m_skybox_cm->bind(SKYBOX_UNIT);
 	m_skybox_va.bind();
@@ -462,7 +463,7 @@ void BloomStage::init(ShaderProgram* brightness_extraction, ShaderProgram* blur,
 
 	m_brightness_extraction_sp->set("threshold", threshold);
 
-	glm::ivec2 size = m_input_tex->getSize();
+	xm::ivec2 size = m_input_tex->getSize();
 	m_brightness_extraction_tex.init(size.x, size.y, GL_RGBA16F, 4, false);
 	m_brightness_extraction_tex.setWrapS(GL_CLAMP_TO_EDGE);
 	m_brightness_extraction_tex.setWrapT(GL_CLAMP_TO_EDGE);

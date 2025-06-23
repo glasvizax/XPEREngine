@@ -1,8 +1,5 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "ShaderProgram.h"
 #include "VertexArray.h"
 #include "Texture.h"
@@ -14,6 +11,8 @@
 #include "UniformBuffer.h"
 #include "RenderStages.h"
 #include "Defines.h"
+
+#include "xm/xm.h"
 #include "xm/misc_helpers.h"
 
 class ResourceManager;
@@ -41,17 +40,17 @@ public:
 	uint addPointLight(PointLight& point_light);
 	void deletePointLight(uint light_index);
 
-	void	  setPointLightPosition(uint light_index, glm::vec3 new_position);
-	glm::vec3 getPointLightPosition(uint light_index);
+	void	 setPointLightPosition(uint light_index, xm::vec3 new_position);
+	xm::vec3 getPointLightPosition(uint light_index);
 
-	void	  setPointLightDiffuse(uint light_index, glm::vec3 new_diffuse);
-	glm::vec3 getPointLightDiffuse(uint light_index);
+	void	 setPointLightDiffuse(uint light_index, xm::vec3 new_diffuse);
+	xm::vec3 getPointLightDiffuse(uint light_index);
 
-	void	  setPointLightSpecular(uint light_index, glm::vec3 new_specular);
-	glm::vec3 getPointLightSpecular(uint light_index);
+	void	 setPointLightSpecular(uint light_index, xm::vec3 new_specular);
+	xm::vec3 getPointLightSpecular(uint light_index);
 
-	void	  setPointLightAmbient(uint light_index, glm::vec3 new_ambient);
-	glm::vec3 getPointLightAmbient(uint light_index);
+	void	 setPointLightAmbient(uint light_index, xm::vec3 new_ambient);
+	xm::vec3 getPointLightAmbient(uint light_index);
 
 	void  setPointLightLinear(uint light_index, float new_linear);
 	float getPointLightLinear(uint light_index);

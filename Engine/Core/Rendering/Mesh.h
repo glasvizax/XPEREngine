@@ -13,21 +13,19 @@
 
 struct Vertex
 {
-	glm::vec3 m_position;
-	glm::vec3 m_normal;
-	glm::vec2 m_uv;
+	xm::vec3 m_position;
+	xm::vec3 m_normal;
+	xm::vec2 m_uv;
 };
-
 
 struct VertexTB
 {
-	glm::vec3 m_position;
-	glm::vec3 m_normal;
-	glm::vec2 m_uv;
-	glm::vec3 m_tangent;
-	glm::vec3 m_bitangent;
+	xm::vec3 m_position;
+	xm::vec3 m_normal;
+	xm::vec2 m_uv;
+	xm::vec3 m_tangent;
+	xm::vec3 m_bitangent;
 };
-
 
 struct Mesh
 {
@@ -37,10 +35,10 @@ struct Mesh
 	~Mesh();
 
 public:
-	template <typename VertexType> 
+	template <typename VertexType>
 	Mesh(const std::vector<VertexType>& vertices);
 
-	template <typename VertexType> 
+	template <typename VertexType>
 	Mesh(const std::vector<VertexType>& vertices, const std::vector<uint>& indices);
 
 	Mesh(const Mesh&) = delete;
@@ -54,7 +52,6 @@ public:
 	void clear();
 
 private:
-
 	GLsizei m_vertices_count = 0;
 	GLsizei m_indices_count = 0;
 

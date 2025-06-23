@@ -8,6 +8,8 @@
 #include "ShaderProgram.h"
 #include "Texture.h"
 
+#include "xm/xm.h"
+
 struct MP_FloatScalar
 {
 	MP_FloatScalar(const std::string& name)
@@ -26,8 +28,8 @@ struct MP_FloatVector
 {
 	MP_FloatVector(const std::string& name)
 		: m_param_name(name) {}
-	
-	glm::vec3 m_vector;
+
+	xm::vec3 m_vector;
 
 	void apply(ShaderProgram* program)
 	{
@@ -42,7 +44,7 @@ struct MP_Texture
 {
 	MP_Texture(const std::string& name)
 		: m_param_name(name) {}
-	
+
 	void apply(ShaderProgram* program)
 	{
 		if (m_first)
@@ -56,9 +58,8 @@ struct MP_Texture
 	}
 
 	std::string m_param_name = "material.diffuse";
-	Texture* m_texture;
+	Texture*	m_texture;
 
 private:
-	bool	 m_first = true;
+	bool m_first = true;
 };
-

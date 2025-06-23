@@ -1,7 +1,7 @@
 #include "Texture.h"
 
 #ifdef _DEBUG
-static uint		   count = 0;
+static uint count = 0;
 
 Texture::Texture(const std::string& debug_name)
 	: m_debug_name(debug_name) {}
@@ -9,9 +9,9 @@ Texture::Texture(const std::string& debug_name)
 Texture::Texture()
 	: m_debug_name("Texture" + std::to_string(count)) {}
 
-#else 
+#else
 
-Texture::Texture(){}
+Texture::Texture() {}
 
 #endif // _DEBUG
 
@@ -24,16 +24,16 @@ Texture::~Texture()
 
 Texture::Texture(Texture&& other) noexcept
 {
-		this->m_channels_num = other.m_channels_num;
+	this->m_channels_num = other.m_channels_num;
 
 #ifdef _DEBUG
-		this->m_debug_name = std::move(other.m_debug_name);
+	this->m_debug_name = std::move(other.m_debug_name);
 #endif
-		this->m_has_mipmap = other.m_has_mipmap;
-		this->m_id = other.m_id;
-		other.m_id = 0;
-		this->m_height = other.m_height;
-		this->m_width = other.m_width;
+	this->m_has_mipmap = other.m_has_mipmap;
+	this->m_id = other.m_id;
+	other.m_id = 0;
+	this->m_height = other.m_height;
+	this->m_width = other.m_width;
 }
 
 Texture& Texture::operator=(Texture&& other) noexcept
@@ -71,7 +71,7 @@ void Texture::init(int width, int height, GLint internal_format, uint channels_n
 	{
 		glTextureStorage2D(m_id, 1, internal_format, width, height);
 	}
-	
+
 	checkGeneralErrorGL(m_debug_name);
 
 	glTextureParameteri(m_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -88,11 +88,11 @@ void Texture::init(int width, int height, GLint internal_format, uint channels_n
 	m_channels_num = channels_num;
 }
 
-void Texture::loadData(GLenum type, GLenum format, const void* data, glm::vec2 start_factors, glm::vec2 end_factors)
+void Texture::loadData(GLenum type, GLenum format, const void* data, xm::vec2 start_factors, xm::vec2 end_factors)
 {
 	if (!m_id)
 	{
-		LOG_ERROR_F("[%s] : Texture not initialized", m_debug_name.c_str());		
+		LOG_ERROR_F("[%s] : Texture not initialized", m_debug_name.c_str());
 		return;
 	}
 	if (!data)
@@ -105,7 +105,7 @@ void Texture::loadData(GLenum type, GLenum format, const void* data, glm::vec2 s
 	int yoffset = static_cast<int>(m_height * start_factors.y);
 	int width = static_cast<int>(m_width * (end_factors.x - start_factors.x));
 	int height = static_cast<int>(m_height * (end_factors.y - start_factors.y));
-	
+
 	if (xoffset < 0 || yoffset < 0 || width <= 0 || height <= 0 || xoffset + width > m_width || yoffset + height > m_height)
 	{
 		LOG_ERROR_F("[%s] : loadData region is out of bounds", m_debug_name.c_str());
@@ -214,4 +214,3 @@ void Texture::clear()
 		glDeleteTextures(1, &m_id);
 	}
 }
-

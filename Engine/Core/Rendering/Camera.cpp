@@ -1,10 +1,6 @@
 #include "Camera.h"
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/string_cast.hpp>
-
 #include "Debug.h"
+
 #include "xm/math_helpers.h"
 #include "xm/quaternion.h"
 
@@ -112,7 +108,7 @@ xm::mat4 Camera::getViewMatrix()
 {
 	if (m_view_dirty)
 	{
-		std::tie(m_view, std::ignore, std::ignore) = xm::lookAt(m_position, m_look_dir, m_up);
+		m_view = xm::lookAtRH_EXT(m_position, m_look_dir, m_up, m_right);
 		m_view_dirty = false;
 	}
 
@@ -142,12 +138,9 @@ bool Camera::isProjectionDirty()
 
 void Camera::updateVectors()
 {
-	xm::quat quat_x = xm::quat_from_euler_x(xm::to_radians(m_rotation.x));
-	xm::quat quat_y = xm::quat_from_euler_y(xm::to_radians(m_rotation.y));
-	xm::quat res_quat = quat_y * quat_x;
-	xm::mat3 res_coords = xm::mat3_cast(res_quat);
+	xm::mat3 res_coords = xm::eulRotY<3>(xm::to_radians(m_rotation.y)) * xm::eulRotX<3>(xm::to_radians(m_rotation.x));
 
 	m_right = res_coords.a;
-	// m_up = res_coords.b;
+	m_up = res_coords.b;
 	m_look_dir = -res_coords.c;
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include <glm/glm.hpp>
 
 #include "xm/xm.h"
 
@@ -51,11 +50,9 @@ private:
 
 	xm::vec3 m_position{ 0.0f, 0.0f, 0.0f };
 
-	xm::vec3 m_look_dir{ 0.0f, 0.0f, -1.0f };
+	xm::vec3 m_look_dir{ 0.0f, 0.0f, 1.0f };
 	xm::vec3 m_right{ 1.0f, 0.0f, 0.0f };
 	xm::vec3 m_up{ 0.0f, 1.0f, 0.0f };
-
-	xm::vec3 m_world_up{ 0.0f, 1.0f, 0.0f };
 
 	xm::mat4 m_view;
 	xm::mat4 m_projection;

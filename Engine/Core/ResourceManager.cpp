@@ -6,14 +6,15 @@
 #include <mutex>
 #include <execution>
 #include <stb_image.h>
-#define ASSIMP_ENABLE_THREAD_CHECKS 1
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/string_cast.hpp>
+
+#define ASSIMP_ENABLE_THREAD_CHECKS 1
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include "ShaderProgram.h"
 #include "Debug.h"
@@ -24,6 +25,8 @@
 
 #include "Engine.h"
 #include "RenderSystem.h"
+
+#include "xm/xm.h"
 
 using namespace std::string_literals;
 
@@ -174,7 +177,7 @@ bool ResourceManager::initLoadCubemap(const std::vector<std::string>& face_files
 
 	cubemap.init(width, internal_format, channels, generate_mipmap);
 
-	glm::vec2 sf(0.0f, 0.0f), ef(1.0f, 1.0f);
+	xm::vec2 sf(0.0f, 0.0f), ef(1.0f, 1.0f);
 	for (GLuint face = 0; face < 6; ++face)
 	{
 		cubemap.loadFaceData(face, GL_UNSIGNED_BYTE, format, face_data[face], sf, ef);
@@ -247,23 +250,25 @@ void ResourceManager::processNode(aiNode* node, const aiScene* scene, Entity* pa
 	Entity* next_parent = parent;
 	if (node->mNumMeshes > 0)
 	{
-		glm::vec3 scale, translation, _skew;
-		glm::quat rotation;
+		glm::vec3 scale(1.0f), translation(0.0f), _skew;
+		glm::quat rotation(1.0f, 0.0f, 0.0f, 0.0f);
 		glm::vec4 _perspective;
 
 		glm::mat4 transform_matrix = assimpToGLMMat4(node->mTransformation);
 		if (glm::determinant(transform_matrix) < 0.001f)
 		{
 			LOG_WARNING_S("Invalid node transformation matrix");
-			transform_matrix = glm::mat4(1.0f); // Идентичная матрица по умолчанию
+			transform_matrix = glm::mat4(1.0f);
+		}
+		else
+		{
+			glm::decompose(transform_matrix, scale, rotation, translation, _skew, _perspective);
 		}
 
-		glm::decompose(assimpToGLMMat4(node->mTransformation), scale, rotation, translation, _skew, _perspective);
-
 		Transform transform;
-		transform.setPosition(translation);
-		transform.setRotationQuat(rotation);
-		transform.setScale(scale);
+		transform.setPosition(xm::vec3(translation.x, translation.y, translation.z));
+		transform.setRotationQuat(xm::quat(rotation.w, rotation.x, rotation.y, rotation.z));
+		transform.setScale(xm::vec3(scale.x, scale.y, scale.z));
 		Model model;
 		std::for_each(std::execution::seq,
 			node->mMeshes,
@@ -306,9 +311,9 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 	std::vector<Texture*> normal;
 	if (_normalmap)
 	{
-		 normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
+		normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
 	}
-	
+
 	if (normal.size() > 0)
 	{
 		std::vector<VertexTB> vertices;
@@ -316,12 +321,12 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 
 		for (uint i = 0; i < num_vertices; ++i)
 		{
-			vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
+			vertices[i].m_position = xm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 			vertices[i].m_uv.x = mesh->mTextureCoords[0][i].x;
 			vertices[i].m_uv.y = mesh->mTextureCoords[0][i].y;
-			vertices[i].m_normal = assimpToGLMVec3(mesh->mNormals[i]);
-			vertices[i].m_tangent = assimpToGLMVec3(mesh->mTangents[i]);
-			vertices[i].m_bitangent = assimpToGLMVec3(mesh->mBitangents[i]);
+			vertices[i].m_normal = xm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+			vertices[i].m_tangent = xm::vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+			vertices[i].m_bitangent = xm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z);
 		}
 		final_mesh = syncEmplaceModelMesh(vertices, indices);
 	}
@@ -333,18 +338,18 @@ void ResourceManager::processMesh(aiMesh* mesh, const aiScene* scene, Model& mod
 		{
 			for (uint i = 0; i < num_vertices; ++i)
 			{
-				vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
+				vertices[i].m_position = xm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 				vertices[i].m_uv.x = mesh->mTextureCoords[0][i].x;
 				vertices[i].m_uv.y = mesh->mTextureCoords[0][i].y;
-				vertices[i].m_normal = assimpToGLMVec3(mesh->mNormals[i]);
+				vertices[i].m_normal = xm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 			}
 		}
 		else
 		{
 			for (uint i = 0; i < num_vertices; ++i)
 			{
-				vertices[i].m_position = assimpToGLMVec3(mesh->mVertices[i]);
-				vertices[i].m_normal = assimpToGLMVec3(mesh->mNormals[i]);
+				vertices[i].m_position = xm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+				vertices[i].m_normal = xm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 			}
 		}
 		final_mesh = syncEmplaceModelMesh(vertices, indices);
@@ -379,14 +384,14 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 	if (diffuse.size() == 0)
 	{
 		// MaterialColor
-		glm::vec4 color;
+		xm::vec3  color;
 		aiColor4D _aicolor;
 
 		if (material->Get(AI_MATKEY_COLOR_DIFFUSE, _aicolor) != AI_SUCCESS)
 		{
-			color = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+			color = xm::vec3(0.5f, 0.5f, 0.5f);
 		}
-		color = glm::vec4(_aicolor.r, _aicolor.g, _aicolor.b, _aicolor.a);
+		color = xm::vec3(_aicolor.r, _aicolor.g, _aicolor.b);
 
 		ModelEntry<MaterialColor> entry;
 		entry.m_mesh = mesh;
@@ -402,12 +407,12 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 	if (specular.size() == 0)
 	{
 		std::vector<Texture*> normal;
-		
+
 		if (_normalmap)
 		{
 			normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
 		}
-		
+
 		if (normal.size() == 0)
 		{
 			// MaterialD
@@ -457,7 +462,7 @@ void ResourceManager::processMaterial(Mesh* mesh, aiMaterial* material, Model& m
 		{
 			normal = loadMaterialTexture(material, aiTextureType::aiTextureType_HEIGHT, 1); // TODO - TO NORMALS
 		}
-		
+
 		if (normal.size() == 0)
 		{
 			// MaterialDS

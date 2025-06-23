@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-#include "glm/glm.hpp"
+#include "xm/xm.h"
 
 #include "Defines.h"
 
@@ -40,10 +40,9 @@ public:
 
 	bool isShouldClose() const;
 
-	glm::ivec2 getWindowSize() const;
-	glm::uvec2 getFramebufferSize() const;
-
-	glm::dvec2 getCursorPos();
+	xm::ivec2 getWindowSize() const;
+	xm::ivec2 getFramebufferSize() const;
+	xm::dvec2 getCursorPos();
 
 private:
 	GLFWwindow* getWindow();

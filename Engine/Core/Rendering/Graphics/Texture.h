@@ -4,11 +4,12 @@
 #include <unordered_map>
 
 #include <glad/glad.h>
-#include <glm/glm.hpp>
 
 #include "DebugOpenGL.h"
 #include "Defines.h"
 #include "Debug.h"
+
+#include "xm/xm.h"
 
 class Texture
 {
@@ -29,7 +30,7 @@ public:
 
 	void init(int width, int height, GLint internal_format, uint channels_num, bool generate_mipmap);
 
-	void loadData(GLenum type, GLenum format, const void* data, glm::vec2 start_factors = glm::vec2(0.0f), glm::vec2 end_factors = glm::vec2(1.0f));
+	void loadData(GLenum type, GLenum format, const void* data, xm::vec2 start_factors = xm::vec2(0.0f), xm::vec2 end_factors = xm::vec2(1.0f));
 
 	void setMinFilter(GLint min_filter);
 
@@ -45,7 +46,7 @@ public:
 
 	uint getChannelsNum() const;
 
-	glm::vec<2, GLsizei> getSize() 
+	xm::vector<2, GLsizei> getSize()
 	{
 		return { m_width, m_height };
 	}

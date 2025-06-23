@@ -4,12 +4,12 @@
 #include <map>
 #include <string>
 
-#include <glm/glm.hpp>
+#include "xm/xm.h"
 
 template <>
 struct std::hash<std::pair<int, int>>
 {
-	std::size_t operator()(const std::pair<int, int>& p) const
+	size_t operator()(const std::pair<int, int>& p) const
 	{
 		return std::hash<int>{}(p.first) ^ (std::hash<int>{}(p.second) << 1);
 	};
@@ -30,7 +30,7 @@ private:
 
 	void destroy();
 
-public:	
+public:
 	InputManager() = default;
 	~InputManager() = default;
 	InputManager(const InputManager&) = delete;
@@ -49,7 +49,7 @@ public:
 	bool unregMouseCallback(int button, int modifier, int action);
 	bool unregCursorPosCallback();
 
-	glm::dvec2 getCursorPos() const;
+	xm::dvec2 getCursorPos() const;
 
 	void setCustomPtr(void* ptr);
 
@@ -60,7 +60,7 @@ private:
 
 	bool m_has_cursor_pos_cb = false;
 
-	glm::dvec2 m_cursor_pos;
+	xm::dvec2 m_cursor_pos;
 
 private:
 	static void _glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int modifier);

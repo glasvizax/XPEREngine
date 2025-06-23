@@ -1,28 +1,28 @@
 #pragma once
 
 template <size_t N, typename T>
-inline void uniformVecArrayFunc(GLint location, const glm::vec<N, T>* const data, GLsizei count)
+inline void uniformVecArrayFunc(GLint location, const xm::vector<N, T>* const data, GLsizei count)
 {
 	if constexpr (N == 2)
 	{
 		if constexpr (std::is_same_v<T, float>)
 		{
-			glUniform2fv(location, count, glm::value_ptr(*data));
+			glUniform2fv(location, count, reinterpret_cast<const T* const>(data));
 		}
 
 		if constexpr (std::is_same_v<T, double>)
 		{
-			glUniform2dv(location, count, glm::value_ptr(*data));
+			glUniform2dv(location, count, reinterpret_cast<const T* const>(data));
 		}
 
 		if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 		{
-			glUniform2iv(location, count, glm::value_ptr(*data));
+			glUniform2iv(location, count, reinterpret_cast<const T* const>(data));
 		}
 
-		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
+		if constexpr (std::is_same_v<T, uint>)
 		{
-			glUniform2uiv(location, count, glm::value_ptr(*data));
+			glUniform2uiv(location, count, reinterpret_cast<const T* const>(data));
 		}
 	}
 
@@ -30,22 +30,22 @@ inline void uniformVecArrayFunc(GLint location, const glm::vec<N, T>* const data
 	{
 		if constexpr (std::is_same_v<T, float>)
 		{
-			glUniform3fv(location, count, glm::value_ptr(*data));
+			glUniform3fv(location, count, reinterpret_cast<const T* const>(data));
 		}
 
 		if constexpr (std::is_same_v<T, double>)
 		{
-			glUniform3dv(location, count, glm::value_ptr(*data));
+			glUniform3dv(location, count, reinterpret_cast<const T* const>(data));
 		}
 
 		if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 		{
-			glUniform3iv(location, count, glm::value_ptr(*data));
+			glUniform3iv(location, count, reinterpret_cast<const T* const>(data));
 		}
 
-		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
+		if constexpr (std::is_same_v<T, uint>)
 		{
-			glUniform3uiv(location, count, glm::value_ptr(*data));
+			glUniform3uiv(location, count, reinterpret_cast<const T* const>(data));
 		}
 	}
 
@@ -53,28 +53,28 @@ inline void uniformVecArrayFunc(GLint location, const glm::vec<N, T>* const data
 	{
 		if constexpr (std::is_same_v<T, float>)
 		{
-			glUniform4fv(location, count, glm::value_ptr(*data));
+			glUniform4fv(location, count, reinterpret_cast<const T* const>(data));
 		}
 
 		if constexpr (std::is_same_v<T, double>)
 		{
-			glUniform4dv(location, count, glm::value_ptr(*data));
+			glUniform4dv(location, count, reinterpret_cast<const T* const>(data));
 		}
 
 		if constexpr (std::is_same_v<T, int> || std::is_same_v<T, bool>)
 		{
-			glUniform4iv(location, count, glm::value_ptr(*data));
+			glUniform4iv(location, count, reinterpret_cast<const T* const>(data));
 		}
 
-		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
+		if constexpr (std::is_same_v<T, uint>)
 		{
-			glUniform4uiv(location, count, glm::value_ptr(*data));
+			glUniform4uiv(location, count, reinterpret_cast<const T* const>(data));
 		}
 	}
 }
 
 template <size_t N, typename T>
-inline void uniformVecFunc(GLint location, glm::vec<N, T> vec)
+inline void uniformVecFunc(GLint location, xm::vector<N, T> vec)
 {
 	if constexpr (N == 2)
 	{
@@ -93,7 +93,7 @@ inline void uniformVecFunc(GLint location, glm::vec<N, T> vec)
 			glUniform2i(location, vec.x, vec.y);
 		}
 
-		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
+		if constexpr (std::is_same_v<T, uint>)
 		{
 			glUniform2ui(location, vec.x, vec.y);
 		}
@@ -116,7 +116,7 @@ inline void uniformVecFunc(GLint location, glm::vec<N, T> vec)
 			glUniform3i(location, vec.x, vec.y, vec.z);
 		}
 
-		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
+		if constexpr (std::is_same_v<T, uint>)
 		{
 			glUniform3ui(location, vec.x, vec.y, vec.z);
 		}
@@ -139,7 +139,7 @@ inline void uniformVecFunc(GLint location, glm::vec<N, T> vec)
 			glUniform4i(location, vec.x, vec.y, vec.z, vec.w);
 		}
 
-		if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
+		if constexpr (std::is_same_v<T, uint>)
 		{
 			glUniform4ui(location, vec.x, vec.y, vec.z, vec.w);
 		}
@@ -164,7 +164,7 @@ inline void uniformValueFunc(GLint location, T val)
 		glUniform1i(location, val);
 	}
 
-	if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
+	if constexpr (std::is_same_v<T, uint>)
 	{
 		glUniform1ui(location, val);
 	}
@@ -188,25 +188,25 @@ inline void uniformValueArrayFunc(GLint location, T* vals, GLsizei count)
 		glUniform1iv(location, count, vals);
 	}
 
-	if constexpr (std::is_same_v<T, uint> || std::is_same_v<T, size_t>)
+	if constexpr (std::is_same_v<T, uint>)
 	{
 		glUniform1uiv(location, count, vals);
 	}
 }
 
 template <size_t N, typename T>
-inline void uniformMatArrayFunc(GLint location, const glm::mat<N, N, T>* const mat, GLsizei count)
+inline void uniformMatArrayFunc(GLint location, const xm::matrix<N, T>* const mat, GLsizei count)
 {
 	if constexpr (N == 2)
 	{
 		if constexpr (std::is_same_v<T, float>)
 		{
-			glUniformMatrix2fv(location, count, GL_FALSE, glm::value_ptr(*mat));
+			glUniformMatrix2fv(location, count, GL_FALSE, reinterpret_cast<const T* const>(mat));
 		}
 
 		if constexpr (std::is_same_v<T, double>)
 		{
-			glUniformMatrix2dv(location, count, GL_FALSE, glm::value_ptr(*mat));
+			glUniformMatrix2dv(location, count, GL_FALSE, reinterpret_cast<const T* const>(mat));
 		}
 	}
 
@@ -214,12 +214,12 @@ inline void uniformMatArrayFunc(GLint location, const glm::mat<N, N, T>* const m
 	{
 		if constexpr (std::is_same_v<T, float>)
 		{
-			glUniformMatrix3fv(location, count, GL_FALSE, glm::value_ptr(*mat));
+			glUniformMatrix3fv(location, count, GL_FALSE, reinterpret_cast<const T* const>(mat));
 		}
 
 		if constexpr (std::is_same_v<T, double>)
 		{
-			glUniformMatrix3dv(location, count, GL_FALSE, glm::value_ptr(*mat));
+			glUniformMatrix3dv(location, count, GL_FALSE, reinterpret_cast<const T* const>(mat));
 		}
 	}
 
@@ -227,12 +227,12 @@ inline void uniformMatArrayFunc(GLint location, const glm::mat<N, N, T>* const m
 	{
 		if constexpr (std::is_same_v<T, float>)
 		{
-			glUniformMatrix4fv(location, count, GL_FALSE, glm::value_ptr(*mat));
+			glUniformMatrix4fv(location, count, GL_FALSE, reinterpret_cast<const T* const>(mat));
 		}
 
 		if constexpr (std::is_same_v<T, double>)
 		{
-			glUniformMatrix4dv(location, count, GL_FALSE, glm::value_ptr(*mat));
+			glUniformMatrix4dv(location, count, GL_FALSE, reinterpret_cast<const T* const>(mat));
 		}
 	}
 }

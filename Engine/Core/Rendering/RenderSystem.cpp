@@ -2,7 +2,6 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "Defines.h"
 #include "Debug.h"
@@ -13,6 +12,8 @@
 #include "Mesh.h"
 #include "Utils.h"
 #include "Light.h"
+
+#include <xm/xm.h>
 
 int getUniformBlockSize(ShaderProgram& shader, const std::string& name);
 
@@ -44,13 +45,13 @@ bool RenderSystem::init()
 	WindowManager& wm = engine.getWindowManager();
 	m_resource_manager = &engine.getResourceManager();
 
-	glm::ivec2 window_size = wm.getWindowSize();
+	xm::ivec2 window_size = wm.getWindowSize();
 	glViewport(0, 0, window_size.x, window_size.y);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	m_camera.setAspectRatio(scast<float>(window_size.x) / window_size.y);
 	m_camera.setPosition(xm::vec3(7.8f, 1.0f, -8.5f));
-	m_camera.rotateY(-160);
+	m_camera.rotateY(-160.0);
 
 	initMatricesBuffer();
 	initLightsBuffer();
@@ -100,18 +101,18 @@ bool RenderSystem::init()
 
 	m_point_lights.reserve(MAX_POINT_LIGHTS);
 	PointLight pl1;
-	pl1.m_position = glm::vec3(10.0f, 3.0f, 5.0f);
-	pl1.m_ambient = glm::vec3(0.2f);
-	pl1.m_diffuse = glm::vec3(0.5f);
-	pl1.m_specular = glm::vec3(0.6f);
+	pl1.m_position = xm::vec3(10.0f, 3.0f, 5.0f);
+	pl1.m_ambient = xm::vec3(0.2f);
+	pl1.m_diffuse = xm::vec3(0.5f);
+	pl1.m_specular = xm::vec3(0.6f);
 	pl1.m_linear = 0.027f;
 	pl1.m_quadratic = 0.0028f;
 
 	PointLight pl2;
-	pl2.m_position = glm::vec3(7.0f, 10.0f, 2.0f);
-	pl2.m_ambient = glm::vec3(0.1f);
-	pl2.m_diffuse = glm::vec3(1.0f);
-	pl2.m_specular = glm::vec3(0.3f);
+	pl2.m_position = xm::vec3(7.0f, 10.0f, 2.0f);
+	pl2.m_ambient = xm::vec3(0.1f);
+	pl2.m_diffuse = xm::vec3(1.0f);
+	pl2.m_specular = xm::vec3(0.3f);
 	pl2.m_linear = 0.027f;
 	pl2.m_quadratic = 0.0028f;
 
@@ -149,49 +150,49 @@ void RenderSystem::updateMatrices()
 {
 	if (m_camera.isProjectionDirty())
 	{
-		m_matrices_buffer.fill(0, sizeof(glm::mat4), xm::value_ptr(m_camera.getProjectionMatrix()));
+		m_matrices_buffer.fill(0, sizeof(xm::mat4), xm::value_ptr(m_camera.getProjectionMatrix()));
 	}
 	if (m_camera.isViewDirty())
 	{
-		m_matrices_buffer.fill(sizeof(glm::mat4), sizeof(glm::mat4), xm::value_ptr(m_camera.getViewMatrix()));
+		m_matrices_buffer.fill(sizeof(xm::mat4), sizeof(xm::mat4), xm::value_ptr(m_camera.getViewMatrix()));
 	}
 }
 
 void RenderSystem::initMatricesBuffer()
 {
-	m_matrices_buffer.init(sizeof(glm::mat4) * 2, 0);
-	m_matrices_buffer.fill(0, sizeof(glm::mat4), xm::value_ptr(m_camera.getProjectionMatrix()));
-	m_matrices_buffer.fill(sizeof(glm::mat4), sizeof(glm::mat4), xm::value_ptr(m_camera.getViewMatrix()));
+	m_matrices_buffer.init(sizeof(xm::mat4) * 2, 0);
+	m_matrices_buffer.fill(0, sizeof(xm::mat4), xm::value_ptr(m_camera.getProjectionMatrix()));
+	m_matrices_buffer.fill(sizeof(xm::mat4), sizeof(xm::mat4), xm::value_ptr(m_camera.getViewMatrix()));
 }
 
 void RenderSystem::initLightsBuffer()
 {
-	m_lights_buffer.init(sizeof(PointLight) * MAX_POINT_LIGHTS + sizeof(glm::vec4), 1);
+	m_lights_buffer.init(sizeof(PointLight) * MAX_POINT_LIGHTS + sizeof(xm::vec4), 1);
 }
 
 void RenderSystem::initScene()
 {
 	m_root_entity.addChild();
 	m_resource_manager->loadModel("content/Lowpoly_tree_sample.obj", m_root_entity.m_children.back());
-	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(0.4f)).setPosition(glm::vec3(10.0f, 0.0f, 10.0f));
+	m_root_entity.m_children.back().getTransform().setScale(xm::vec3(0.4f)).setPosition(xm::vec3(10.0f, 0.0f, 10.0f));
 
 	m_root_entity.addChild();
 	m_resource_manager->loadModel("content/Cottage_FREE.obj", m_root_entity.m_children.back(), true);
 
 	m_root_entity.addChild();
 	m_resource_manager->loadModel("content/osaka.obj", m_root_entity.m_children.back());
-	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(1.0f / 30.0f)).setPosition(glm::vec3(10.0f, 0.0f, 7.0f));
+	m_root_entity.m_children.back().getTransform().setScale(xm::vec3(1.0f / 30.0f)).setPosition(xm::vec3(10.0f, 0.0f, 7.0f));
 
 	m_root_entity.addChild();
 	m_resource_manager->loadModel("content/chiyo.obj", m_root_entity.m_children.back());
-	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(1.0f / 40.0f)).setPosition(glm::vec3(7.0f, 0.0f, 10.0f)).setRotationEuler(glm::vec3(0.0f, -90.0f, 0.0f));
+	m_root_entity.m_children.back().getTransform().setScale(xm::vec3(1.0f / 40.0f)).setPosition(xm::vec3(7.0f, 0.0f, 10.0f)).setRotationEuler(xm::vec3(0.0f, -90.0f, 0.0f));
 
 	m_root_entity.addChild();
 	Mesh& cube = m_resource_manager->storeMesh(generateIdenticalCube());
 
 	ModelEntry<MaterialColor> floor_entry;
 	floor_entry.m_material.m_shader_program = m_shader_program_manager.getShaderProgram(ShaderProgramType::DEFERED_COLOR);
-	floor_entry.m_material.m_color.m_vector = glm::vec3(0.3f, 0.8f, 0.2f);
+	floor_entry.m_material.m_color.m_vector = xm::vec3(0.3f, 0.8f, 0.2f);
 	floor_entry.m_material.m_shininess.m_scalar = 32.0f;
 	floor_entry.m_material.m_specular_scalar.m_scalar = 0.5f;
 
@@ -199,7 +200,7 @@ void RenderSystem::initScene()
 
 	m_root_entity.m_children.back().m_model.m_meshes_color.push_back(floor_entry);
 
-	m_root_entity.m_children.back().getTransform().setScale(glm::vec3(20.0f, 0.05f, 20.0f));
+	m_root_entity.m_children.back().getTransform().setScale(xm::vec3(20.0f, 0.05f, 20.0f));
 }
 
 void RenderSystem::initScreenQuad()
@@ -240,10 +241,10 @@ void RenderSystem::testInputH()
 
 	PointLight pl;
 
-	pl.m_position = glm::vec3(random_x, 5.0f, random_z);
-	pl.m_ambient = glm::vec3(0.1f);
-	pl.m_diffuse = glm::vec3(0.2f);
-	pl.m_specular = glm::vec3(0.01f);
+	pl.m_position = xm::vec3(random_x, 5.0f, random_z);
+	pl.m_ambient = xm::vec3(0.1f);
+	pl.m_diffuse = xm::vec3(0.2f);
+	pl.m_specular = xm::vec3(0.01f);
 	pl.m_linear = 0.027f;
 	pl.m_quadratic = 0.0028f;
 
@@ -252,8 +253,8 @@ void RenderSystem::testInputH()
 
 void RenderSystem::testInputK()
 {
-	uint	  last = m_point_lights.size() - 1;
-	glm::vec3 diff = getPointLightDiffuse(last);
+	uint	 last = m_point_lights.size() - 1;
+	xm::vec3 diff = getPointLightDiffuse(last);
 	diff.x += 1.0f;
 	setPointLightDiffuse(last, diff);
 }
@@ -299,11 +300,11 @@ void RenderSystem::deletePointLight(uint light_index)
 	}
 }
 
-void RenderSystem::setPointLightPosition(uint light_index, glm::vec3 new_position)
+void RenderSystem::setPointLightPosition(uint light_index, xm::vec3 new_position)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
 		return;
 	}
 
@@ -314,21 +315,21 @@ void RenderSystem::setPointLightPosition(uint light_index, glm::vec3 new_positio
 		&new_position);
 }
 
-glm::vec3 RenderSystem::getPointLightPosition(uint light_index)
+xm::vec3 RenderSystem::getPointLightPosition(uint light_index)
 {
 	if (light_index >= m_point_lights.size())
 	{
 		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
-		return glm::vec3(0.0f);
+		return xm::vec3(0.0f);
 	}
 	return m_point_lights[light_index].m_position;
 }
 
-void RenderSystem::setPointLightDiffuse(uint light_index, glm::vec3 new_diffuse)
+void RenderSystem::setPointLightDiffuse(uint light_index, xm::vec3 new_diffuse)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
 		return;
 	}
 
@@ -339,21 +340,21 @@ void RenderSystem::setPointLightDiffuse(uint light_index, glm::vec3 new_diffuse)
 		&new_diffuse);
 }
 
-glm::vec3 RenderSystem::getPointLightDiffuse(uint light_index)
+xm::vec3 RenderSystem::getPointLightDiffuse(uint light_index)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
-		return glm::vec3(0.0f);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return xm::vec3(0.0f);
 	}
 	return m_point_lights[light_index].m_diffuse;
 }
 
-void RenderSystem::setPointLightSpecular(uint light_index, glm::vec3 new_specular)
+void RenderSystem::setPointLightSpecular(uint light_index, xm::vec3 new_specular)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
 		return;
 	}
 
@@ -364,21 +365,21 @@ void RenderSystem::setPointLightSpecular(uint light_index, glm::vec3 new_specula
 		&new_specular.r);
 }
 
-glm::vec3 RenderSystem::getPointLightSpecular(uint light_index)
+xm::vec3 RenderSystem::getPointLightSpecular(uint light_index)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
-		return glm::vec3(0.0f);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return xm::vec3(0.0f);
 	}
 	return m_point_lights[light_index].m_specular;
 }
 
-void RenderSystem::setPointLightAmbient(uint light_index, glm::vec3 new_ambient)
+void RenderSystem::setPointLightAmbient(uint light_index, xm::vec3 new_ambient)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
 		return;
 	}
 
@@ -389,12 +390,12 @@ void RenderSystem::setPointLightAmbient(uint light_index, glm::vec3 new_ambient)
 		&new_ambient);
 }
 
-glm::vec3 RenderSystem::getPointLightAmbient(uint light_index)
+xm::vec3 RenderSystem::getPointLightAmbient(uint light_index)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
-		return glm::vec3(0.0f);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		return xm::vec3(0.0f);
 	}
 	return m_point_lights[light_index].m_ambient;
 }
@@ -403,7 +404,7 @@ void RenderSystem::setPointLightLinear(uint light_index, float new_linear)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
 		return;
 	}
 
@@ -418,7 +419,7 @@ float RenderSystem::getPointLightLinear(uint light_index)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
 		return 0.0f;
 	}
 	return m_point_lights[light_index].m_linear;
@@ -428,7 +429,7 @@ void RenderSystem::setPointLightQuadratic(uint light_index, float new_quadratic)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
 		return;
 	}
 
@@ -443,7 +444,7 @@ float RenderSystem::getPointLightQuadratic(uint light_index)
 {
 	if (light_index >= m_point_lights.size())
 	{
-		LOG_ERROR_S("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
+		LOG_ERROR_F("received light index out of range | size = [%d] | light_index = [%d]", m_point_lights.size(), light_index);
 		return 0.0f;
 	}
 	return m_point_lights[light_index].m_quadratic;

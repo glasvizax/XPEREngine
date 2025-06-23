@@ -113,6 +113,16 @@ void Entity::update()
 	}
 }
 
+Entity* Entity::getParent()
+{
+	return m_parent;
+}
+
+Transform& Entity::getTransform()
+{
+	return m_transform;
+}
+
 void Entity::draw()
 {
 	if (m_parent)

@@ -2,9 +2,6 @@
 
 #include <vector>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "Model.h"
 #include "Transform.h"
 
@@ -12,7 +9,7 @@ class Entity
 {
 	friend class ResourceManager;
 	friend class RenderSystem;
-	
+
 public:
 	Entity(const Entity&) = delete;
 	Entity& operator=(const Entity&) = delete;
@@ -25,7 +22,7 @@ public:
 	Entity(Model&& model);
 	Entity(const Model& model, const Transform& transform);
 	Entity(Model&& model, const Transform& transform);
-	
+
 	Entity& addChild();
 	Entity& addChild(const Model& model);
 	Entity& addChild(Model&& model);
@@ -35,15 +32,9 @@ public:
 
 	void update();
 
-	Entity* getParent()
-	{
-		return m_parent;
-	}
+	Entity* getParent();
 
-	Transform& getTransform()
-	{
-		return m_transform;
-	}
+	Transform& getTransform();
 
 	void draw();
 

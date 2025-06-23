@@ -98,7 +98,7 @@ void Model::syncPushMeshDSNH(ModelEntry<MaterialDSNH>& entry)
 	m_meshes_dsnh.push_back(entry);
 }
 
-void Model::draw(const glm::mat4& model)
+void Model::draw(const xm::mat4& model)
 {
 	for (int i = 0; i < m_meshes_color.size(); ++i)
 	{
@@ -144,7 +144,7 @@ void Model::draw(const glm::mat4& model)
 	}
 }
 
-void Model::drawCustom(const glm::mat4 model, ShaderProgram* custom_sp)
+void Model::drawCustom(const xm::mat4 model, ShaderProgram* custom_sp)
 {
 	custom_sp->setMat("model", model);
 	for (int i = 0; i < m_meshes_color.size(); ++i)

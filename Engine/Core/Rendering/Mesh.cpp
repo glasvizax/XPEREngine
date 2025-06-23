@@ -1,53 +1,53 @@
 #include "Mesh.h"
-
+#include "xm/constants.h"
 std::vector<Vertex> cube_vertices = {
 	// Back face
-	{ glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f) }, // bottom-left
-	{ glm::vec3(1.0f, 1.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 1.0f) },	 // top-right
-	{ glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 0.0f) },	 // bottom-right
-	{ glm::vec3(1.0f, 1.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(1.0f, 1.0f) },	 // top-right
-	{ glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 0.0f) }, // bottom-left
-	{ glm::vec3(-1.0f, 1.0f, -1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec2(0.0f, 1.0f) },	 // top-left
+	{ xm::vec3(-1.0f, -1.0f, -1.0f), xm::vec3(0.0f, 0.0f, -1.0f), xm::vec2(0.0f, 0.0f) }, // bottom-left
+	{ xm::vec3(1.0f, 1.0f, -1.0f), xm::vec3(0.0f, 0.0f, -1.0f), xm::vec2(1.0f, 1.0f) },	  // top-right
+	{ xm::vec3(1.0f, -1.0f, -1.0f), xm::vec3(0.0f, 0.0f, -1.0f), xm::vec2(1.0f, 0.0f) },  // bottom-right
+	{ xm::vec3(1.0f, 1.0f, -1.0f), xm::vec3(0.0f, 0.0f, -1.0f), xm::vec2(1.0f, 1.0f) },	  // top-right
+	{ xm::vec3(-1.0f, -1.0f, -1.0f), xm::vec3(0.0f, 0.0f, -1.0f), xm::vec2(0.0f, 0.0f) }, // bottom-left
+	{ xm::vec3(-1.0f, 1.0f, -1.0f), xm::vec3(0.0f, 0.0f, -1.0f), xm::vec2(0.0f, 1.0f) },  // top-left
 
 	// Front face
-	{ glm::vec3(-1.0f, -1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f) }, // bottom-left
-	{ glm::vec3(1.0f, -1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f) },  // bottom-right
-	{ glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f) },   // top-right
-	{ glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f) },   // top-right
-	{ glm::vec3(-1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f) },  // top-left
-	{ glm::vec3(-1.0f, -1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f) }, // bottom-left
+	{ xm::vec3(-1.0f, -1.0f, 1.0f), xm::vec3(0.0f, 0.0f, 1.0f), xm::vec2(0.0f, 0.0f) }, // bottom-left
+	{ xm::vec3(1.0f, -1.0f, 1.0f), xm::vec3(0.0f, 0.0f, 1.0f), xm::vec2(1.0f, 0.0f) },	// bottom-right
+	{ xm::vec3(1.0f, 1.0f, 1.0f), xm::vec3(0.0f, 0.0f, 1.0f), xm::vec2(1.0f, 1.0f) },	// top-right
+	{ xm::vec3(1.0f, 1.0f, 1.0f), xm::vec3(0.0f, 0.0f, 1.0f), xm::vec2(1.0f, 1.0f) },	// top-right
+	{ xm::vec3(-1.0f, 1.0f, 1.0f), xm::vec3(0.0f, 0.0f, 1.0f), xm::vec2(0.0f, 1.0f) },	// top-left
+	{ xm::vec3(-1.0f, -1.0f, 1.0f), xm::vec3(0.0f, 0.0f, 1.0f), xm::vec2(0.0f, 0.0f) }, // bottom-left
 
 	// Left face
-	{ glm::vec3(-1.0f, 1.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f) },	 // top-right
-	{ glm::vec3(-1.0f, 1.0f, -1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f) },	 // top-left
-	{ glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // bottom-left
-	{ glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // bottom-left
-	{ glm::vec3(-1.0f, -1.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f) },	 // bottom-right
-	{ glm::vec3(-1.0f, 1.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f) },	 // top-right
+	{ xm::vec3(-1.0f, 1.0f, 1.0f), xm::vec3(-1.0f, 0.0f, 0.0f), xm::vec2(1.0f, 0.0f) },	  // top-right
+	{ xm::vec3(-1.0f, 1.0f, -1.0f), xm::vec3(-1.0f, 0.0f, 0.0f), xm::vec2(1.0f, 1.0f) },  // top-left
+	{ xm::vec3(-1.0f, -1.0f, -1.0f), xm::vec3(-1.0f, 0.0f, 0.0f), xm::vec2(0.0f, 1.0f) }, // bottom-left
+	{ xm::vec3(-1.0f, -1.0f, -1.0f), xm::vec3(-1.0f, 0.0f, 0.0f), xm::vec2(0.0f, 1.0f) }, // bottom-left
+	{ xm::vec3(-1.0f, -1.0f, 1.0f), xm::vec3(-1.0f, 0.0f, 0.0f), xm::vec2(0.0f, 0.0f) },  // bottom-right
+	{ xm::vec3(-1.0f, 1.0f, 1.0f), xm::vec3(-1.0f, 0.0f, 0.0f), xm::vec2(1.0f, 0.0f) },	  // top-right
 
 	// Right face
-	{ glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f) },   // top-left
-	{ glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // bottom-right
-	{ glm::vec3(1.0f, 1.0f, -1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f) },  // top-right
-	{ glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // bottom-right
-	{ glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f) },   // top-left
-	{ glm::vec3(1.0f, -1.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f) },  // bottom-left
+	{ xm::vec3(1.0f, 1.0f, 1.0f), xm::vec3(1.0f, 0.0f, 0.0f), xm::vec2(1.0f, 0.0f) },	// top-left
+	{ xm::vec3(1.0f, -1.0f, -1.0f), xm::vec3(1.0f, 0.0f, 0.0f), xm::vec2(0.0f, 1.0f) }, // bottom-right
+	{ xm::vec3(1.0f, 1.0f, -1.0f), xm::vec3(1.0f, 0.0f, 0.0f), xm::vec2(1.0f, 1.0f) },	// top-right
+	{ xm::vec3(1.0f, -1.0f, -1.0f), xm::vec3(1.0f, 0.0f, 0.0f), xm::vec2(0.0f, 1.0f) }, // bottom-right
+	{ xm::vec3(1.0f, 1.0f, 1.0f), xm::vec3(1.0f, 0.0f, 0.0f), xm::vec2(1.0f, 0.0f) },	// top-left
+	{ xm::vec3(1.0f, -1.0f, 1.0f), xm::vec3(1.0f, 0.0f, 0.0f), xm::vec2(0.0f, 0.0f) },	// bottom-left
 
 	// Bottom face
-	{ glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // top-right
-	{ glm::vec3(1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 1.0f) },	 // top-left
-	{ glm::vec3(1.0f, -1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f) },	 // bottom-left
-	{ glm::vec3(1.0f, -1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(1.0f, 0.0f) },	 // bottom-left
-	{ glm::vec3(-1.0f, -1.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 0.0f) },	 // bottom-right
-	{ glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // top-right
+	{ xm::vec3(-1.0f, -1.0f, -1.0f), xm::vec3(0.0f, -1.0f, 0.0f), xm::vec2(0.0f, 1.0f) }, // top-right
+	{ xm::vec3(1.0f, -1.0f, -1.0f), xm::vec3(0.0f, -1.0f, 0.0f), xm::vec2(1.0f, 1.0f) },  // top-left
+	{ xm::vec3(1.0f, -1.0f, 1.0f), xm::vec3(0.0f, -1.0f, 0.0f), xm::vec2(1.0f, 0.0f) },	  // bottom-left
+	{ xm::vec3(1.0f, -1.0f, 1.0f), xm::vec3(0.0f, -1.0f, 0.0f), xm::vec2(1.0f, 0.0f) },	  // bottom-left
+	{ xm::vec3(-1.0f, -1.0f, 1.0f), xm::vec3(0.0f, -1.0f, 0.0f), xm::vec2(0.0f, 0.0f) },  // bottom-right
+	{ xm::vec3(-1.0f, -1.0f, -1.0f), xm::vec3(0.0f, -1.0f, 0.0f), xm::vec2(0.0f, 1.0f) }, // top-right
 
 	// Top face
-	{ glm::vec3(-1.0f, 1.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // top-left
-	{ glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f) },   // bottom-right
-	{ glm::vec3(1.0f, 1.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f) },  // top-right
-	{ glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f) },   // bottom-right
-	{ glm::vec3(-1.0f, 1.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f) }, // top-left
-	{ glm::vec3(-1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f) }   // bottom-left
+	{ xm::vec3(-1.0f, 1.0f, -1.0f), xm::vec3(0.0f, 1.0f, 0.0f), xm::vec2(0.0f, 1.0f) }, // top-left
+	{ xm::vec3(1.0f, 1.0f, 1.0f), xm::vec3(0.0f, 1.0f, 0.0f), xm::vec2(1.0f, 0.0f) },	// bottom-right
+	{ xm::vec3(1.0f, 1.0f, -1.0f), xm::vec3(0.0f, 1.0f, 0.0f), xm::vec2(1.0f, 1.0f) },	// top-right
+	{ xm::vec3(1.0f, 1.0f, 1.0f), xm::vec3(0.0f, 1.0f, 0.0f), xm::vec2(1.0f, 0.0f) },	// bottom-right
+	{ xm::vec3(-1.0f, 1.0f, -1.0f), xm::vec3(0.0f, 1.0f, 0.0f), xm::vec2(0.0f, 1.0f) }, // top-left
+	{ xm::vec3(-1.0f, 1.0f, 1.0f), xm::vec3(0.0f, 1.0f, 0.0f), xm::vec2(0.0f, 0.0f) }	// bottom-left
 };
 
 Mesh::Mesh(Mesh&& other) noexcept
@@ -81,7 +81,6 @@ void Mesh::draw()
 	if (m_draw_element)
 	{
 		glDrawElements(GL_TRIANGLES, m_indices_count, GL_UNSIGNED_INT, nullptr);
-		
 	}
 	else
 	{
@@ -107,14 +106,14 @@ Mesh generateSphere(float radius, uint sector_count, uint stack_count)
 	std::vector<Vertex> vertices;
 	vertices.reserve(vertex_amount);
 
-	float sector_step = 2 * glm::pi<float>() / sector_count;
-	float stack_step = glm::pi<float>() / stack_count;
+	float sector_step = 2 * static_cast<float>(xm::PI) / sector_count;
+	float stack_step = static_cast<float>(xm::PI) / stack_count;
 	float sector_angle, stack_angle;
 	float length_inv = 1.0f / radius;
 
 	for (uint i = 0; i <= stack_count; ++i)
 	{
-		stack_angle = glm::pi<float>() / 2 - i * stack_step;
+		stack_angle = xm::PI / 2 - i * stack_step;
 		float xz = radius * cosf(stack_angle);
 		float y = radius * sinf(stack_angle);
 
@@ -127,20 +126,20 @@ Mesh generateSphere(float radius, uint sector_count, uint stack_count)
 			float x = xz * cosf(sector_angle);
 			float z = -xz * sinf(sector_angle);
 
-			v.m_position = glm::vec3(x, y, z);
+			v.m_position = xm::vec3(x, y, z);
 
 			// normalized vertex normal (nx, ny, nz)
 			float nx = x * length_inv;
 			float ny = y * length_inv;
 			float nz = z * length_inv;
 
-			v.m_normal = glm::vec3(nx, ny, nz);
+			v.m_normal = xm::vec3(nx, ny, nz);
 
 			// vertex tex coord (s, t) range between [0, 1]
 			float s = (float)j / sector_count;
 			float t = (float)i / stack_count;
 
-			v.m_uv = glm::vec2(s, t);
+			v.m_uv = xm::vec2(s, t);
 
 			vertices.push_back(v);
 		}

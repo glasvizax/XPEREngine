@@ -31,7 +31,6 @@ Cubemap::Cubemap(Cubemap&& other) noexcept
 #ifdef _DEBUG
 	m_debug_name = std::move(other.m_debug_name);
 #endif
-
 }
 
 Cubemap& Cubemap::operator=(Cubemap&& other) noexcept
@@ -80,7 +79,7 @@ void Cubemap::init(int size, GLint internal_format, uint channels_num, bool gene
 }
 
 void Cubemap::loadFaceData(uint face_index, GLenum type, GLenum format, const void* data,
-	glm::vec2 start_factors, glm::vec2 end_factors)
+	xm::vec2 start_factors, xm::vec2 end_factors)
 {
 	if (!data)
 	{
@@ -203,6 +202,11 @@ uint Cubemap::getChannelsNum() const
 		return 0;
 	}
 	return m_channels_num;
+}
+
+GLsizei Cubemap::getSize() const
+{
+	return m_size;
 }
 
 void Cubemap::generateMipMap()

@@ -57,13 +57,11 @@ bool InputManager::init(GLFWwindow* window)
 
 void InputManager::destroy()
 {
-
 }
-
 
 bool InputManager::regKeyCallback(KeyCallback callback, int key, int modifier, int action)
 {
-	if (!checkRegKeyCbHelper(key, modifier, action))		
+	if (!checkRegKeyCbHelper(key, modifier, action))
 	{
 		return false;
 	}
@@ -74,7 +72,7 @@ bool InputManager::regKeyCallback(KeyCallback callback, int key, int modifier, i
 
 bool InputManager::regMouseCallback(KeyCallback callback, int button, int modifier, int action)
 {
-	if (!checkRegMouseCbHelper(button, modifier, action))	
+	if (!checkRegMouseCbHelper(button, modifier, action))
 	{
 		return false;
 	}
@@ -92,7 +90,7 @@ bool InputManager::regCursorPosCallback(CursorPosCallback callback)
 
 bool InputManager::unregKeyCallback(int key, int modifier, int action)
 {
-	if (!checkRegKeyCbHelper(key, modifier, action))		
+	if (!checkRegKeyCbHelper(key, modifier, action))
 	{
 		return false;
 	}
@@ -102,7 +100,7 @@ bool InputManager::unregKeyCallback(int key, int modifier, int action)
 
 bool InputManager::unregMouseCallback(int button, int modifier, int action)
 {
-	if (!checkRegMouseCbHelper(button, modifier, action))	
+	if (!checkRegMouseCbHelper(button, modifier, action))
 	{
 		return false;
 	}
@@ -117,7 +115,7 @@ bool InputManager::unregCursorPosCallback()
 	return true;
 }
 
-glm::dvec2 InputManager::getCursorPos() const
+xm::dvec2 InputManager::getCursorPos() const
 {
 	return m_cursor_pos;
 }
@@ -141,7 +139,7 @@ void InputManager::_glfwKeyCallback(GLFWwindow* window, int key, int scancode, i
 void InputManager::_glfwCursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
 	InputManager* self = scast<InputManager*>(glfwGetWindowUserPointer(window));
-	self->m_cursor_pos = glm::dvec2(xpos, ypos);
+	self->m_cursor_pos = xm::dvec2(xpos, ypos);
 }
 
 void InputManager::_glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int modifier)

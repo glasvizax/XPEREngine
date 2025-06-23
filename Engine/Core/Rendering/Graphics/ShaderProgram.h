@@ -4,14 +4,11 @@
 #include <unordered_map>
 #include <type_traits>
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/matrix.hpp>
-
 #include "Debug.h"
 #include "Defines.h"
 #include "DebugOpenGL.h"
+
+#include "xm/xm.h"
 
 class ShaderProgram
 {
@@ -38,10 +35,10 @@ public:
 	void use() const;
 
 	template <size_t N, typename T>
-	void setVec(const std::string& name, glm::vec<N, T> vec);
+	void setVec(const std::string& name, xm::vector<N, T> vec);
 
 	template <size_t N, typename T>
-	void setVecArray(const std::string& name, const glm::vec<N, T>* const array, GLsizei count);
+	void setVecArray(const std::string& name, const xm::vector<N, T>* const array, GLsizei count);
 
 	template <typename T>
 	void set(const std::string& name, T val);
@@ -50,10 +47,10 @@ public:
 	void setArray(const std::string& name, const T* const vals, GLsizei count);
 
 	template <size_t N, typename T>
-	void setMat(const std::string& name, const glm::mat<N, N, T>& mat);
+	void setMat(const std::string& name, const xm::matrix<N, T>& mat);
 
 	template <size_t N, typename T>
-	void setMatArray(const std::string& name, const glm::mat<N, N, T>* const array, GLsizei count);
+	void setMatArray(const std::string& name, const xm::matrix<N, T>* const array, GLsizei count);
 
 	GLuint getID() const { return m_program_id; }
 
