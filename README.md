@@ -23,6 +23,7 @@ my own "game engine" on OpenGL
 - CMake 
 - C++17 compatible compiler
 - Dependencies:
+  - XPERMath
   - GLFW3
   - GLAD
   - GLM
