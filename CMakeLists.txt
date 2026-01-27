@@ -3,24 +3,24 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project(XPEREngine)
+cmake_policy(SET CMP0091 NEW)
 
-set(CMAKE_CXX_FLAGS_RELEASE "/MD")
-set(CMAKE_CXX_FLAGS_DEBUG "/MDd")
+project(XPEREngine VERSION 1.0.0 LANGUAGES CXX C)
 
-# paths setting
-set(ENGINE_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Engine")
-set(TEST_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/EngineTest")
-set(EDITOR_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Editor")
-set(BIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Binary")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+	message(STATUS "MSVC COMPILER PASS")
+endif()
 
-# glsl extensions 
+set(ENGINE_SRC_PATH "Engine")
+set(TEST_SRC_PATH "EngineTest")
+set(EDITOR_SRC_PATH "Editor")
+set(BIN_PATH "Binary")
+
 set(GLSL_EXTS "vert;frag;geom")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${BIN_PATH}")
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-# required vars about libs
 set(GLFW3_INSTALL_DIR "" CACHE PATH "Path to glfw source directory")
 set(GLAD_SOURCE_DIR "" CACHE PATH "Path to glad source directory")
 set(STB_IMAGE_SOURCE_DIR "" CACHE PATH "Path to stb_image source directory")

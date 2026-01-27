@@ -236,6 +236,12 @@ bool setupProgram(GLuint* shaders, uint count, GLuint& program)
 
 		for (uint i = 0; i < count; ++i)
 		{
+			glDetachShader(program, shaders[i]);
+			glDeleteShader(shaders[i]);
+		}
+
+		for (uint i = 0; i < count; ++i)
+		{
 			glDeleteShader(shaders[i]);
 		}
 
