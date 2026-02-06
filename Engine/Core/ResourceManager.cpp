@@ -32,13 +32,15 @@ using namespace std::string_literals;
 
 bool ResourceManager::init()
 {
-	m_current_path = std::filesystem::current_path();
-	m_textures_path.append("content").append("textures");
+	m_content_path = fs::path(XPER_CONTENT_PATH);
+	m_current_path = fs::current_path();
+	m_textures_path = m_content_path / "textures";
 	return true;
 }
 
 void ResourceManager::destroy()
 {
+
 }
 
 bool ResourceManager::initLoadShaderProgram(const std::string& vertex_name, const std::string& fragment_name, ShaderProgram& shader_program)
@@ -88,7 +90,8 @@ bool ResourceManager::initLoadTexture(const std::string& name, Texture& texture,
 {
 	int width, height, channels_num;
 
-	uchar* data = stbi_load(name.c_str(), &width, &height, &channels_num, 0);
+	fs::path path = m_content_path / name;
+	uchar*	 data = stbi_load(path.string().c_str(), &width, &height, &channels_num, 0);
 	if (!data)
 	{
 		LOG_ERROR_F("couldn't load file [%s] reason [%s]", name.c_str(), stbi_failure_reason());
@@ -139,7 +142,9 @@ bool ResourceManager::initLoadCubemap(const std::vector<std::string>& face_files
 
 	for (size_t i = 0; i < 6; ++i)
 	{
-		face_data[i] = stbi_load(face_files[i].c_str(), &width, &height, &channels, 0);
+		fs::path path = m_content_path / face_files[i].c_str();
+
+		face_data[i] = stbi_load(path.string().c_str(), &width, &height, &channels, 0);
 		if (!face_data[i])
 		{
 			LOG_ERROR_F("couldn't load cubemap face [%s] reason [%s]", face_files[i].c_str(), stbi_failure_reason());
@@ -200,7 +205,7 @@ bool ResourceManager::initLoadCubemap(const std::vector<std::string>& face_files
 
 bool ResourceManager::readFile(const std::filesystem::path& path, std::string& content)
 {
-	std::ifstream file(path);
+	std::ifstream file(path, std::ios_base::binary);
 
 	if (!file.is_open())
 	{
@@ -208,7 +213,11 @@ bool ResourceManager::readFile(const std::filesystem::path& path, std::string& c
 		return false;
 	}
 
-	content = std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+	uintmax_t sz = fs::file_size(path);
+	content.resize(sz + 1);
+
+	file.read(content.data(), sz);
+	content[sz] = '\0';
 	return true;
 }
 
@@ -227,18 +236,22 @@ std::vector<fs::path> ResourceManager::findFiles(const std::string& filename)
 
 bool _normalmap; // EVIL CRUTCH
 
-bool ResourceManager::loadModel(const std::string path, Entity& root_entity, bool normalmap, bool flip_uv)
+bool ResourceManager::loadModel(const std::string& name, Entity& root_entity, bool normalmap, bool flip_uv)
 {
 	Assimp::Importer importer;
 
 	_normalmap = normalmap;
-	std::filesystem::path current_path = m_current_path;
-	current_path.append(path);
-
-	const aiScene* scene = importer.ReadFile(current_path.generic_string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | (flip_uv ? aiProcess_FlipUVs : 0) | (_normalmap ? aiProcess_CalcTangentSpace : 0));
+	std::filesystem::path content_path = m_content_path;
+	content_path /= name;
+	const aiScene* scene = importer.ReadFile(
+		content_path.generic_string(), 
+		aiProcess_Triangulate | 
+		aiProcess_GenSmoothNormals | 
+		(flip_uv ? aiProcess_FlipUVs : 0) | 
+		(_normalmap ? aiProcess_CalcTangentSpace : 0));
 	if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
 	{
-		LOG_ERROR_F("couldn't load file [%s] : assimp info : [%s]", path.c_str(), importer.GetErrorString());
+		LOG_ERROR_F("couldn't load file [%s] : assimp info : [%s]", name.c_str(), importer.GetErrorString());
 		return false;
 	}
 	processNode(scene->mRootNode, scene, &root_entity);

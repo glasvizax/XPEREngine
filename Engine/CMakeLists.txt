@@ -57,9 +57,9 @@ list(REMOVE_ITEM ENGINE_LIB_SRC "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
 
 add_library(Engine SHARED ${ENGINE_LIB_SRC} ${GLSL_FILES})
 
-foreach(I IN LISTS ENGINE_SRC)
-	if(IS_DIRECTORY ${I})
-		list(APPEND ENGINE_SUBDIRS ${I})
+foreach(i IN LISTS ENGINE_SRC)
+	if(IS_DIRECTORY ${i})
+		list(APPEND ENGINE_SUBDIRS ${i})
 	endif()
 endforeach()
 
@@ -99,4 +99,17 @@ add_custom_command(
     COMMAND_EXPAND_LISTS
 )
 
+set(XPER_CONTENT_PATH "content" CACHE PATH "path to external content")
+
+cmake_path(
+	ABSOLUTE_PATH XPER_CONTENT_PATH 
+	BASE_DIRECTORY ${CMAKE_SOURCE_DIR}
+	NORMALIZE 
+	OUTPUT_VARIABLE content_full_path
+)
+
+target_compile_definitions(Engine PRIVATE XPER_CONTENT_PATH="${content_full_path}")
+
+#TODO : fix me!
+set_target_properties(Main Engine PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:Main>)
 

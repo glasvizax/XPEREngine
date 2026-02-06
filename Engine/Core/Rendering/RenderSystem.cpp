@@ -59,22 +59,22 @@ bool RenderSystem::init()
 	initScreenQuad();
 
 	std::vector<std::string> skybox_daylight_files = {
-		"content/textures/skybox_daylight/skybox_daylight1.bmp",
-		"content/textures/skybox_daylight/skybox_daylight2.bmp",
-		"content/textures/skybox_daylight/skybox_daylight3.bmp",
-		"content/textures/skybox_daylight/skybox_daylight4.bmp",
-		"content/textures/skybox_daylight/skybox_daylight5.bmp",
-		"content/textures/skybox_daylight/skybox_daylight6.bmp"
+		"textures/skybox_daylight/skybox_daylight1.bmp",
+		"textures/skybox_daylight/skybox_daylight2.bmp",
+		"textures/skybox_daylight/skybox_daylight3.bmp",
+		"textures/skybox_daylight/skybox_daylight4.bmp",
+		"textures/skybox_daylight/skybox_daylight5.bmp",
+		"textures/skybox_daylight/skybox_daylight6.bmp"
 	};
 	m_resource_manager->initLoadCubemap(skybox_daylight_files, m_daylight, false);
 
 	std::vector<std::string> skybox_night_files = {
-		"content/textures/skybox_night/skybox_night1.png",
-		"content/textures/skybox_night/skybox_night2.png",
-		"content/textures/skybox_night/skybox_night3.png",
-		"content/textures/skybox_night/skybox_night4.png",
-		"content/textures/skybox_night/skybox_night5.png",
-		"content/textures/skybox_night/skybox_night6.png"
+		"textures/skybox_night/skybox_night1.png",
+		"textures/skybox_night/skybox_night2.png",
+		"textures/skybox_night/skybox_night3.png",
+		"textures/skybox_night/skybox_night4.png",
+		"textures/skybox_night/skybox_night5.png",
+		"textures/skybox_night/skybox_night6.png"
 	};
 	m_resource_manager->initLoadCubemap(skybox_night_files, m_night, false);
 
@@ -173,18 +173,18 @@ void RenderSystem::initLightsBuffer()
 void RenderSystem::initScene()
 {
 	m_root_entity.addChild();
-	m_resource_manager->loadModel("content/Lowpoly_tree_sample.obj", m_root_entity.m_children.back());
+	m_resource_manager->loadModel("Lowpoly_tree_sample.obj", m_root_entity.m_children.back());
 	m_root_entity.m_children.back().getTransform().setScale(xm::vec3(0.4f)).setPosition(xm::vec3(10.0f, 0.0f, 10.0f));
 
 	m_root_entity.addChild();
-	m_resource_manager->loadModel("content/Cottage_FREE.obj", m_root_entity.m_children.back(), true);
+	m_resource_manager->loadModel("Cottage_FREE.obj", m_root_entity.m_children.back(), true);
 
 	m_root_entity.addChild();
-	m_resource_manager->loadModel("content/osaka.obj", m_root_entity.m_children.back());
+	m_resource_manager->loadModel("osaka.obj", m_root_entity.m_children.back());
 	m_root_entity.m_children.back().getTransform().setScale(xm::vec3(1.0f / 30.0f)).setPosition(xm::vec3(10.0f, 0.0f, 7.0f));
 
 	m_root_entity.addChild();
-	m_resource_manager->loadModel("content/chiyo.obj", m_root_entity.m_children.back());
+	m_resource_manager->loadModel("chiyo.obj", m_root_entity.m_children.back());
 	m_root_entity.m_children.back().getTransform().setScale(xm::vec3(1.0f / 40.0f)).setPosition(xm::vec3(7.0f, 0.0f, 10.0f)).setRotationEuler(xm::vec3(0.0f, -90.0f, 0.0f));
 
 	m_root_entity.addChild();

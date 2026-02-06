@@ -9,8 +9,10 @@ project(XPEREngine VERSION 1.0.0 LANGUAGES CXX C)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+endif()
+
+if(CMAKE_CXX_PLATFORM_ID STREQUAL "Windows")
 	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-	message(STATUS "MSVC COMPILER PASS")
 endif()
 
 set(ENGINE_SRC_PATH "Engine")
@@ -19,7 +21,6 @@ set(EDITOR_SRC_PATH "Editor")
 set(BIN_PATH "Binary")
 
 set(GLSL_EXTS "vert;frag;geom")
-
 
 set(GLFW3_INSTALL_DIR "" CACHE PATH "Path to glfw source directory")
 set(GLAD_SOURCE_DIR "" CACHE PATH "Path to glad source directory")

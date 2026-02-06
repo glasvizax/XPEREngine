@@ -44,13 +44,13 @@ public:
 
 	bool initLoadCubemap(const std::vector<std::string>& face_files, Cubemap& cubemap, bool generate_mipmap);
 
-	bool loadModel(const std::string path, Entity& root_entity, bool normalmap = false, bool flip_uv = true);
+	bool loadModel(const std::string& name, Entity& root_entity, bool normalmap = false, bool flip_uv = true);
 
 	bool readFile(const std::filesystem::path& path, std::string& content);
 
 	std::vector<fs::path> findFiles(const std::string& filename);
 
-	Mesh& storeMesh(Mesh&& mesh) 
+	Mesh& storeMesh(Mesh&& mesh)
 	{
 		return m_general_meshes.emplace_back(std::move(mesh));
 	}
@@ -58,8 +58,8 @@ public:
 	{
 		return m_general_textures.emplace_back(std::move(texture));
 	}
-private:
 
+private:
 	void processNode(aiNode* node, const aiScene* scene, Entity* parent);
 
 	void processMesh(aiMesh* mesh, const aiScene* scene, Model& model);
@@ -80,6 +80,7 @@ private:
 
 	fs::path m_current_path;
 	fs::path m_textures_path;
+	fs::path m_content_path;
 
 	std::deque<Texture> m_general_textures;
 	std::deque<Mesh>	m_general_meshes;
