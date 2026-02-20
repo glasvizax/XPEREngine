@@ -108,7 +108,11 @@ cmake_path(
 	OUTPUT_VARIABLE content_full_path
 )
 
-target_compile_definitions(Engine PRIVATE XPER_CONTENT_PATH="${content_full_path}")
+target_compile_definitions(
+	Engine 
+	PRIVATE XPER_CONTENT_PATH="${content_full_path}"
+	PUBLIC GLFW_INCLUDE_NONE
+)
 
 #TODO : fix me!
 set_target_properties(Main Engine PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY $<TARGET_FILE_DIR:Main>)

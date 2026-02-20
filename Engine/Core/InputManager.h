@@ -40,6 +40,7 @@ public:
 
 	// action - GLFW_PRESS + GLFW_RELEASE + GLFW_REPEAT
 	bool regKeyCallback(KeyCallback callback, int key, int modifier, int action);
+	
 	// action - GLFW_PRESS + GLFW_RELEASE
 	bool regMouseCallback(KeyCallback callback, int button, int modifier, int action);
 

@@ -9,7 +9,7 @@
 
 #include "xm/xm.h"
 
-bool PlayerInputManager::init()
+bool PlayerInputManager::init(GLFWwindow* window)
 {
 	Engine& engine = Engine::getInstance();
 
@@ -19,16 +19,6 @@ bool PlayerInputManager::init()
 
 	m_render_system = &engine.getRenderSystem();
 
-	input_manager.regKeyCallback(PlayerInputManager::moveForward, GLFW_KEY_W, NULL, GLFW_PRESS);
-	input_manager.regKeyCallback(PlayerInputManager::moveBackward, GLFW_KEY_S, NULL, GLFW_PRESS);
-	input_manager.regKeyCallback(PlayerInputManager::moveRight, GLFW_KEY_D, NULL, GLFW_PRESS);
-	input_manager.regKeyCallback(PlayerInputManager::moveLeft, GLFW_KEY_A, NULL, GLFW_PRESS);
-
-	input_manager.regKeyCallback(PlayerInputManager::moveForwardStop, GLFW_KEY_W, NULL, GLFW_RELEASE);
-	input_manager.regKeyCallback(PlayerInputManager::moveBackwardStop, GLFW_KEY_S, NULL, GLFW_RELEASE);
-	input_manager.regKeyCallback(PlayerInputManager::moveRightStop, GLFW_KEY_D, NULL, GLFW_RELEASE);
-	input_manager.regKeyCallback(PlayerInputManager::moveLeftStop, GLFW_KEY_A, NULL, GLFW_RELEASE);
-
 	input_manager.regCursorPosCallback(PlayerInputManager::cursorMoving);
 
 	input_manager.regKeyCallback(PlayerInputManager::testK, GLFW_KEY_K, NULL, GLFW_PRESS);
@@ -36,33 +26,36 @@ bool PlayerInputManager::init()
 
 	input_manager.setCustomPtr(this);
 
+	m_window = window;
+	//glfwSetInputMode(m_window, GLFW_STICKY_KEYS, GLFW_TRUE);
+
 	return true;
 }
 
 void PlayerInputManager::update(float dt)
-{
-	if (m_forward)
+{ 
+	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
 	{
 		xm::vec3 move_dir = m_camera->getLookVector();
 		xm::vec3 move = move_dir * m_speed * dt;
 		m_camera->move(move);
 	}
 
-	if (m_backward)
+	if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
 	{
 		xm::vec3 move_dir = -m_camera->getLookVector();
 		xm::vec3 move = move_dir * m_speed * dt;
 		m_camera->move(move);
 	}
 
-	if (m_right)
+	if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
 	{
 		xm::vec3 move_dir = m_camera->getRightVector();
 		xm::vec3 move = move_dir * m_speed * dt;
 		m_camera->move(move);
 	}
 
-	if (m_left)
+	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
 	{
 		xm::vec3 move_dir = -m_camera->getRightVector();
 		xm::vec3 move = move_dir * m_speed * dt;

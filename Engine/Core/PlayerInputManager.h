@@ -2,6 +2,7 @@
 
 class RenderSystem;
 class Camera;
+#include <GLFW/glfw3.h>
 
 class PlayerInputManager
 {
@@ -16,7 +17,7 @@ public:
 private:
 	friend class Engine;
 
-	bool init();
+	bool init(GLFWwindow* window);
 
 	void update(float dt);
 
@@ -24,6 +25,7 @@ private:
 
 	Camera*		  m_camera = nullptr;
 	RenderSystem* m_render_system = nullptr;
+	GLFWwindow*	  m_window = nullptr;
 
 	float m_speed = 5.0f;
 	float m_sensitivity_vertical = 4.0f;

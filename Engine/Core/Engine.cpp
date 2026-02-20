@@ -82,7 +82,7 @@ int Engine::runStandalone()
 	{
 		return EXIT_FAILURE;
 	}
-	if (!g_player_input_manager.init())
+	if (!g_player_input_manager.init(g_window_manager.getWindow()))
 	{
 		return EXIT_FAILURE;
 	}
